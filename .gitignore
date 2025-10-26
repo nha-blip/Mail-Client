@@ -1,0 +1,12 @@
+# Bỏ qua các thư mục build và file tạm của Visual Studio
+[Bb]in/
+[Oo]bj/
+packages/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Bỏ qua các file hệ thống
+.DS_Store
+Thumbs.db
