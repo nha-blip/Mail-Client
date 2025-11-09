@@ -10,47 +10,84 @@ namespace MailClient
     internal class Account
     {
         private DatabaseHelper db;
-        public Account(DatabaseHelper database)
+        private string Email;
+        private string Password;
+        private string Username;
+        private string IncomingServer;
+        private string IncomingPort;
+        private string OutgoingServer;
+        private string OutgoingPort;
+        public Account(string email, string password, string username,
+                   string incomingServer, string incomingPort,
+                   string outgoingServer, string outgoingPort,
+                   DatabaseHelper databaseHelper)
         {
-            db = database;
+            Email = email;
+            Password = password;
+            Username = username;
+            IncomingServer = incomingServer;
+            IncomingPort = incomingPort;
+            OutgoingServer = outgoingServer;
+            OutgoingPort = outgoingPort;
+            db = new DatabaseHelper();
         }
-        public void AddAccount(string email,string pas, string name, string domain, int inport, int outport,string outserver)
+        public string GetEmail() { return Email; }
+        public void SetEmail(string Email) { this.Email = Email; }
+
+        public string GetPassword() { return Password; }
+        public void SetPassword(string Password) { this.Password = Password; }
+
+        public string GetUsername() { return Username; }
+        public void SetUsername(string Username) { this.Username = Username; }
+
+        public string GetIncomingServer() { return IncomingServer; }
+        public void SetIncomingServer(string IncomingServer) { this.IncomingServer = IncomingServer; }
+
+        public string GetIncomingPort() { return IncomingPort; }
+        public void SetIncomingPort(string IncomingPort) { this.IncomingPort = IncomingPort; }
+
+        public string GetOutgoingServer() { return OutgoingServer; }
+        public void SetOutgoingServer(string OutgoingServer) { this.OutgoingServer = OutgoingServer; }
+
+        public string GetOutgoingPort() { return OutgoingPort; }
+        public void SetOutgoingPort(string OutgoingPort) { this.OutgoingPort = OutgoingPort; }
+        public void AddAccount()
         {
             string query = @"
-INSERT INTO Account
-(Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort, UseSSL, LastSyncTime)
-VALUES
-(@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort, @UseSSL, @LastSyncTime)";
+            IF NOT EXISTS (SELECT 1 FROM Account WHERE Email = @Email)
+            Begin
+            INSERT INTO Account
+            (Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort)
+            VALUES
+            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort)
+            End";
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@Email",email),
-                new SqlParameter("@EncryptedPassword",pas),
-                new SqlParameter("@AccountName",name),
-                new SqlParameter("@IncomingServer",domain),
-                new SqlParameter("@IncomingPort",inport),
-                new SqlParameter("@OutgoingServer",outserver),
-                new SqlParameter("@OutgoingPort",outport),
-                new SqlParameter("@UseSSL",true),
-                new SqlParameter("@LastSyncTime",DateTime.Now)
+                new SqlParameter("@Email",Email),
+                new SqlParameter("@EncryptedPassword",Password),
+                new SqlParameter("@AccountName",Username),
+                new SqlParameter("@IncomingServer",IncomingServer),
+                new SqlParameter("@IncomingPort",IncomingPort),
+                new SqlParameter("@OutgoingServer",OutgoingServer),
+                new SqlParameter("@OutgoingPort",OutgoingPort)
             };
             db.ExecuteNonQuery(query, parameters);
         }
-        public DataTable GetAllAccounts()
+        public int CheckAccount(string email, string password)
         {
-            string query = "SELECT * FROM Account";
-            return db.ExecuteQuery(query);
-        }
-        public int GetAccountIDByEmail(string email)
-        {
-            string query = @"Select AccountID\nfrom Account\nWhere Email=@email";
-            SqlParameter[] parameter = new SqlParameter[] 
+            string query = @"SELECT * FROM Account WHERE Email=@email AND EncryptedPassword=@password";
+            SqlParameter[] parameters =
             {
-                new SqlParameter("@email", email)
+                new SqlParameter("@email", email),
+                new SqlParameter("@password", password)
             };
-            DataTable dt=db.ExecuteQuery(query, parameter);
+
+            DataTable dt = db.ExecuteQuery(query, parameters);
+
             if (dt.Rows.Count > 0)
-                return Convert.ToInt32(dt.Rows[0]["ID"]);
+                return 1;
             else
                 throw new Exception("Account not found");
         }
+
     }
 }

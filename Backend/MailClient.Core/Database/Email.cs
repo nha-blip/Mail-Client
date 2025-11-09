@@ -9,35 +9,84 @@ namespace MailClient
 {
     internal class Email
     {
-        DatabaseHelper db;
-        public Email(DatabaseHelper data)
+        private DatabaseHelper db;
+        private int FolderID;
+        private string Subject;
+        private string From;
+        private string[] To;
+        private DateTime DateSent;
+        private DateTime DateReceived;
+        private string BodyText;
+        private bool IsRead;
+        public Email(string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead, string folderName)
         {
-            db = data;
+            this.db = new DatabaseHelper();
+            string query = @"Select fd.ID
+                            From Account ac, Folder fd
+                            Where ac.ID=fd.AccountID and fd.FolderName=@folderName";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@folderName",folderName)
+            };
+            DataTable dt=db.ExecuteQuery(query, parameters);
+            this.FolderID = Convert.ToInt32(dt.Rows[0]["ID"]);
+            this.Subject = subject;
+            this.From = from;
+            this.To = to;
+            this.DateSent = dateSent;
+            this.DateReceived = dateReceived;
+            this.BodyText = bodyText;
+            this.IsRead = isRead;
         }
-        public void AddEmail(int FolderId, string Subject, string From, string To, string CC, string BCC, string Body, DateTime sent, DateTime ReceivedAt, bool IsRead, bool IsFlag)
+        public int GetFolderID() { return FolderID; }
+        public void SetFolderID(int folderID) { this.FolderID = folderID; }
+
+        public string GetSubject() { return Subject; }
+        public void SetSubject(string subject) { this.Subject = subject; }
+
+        public string GetFrom() { return From; }
+        public void SetFrom(string from) { this.From = from; }
+
+        public string[] GetTo() { return To; }
+        public void SetTo(string[] to) { this.To = to; }
+
+        public DateTime GetDateSent() { return DateSent; }
+        public void SetDateSent(DateTime dateSent) { this.DateSent = dateSent; }
+
+        public DateTime GetDateReceived() { return DateReceived; }
+        public void SetDateReceived(DateTime dateReceived) { this.DateReceived = dateReceived; }
+
+        public string GetBodyText() { return BodyText; }
+        public void SetBodyText(string bodyText) { this.BodyText = bodyText; }
+
+        public bool GetIsRead() { return IsRead; }
+        public void SetIsRead(bool isRead) { this.IsRead = isRead; }
+        public void AddEmail()
         {
-            string query = @"Insert into Email(FolderId, SubjectEmail, FromAdd, ToAdd, ccAdd,bcc,DateSent, DateReceived, BodyText, IsRead,IsFlag)
-                            Values(@FolderId, @SubjectEmail, @FromAdd, @ToAdd, @ccAdd,@bcc, @DateSent, @DateReceived, @BodyText, @IsRead,@IsFlag)";
+            string toString = string.Join(",", To.Select(e => e.Trim()));
+            string query = @"Insert into Email(FolderId, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
+                            Values(@FolderId, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead)";
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@FolderId",FolderId),
+                new SqlParameter("@FolderId",FolderID),
                 new SqlParameter("@SubjectEmail",Subject),
                 new SqlParameter("@FromAdd",From),
-                new SqlParameter("@ToAdd",To),
-                new SqlParameter("@ccAdd",CC),
-                new SqlParameter("@bcc",BCC),
-                new SqlParameter("@DateSent",sent),
-                new SqlParameter("@DateReceived",ReceivedAt),
-                new SqlParameter("@BodyText",Body),
-                new SqlParameter("@IsRead",IsRead),
-                new SqlParameter("@IsFlag",IsFlag)
+                new SqlParameter("@ToAdd",toString),
+                new SqlParameter("@DateSent",DateSent),
+                new SqlParameter("@DateReceived",DateReceived),
+                new SqlParameter("@BodyText",BodyText),
+                new SqlParameter("@IsRead",IsRead)
             };
             db.ExecuteNonQuery(query, parameters);
-            query = @"UPDATE Folder\r\nSET TotalMail = (\r\n    SELECT COUNT(*) \r\n    FROM Email \r\nWHERE Email.FolderId=@FolderID    WHERE Folder.ID=@FolderID\r\n);";
-            db.ExecuteNonQuery(query, parameters);
+            query = @"UPDATE Folder SET TotalMail=TotalMail+1 Where ID=@FolderID";
+            SqlParameter[] Updateparameters = new SqlParameter[]
+            {
+                new SqlParameter("@FolderID",FolderID)
+            };
+            db.ExecuteNonQuery(query, Updateparameters);
         }
         public void DeleteEmail()
         {
-            string query = @"Delete from Email where Isflag=true";
+            string query = @"Delete from Email where Isflag=1";
             db.ExecuteNonQuery(query);
         }
         public void MarkAsRead(int emailId, bool isRead)
