@@ -116,5 +116,17 @@ namespace MailClient
             };
             return db.ExecuteQuery(query,parameters);
         }
+        public void PrintE()
+        {
+            Console.WriteLine("FolderID: " + FolderID);
+            Console.WriteLine("Subject: " + Subject);
+            Console.WriteLine("From: " + From);
+            Console.WriteLine("To: " + string.Join(", ", To)); // Nối mảng To thành chuỗi
+            Console.WriteLine("Date Sent: " + DateSent);
+            Console.WriteLine("Date Received: " + DateReceived);
+            Console.WriteLine("Body Text: " + BodyText);
+            Console.WriteLine("Is Read: " + (IsRead ? "Yes" : "No"));
+            Console.WriteLine(new string('-', 50));
+        }
     }
 }
