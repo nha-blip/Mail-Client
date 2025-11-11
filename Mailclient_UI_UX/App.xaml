@@ -1,0 +1,9 @@
+﻿<Application x:Class="Mailclient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Mailclient"
+             StartupUri="Register.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>

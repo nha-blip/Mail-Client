@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Font\OFL.txt" />
+    <None Remove="Font\Poppins-Black.ttf" />
+    <None Remove="Font\Poppins-BlackItalic.ttf" />
+    <None Remove="Font\Poppins-Bold.ttf" />
+    <None Remove="Font\Poppins-BoldItalic.ttf" />
+    <None Remove="Font\Poppins-ExtraBold.ttf" />
+    <None Remove="Font\Poppins-ExtraBoldItalic.ttf" />
+    <None Remove="Font\Poppins-ExtraLight.ttf" />
+    <None Remove="Font\Poppins-ExtraLightItalic.ttf" />
+    <None Remove="Font\Poppins-Italic.ttf" />
+    <None Remove="Font\Poppins-Light.ttf" />
+    <None Remove="Font\Poppins-LightItalic.ttf" />
+    <None Remove="Font\Poppins-Medium.ttf" />
+    <None Remove="Font\Poppins-MediumItalic.ttf" />
+    <None Remove="Font\Poppins-Regular.ttf" />
+    <None Remove="Font\Poppins-SemiBold.ttf" />
+    <None Remove="Font\Poppins-SemiBoldItalic.ttf" />
+    <None Remove="Font\Poppins-Thin.ttf" />
+    <None Remove="Font\Poppins-ThinItalic.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Font\OFL.txt" />
+    <Resource Include="Font\Poppins-Black.ttf" />
+    <Resource Include="Font\Poppins-BlackItalic.ttf" />
+    <Resource Include="Font\Poppins-Bold.ttf" />
+    <Resource Include="Font\Poppins-BoldItalic.ttf" />
+    <Resource Include="Font\Poppins-ExtraBold.ttf" />
+    <Resource Include="Font\Poppins-ExtraBoldItalic.ttf" />
+    <Resource Include="Font\Poppins-ExtraLight.ttf" />
+    <Resource Include="Font\Poppins-ExtraLightItalic.ttf" />
+    <Resource Include="Font\Poppins-Italic.ttf" />
+    <Resource Include="Font\Poppins-Light.ttf" />
+    <Resource Include="Font\Poppins-LightItalic.ttf" />
+    <Resource Include="Font\Poppins-Medium.ttf" />
+    <Resource Include="Font\Poppins-MediumItalic.ttf" />
+    <Resource Include="Font\Poppins-Regular.ttf" />
+    <Resource Include="Font\Poppins-SemiBold.ttf" />
+    <Resource Include="Font\Poppins-SemiBoldItalic.ttf" />
+    <Resource Include="Font\Poppins-Thin.ttf" />
+    <Resource Include="Font\Poppins-ThinItalic.ttf" />
+  </ItemGroup>
+
+</Project>
