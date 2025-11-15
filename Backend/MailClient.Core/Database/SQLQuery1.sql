@@ -46,3 +46,27 @@ create table Attachment(
 	Constraint Attachment_PK Primary key (ID),
 	Constraint Attachment_FK foreign key (EmailID) references Email(ID) on delete cascade
 )
+select *
+from Email
+Drop table Folder
+SELECT * FROM Folder;
+
+INSERT INTO Folder (AccountID, FolderName, TotalMail)
+VALUES
+(1, 'Inbox', 0),
+(1, 'Sent', 0),
+(1, 'Trash', 0),
+(2, 'Inbox', 0),
+(2, 'Archive', 0);
+
+INSERT INTO Email (FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, IsFlag)
+VALUES 
+(9, 'Meeting Reminder', 'boss@example.com', 'employee1@example.com;employee2@example.com', '2025-11-11 08:30', '2025-11-11 08:31', 'Please attend the meeting at 9 AM.', 0, 0),
+
+(9, 'Project Update', 'manager@example.com', 'team@example.com', '2025-11-10 10:00', '2025-11-10 10:01', 'Project status update attached.', 1, 0),
+
+(9, 'Invoice November', 'finance@example.com', 'client@example.com', '2025-11-09 09:00', '2025-11-09 09:05', 'Please find attached invoice for November.', 0, 1),
+
+(9, 'Party Invitation', 'hr@example.com', 'staff@example.com', '2025-11-08 15:00', '2025-11-08 15:02', 'Join us for the company party this Friday.', 1, 0),
+
+(9, 'Weekly Report', 'teamlead@example.com', 'manager@example.com', '2025-11-07 18:00', '2025-11-07 18:05', 'Attached is the weekly report.', 0, 0);

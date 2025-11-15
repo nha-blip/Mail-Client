@@ -19,8 +19,7 @@ namespace MailClient
         private string OutgoingPort;
         public Account(string email, string password, string username,
                    string incomingServer, string incomingPort,
-                   string outgoingServer, string outgoingPort,
-                   DatabaseHelper databaseHelper)
+                   string outgoingServer, string outgoingPort)
         {
             Email = email;
             Password = password;
@@ -87,6 +86,15 @@ namespace MailClient
                 return 1;
             else
                 throw new Exception("Account not found");
+        }
+        public void DeleteAccount()
+        {
+            string query = @"Delete from Account where Email=@Email";
+            SqlParameter[] parameter = new SqlParameter[]
+            {
+                new SqlParameter("@Email",Email)
+            };
+            db.ExecuteNonQuery(query, parameter);     
         }
 
     }
