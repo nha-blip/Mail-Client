@@ -31,10 +31,31 @@ namespace MailClient
                                         Convert.ToString(row["OutgoingServer"]) ?? "",
                                         Convert.ToString(row["OutgoingPort"]) ?? ""
                                         );
-                
+                a.SetAccountID(Convert.ToInt32(row["AccountID"]));
                 listAccount.Add(a);
             }
             soluong = dt.Rows.Count;
+        }
+        public void AddAccount(Account a)
+        {
+            a.AddAccount();
+            listAccount.Add(a);
+            Folder[] f = new Folder[]{
+                new Folder(a.GetAccountID(),"Inbox",0),
+                new Folder(a.GetAccountID(),"Sent",0),
+                new Folder(a.GetAccountID(),"Draft",0),
+                new Folder(a.GetAccountID(),"Spam",0),
+                new Folder(a.GetAccountID(),"All mail",0)
+            };
+            foreach (Folder f2 in f)
+            {
+                f2.AddFolder();
+            }
+        }
+        public void RemoveAccount(Account a)
+        {
+            a.DeleteAccount();
+            listAccount.Remove(a);
         }
     }
 }

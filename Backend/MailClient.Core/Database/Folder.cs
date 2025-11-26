@@ -10,19 +10,21 @@ namespace MailClient
     internal class Folder
     {
         private DatabaseHelper db;
-        private string Email;
+        private int FolderID;
+        private int AccountID;
         private string FolderName;
         private int TotalMail;
         // Khởi tạo folder
-        public Folder(string Email, string folderName, int totalMail)
+        public Folder(int AccountID, string folderName, int totalMail)
         {
             this.db = new DatabaseHelper();
-            this.Email = Email;
+            this.AccountID = AccountID;
             this.FolderName = folderName;
             this.TotalMail = totalMail;
         }
-        public string GetEmail() { return Email; }
-        public void SetEmail(string Email) { this.Email = Email; }
+        public int GetAccountID() {  return this.AccountID; }
+        public int GetEmail() { return AccountID; }
+        public void SetEmail(int Email) { this.AccountID = Email; }
 
         public string GetFolderName() { return FolderName; }
         public void SetFolderName(string FolderName) { this.FolderName = FolderName; }
@@ -31,21 +33,21 @@ namespace MailClient
         public void SetTotalMail(int TotalMail) { this.TotalMail = TotalMail; }
         public void AddFolder() // Thêm folder vào database
         {
-            string query = @"Insert into Folder(Email,FolderName) values (@Email,@FolderName) ";
+            string query = @"Insert into Folder(AccountID,FolderName) values (@AccountID,@FolderName) ";
             SqlParameter[] parameters = new SqlParameter[]
             {
-                new SqlParameter("@FolderName", FolderName),
-                new SqlParameter("@Email",Email)
+                new SqlParameter("@AccountID",AccountID),
+                new SqlParameter("@FolderName", FolderName)
+                
             };
             db.ExecuteNonQuery(query, parameters);
         }
         public void DeleteFolder() // Xóa folder 
         {
-            string query = @"Delete from Folder Where Email=@Email and FolderName=@FolderName";
+            string query = @"Delete from Folder Where FolderID=@FolderID";
             SqlParameter[] parameters= new SqlParameter[]
             {
-                new SqlParameter("@Email",Email),
-                new SqlParameter("@FolderName",FolderName)
+                new SqlParameter("@FolderID",FolderID)
             };
             db.ExecuteNonQuery(query, parameters);
         }

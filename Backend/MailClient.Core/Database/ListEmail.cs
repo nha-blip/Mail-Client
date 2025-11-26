@@ -59,6 +59,11 @@ namespace MailClient
                 }
             }
         }
+        public void AddEmail(Email e)
+        {
+            e.AddEmail();
+            this.listemail.Add(e);
+        }
         public void Print()
         {
             foreach (Email e in listemail)
