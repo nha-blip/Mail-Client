@@ -99,6 +99,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Database\Database.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Font\OFL.txt" />
     <Resource Include="Font\Poppins-Black.ttf" />
     <Resource Include="Font\Poppins-BlackItalic.ttf" />

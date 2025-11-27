@@ -61,7 +61,7 @@ namespace Mailclient {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Mailclient;component/forgotpassword.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Mailclient;V1.0.0.0;component/forgotpassword.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\forgotPassword.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
