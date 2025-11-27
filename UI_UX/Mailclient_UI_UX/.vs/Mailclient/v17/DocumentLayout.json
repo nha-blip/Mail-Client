@@ -1,14 +1,14 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\",
+  "WorkspaceRootPath": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\",
   "Documents": [],
   "DocumentGroupContainers": [
     {
-      "Orientation": 0,
+      "Orientation": 1,
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
+          "DockedHeight": 540,
           "SelectedChildIndex": -1,
           "Children": [
             {
