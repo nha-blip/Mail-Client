@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Backend",
+    "\\Backend\\MailClient.Core",
+    "\\Backend\\MailClient.Core\\Database",
+    "\\Mailclient_UI_UX",
+    "\\UI_UX",
+    "\\UI_UX\\Mailclient_UI_UX"
+  ],
+  "SelectedNode": "\\UI_UX\\Mailclient_UI_UX\\MainWindow.xaml.cs",
+  "PreviewInSolutionExplorer": false
+}

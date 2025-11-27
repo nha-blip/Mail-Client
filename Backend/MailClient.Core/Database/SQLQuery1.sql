@@ -52,3 +52,39 @@ create table Attachment(
 )
 Select * from Account
 select * from Folder
+select * from Email
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Inbox');
+
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Sent');
+
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Spam');
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Draft');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 33, N'Welcome to the system', N'system@example.com', N'user5@example.com',
+        '2025-01-10 08:30:00', '2025-01-10 08:30:05', N'Chào mừng bạn đến với hệ thống.');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 34, N'Monthly Report', N'report@example.com', N'user5@example.com',
+        '2025-01-11 09:00:00', '2025-01-11 09:00:03', N'Báo cáo tháng đã được gửi.');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 35, N'Password Change Notification', N'security@example.com', N'user5@example.com',
+        '2025-01-12 15:12:00', '2025-01-12 15:12:10', N'Mật khẩu tài khoản của bạn vừa được thay đổi.');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 33, N'Meeting Schedule', N'manager@example.com', N'user5@example.com',
+        '2025-01-13 10:20:00', '2025-01-13 10:20:06', N'Cuộc họp sẽ diễn ra vào chiều nay.');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 34, N'Payment Received', N'billing@example.com', N'user5@example.com',
+        '2025-01-14 13:45:00', '2025-01-14 13:45:04', N'Chúng tôi đã nhận được khoản thanh toán của bạn.');
