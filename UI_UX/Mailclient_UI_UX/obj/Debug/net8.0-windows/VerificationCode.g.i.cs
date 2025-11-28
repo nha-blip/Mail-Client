@@ -61,7 +61,7 @@ namespace Mailclient {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Mailclient;V1.0.0.0;component/verificationcode.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Mailclient;component/verificationcode.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\VerificationCode.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

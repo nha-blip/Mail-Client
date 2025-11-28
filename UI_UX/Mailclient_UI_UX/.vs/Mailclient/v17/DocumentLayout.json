@@ -1,7 +1,28 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C1D73419-10AD-406A-8C43-2529CFA09E54}|..\\Database\\Database.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\database\\email.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A33E3ABF-C45E-46A8-B4F0-7208D5EB9437}|Mailclient.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\mailclient_ui_ux\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{A33E3ABF-C45E-46A8-B4F0-7208D5EB9437}|Mailclient.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C1D73419-10AD-406A-8C43-2529CFA09E54}|..\\Database\\Database.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\database\\listemail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A33E3ABF-C45E-46A8-B4F0-7208D5EB9437}|Mailclient.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\mailclient_ui_ux\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A33E3ABF-C45E-46A8-B4F0-7208D5EB9437}|Mailclient.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C1D73419-10AD-406A-8C43-2529CFA09E54}|..\\Database\\Database.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\database\\folder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C1D73419-10AD-406A-8C43-2529CFA09E54}|..\\Database\\Database.csproj|d:\\nha\\it008_l\u1EADp tr\u00ECnh tr\u1EF1c quan\\mailclient.ui\\mail-client\\ui_ux\\database\\listaccount.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 1,
@@ -9,11 +30,88 @@
       "DocumentGroups": [
         {
           "DockedHeight": 540,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ListEmail.cs",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\ListEmail.cs",
+              "RelativeDocumentMoniker": "..\\Database\\ListEmail.cs",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\ListEmail.cs",
+              "RelativeToolTip": "..\\Database\\ListEmail.cs",
+              "ViewState": "AgIAAEEAAAAAAAAAAAAQwFEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-28T13:11:10.73Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Email.cs",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\Email.cs",
+              "RelativeDocumentMoniker": "..\\Database\\Email.cs",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\Email.cs*",
+              "RelativeToolTip": "..\\Database\\Email.cs*",
+              "ViewState": "AgIAABkAAAAAAAAAAAAzwCkAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-28T13:05:21.404Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Folder.cs",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\Folder.cs",
+              "RelativeDocumentMoniker": "..\\Database\\Folder.cs",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\Folder.cs",
+              "RelativeToolTip": "..\\Database\\Folder.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAAwCsAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-28T13:04:11.298Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "MainWindow.xaml.cs",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\MainWindow.xaml.cs",
+              "RelativeToolTip": "MainWindow.xaml.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAIwEwAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-28T12:57:12.223Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ListAccount.cs",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\ListAccount.cs",
+              "RelativeDocumentMoniker": "..\\Database\\ListAccount.cs",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Database\\ListAccount.cs",
+              "RelativeToolTip": "..\\Database\\ListAccount.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-28T13:13:58.412Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "MainWindow.xaml",
+              "ToolTip": "D:\\NHA\\IT008_L\u1EADp tr\u00ECnh tr\u1EF1c quan\\MailClient.UI\\Mail-Client\\UI_UX\\Mailclient_UI_UX\\MainWindow.xaml",
+              "RelativeToolTip": "MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-11-28T12:56:23.489Z",
+              "EditorCaption": ""
             }
           ]
         }

@@ -16,17 +16,22 @@ namespace MailClient
         {
             listemail = new List<Email>();
             db = new DatabaseHelper();
-            string query = @"SELECT * FROM Email";
+            string query = @"SELECT E.*, F.FolderName,A.AccountName 
+                            FROM Email E
+                            JOIN Folder F ON E.FolderID = F.FolderID AND E.AccountID = F.AccountID
+                            JOIN Account A ON E.AccountID=A.AccountID";
             DataTable email = db.ExecuteQuery(query);
 
             foreach (DataRow row in email.Rows)
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
-
+                
                 Email e = new Email(
                     Convert.ToInt32(row["AccountID"]),
                     Convert.ToInt32(row["FolderID"]),
+                    Convert.ToString(row["FolderName"]) ?? "",
+                    Convert.ToString(row["AccountName"]) ?? "",
                     Convert.ToString(row["SubjectEmail"]) ?? "",
                     Convert.ToString(row["FromAdd"]) ?? "",
                     toArray,
@@ -36,7 +41,6 @@ namespace MailClient
                     Convert.ToBoolean(row["IsRead"] ?? false),
                     Convert.ToInt32(row["ID"])
                 );
-                Console.WriteLine("Add");
                 listemail.Add(e);
             }
         }

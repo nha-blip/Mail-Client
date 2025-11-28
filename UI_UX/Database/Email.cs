@@ -13,7 +13,8 @@ namespace MailClient
         public int emailID { get; set; }      
         public int AccountID { get; set; }
         public int FolderID { get; set; }
-
+        public string FolderName { get; set; }
+        public string AccountName { get; set; }
         public string Subject { get; set; }
         public string From { get; set; }
         public string[] To { get; set; }
@@ -23,12 +24,28 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
+        public string DateDisplay
+        {
+            get
+            {
+                if (DateSent.Date == DateTime.Today)
+                {
+                    // Nếu là hôm nay → chỉ hiển thị giờ:phút
+                    return DateSent.ToString("HH:mm");
+                }
+                else
+                {
+                    // Nếu không phải hôm nay → hiển thị dd/MM/yyyy
+                    return DateSent.ToString("dd/MM/yyyy");
+                }
+            }
+        }
         // Tạo email
-        public Email(int accountID,int folderID,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
+        public Email(int accountID,int FolderID,string FolderName,string AccountName,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
         {            
             this.db = new DatabaseHelper();
             this.AccountID = accountID;
-            this.FolderID=accountID;
+            this.FolderName = FolderName;
             this.Subject = subject;
             this.From = from;
             this.To = to;
@@ -38,6 +55,8 @@ namespace MailClient
             this.IsRead = isRead;
             this.emailID = ID;
             this.IsFlag = false;
+            this.FolderID= FolderID;
+            this.AccountName = AccountName;
         }
         public void AddEmail() // Thêm thư vào database
         {

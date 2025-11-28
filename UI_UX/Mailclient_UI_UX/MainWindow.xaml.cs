@@ -39,11 +39,6 @@ namespace Mailclient
 
             // 3. SỬA LẠI: Nạp dữ liệu vào "list.listemail"
             list = new MailClient.ListEmail();
-            // Gán danh sách "gốc" cho ListBox
-            var filteredEmails = list.listemail.Where(email => email.FolderID == 33 ).ToList();
-            inboxbt.Background = colorSelected;
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
         }
             
 
@@ -84,8 +79,9 @@ namespace Mailclient
         private void inbox(object sender, RoutedEventArgs e)
         {
             resetcolor();
+
             inboxbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email =>email.FolderID==33).ToList();
+            var filteredEmails = list.listemail.Where(email =>email.FolderName=="Inbox").ToList();
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -101,7 +97,7 @@ namespace Mailclient
         {
             resetcolor();
             sentbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderID == 34).ToList();
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Sent").ToList();
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
@@ -111,7 +107,7 @@ namespace Mailclient
         {
             resetcolor();
             spambt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderID == 35).ToList();
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Spam").ToList();
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
@@ -121,7 +117,7 @@ namespace Mailclient
         {
             resetcolor();
             draftsbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderID== 36).ToList();
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Draft").ToList();
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
