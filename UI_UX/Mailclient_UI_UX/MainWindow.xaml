@@ -403,6 +403,7 @@
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
 
+<<<<<<< HEAD
                                 <GradientStop Color="#30FFFFFF" Offset="0"/>
 
                                 <GradientStop Color="#30FFFFFF" Offset="1"/>
@@ -417,6 +418,35 @@
                         HorizontalAlignment="Center"
                         Click="OPLogin"/>
                 </Grid>
+=======
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox x:Name="Checkbox1"
+                                              Grid.Column="0"
+                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                              Margin="0,0,10,0"
+                                              />
+                                    <TextBlock Text="{Binding AccountName}"
+                                               Grid.Column="1"
+                                               HorizontalAlignment="Left"
+                                               Margin="0,0,20,0"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="15"/>
+                                    <TextBlock Text="{Binding Subject}"
+                                               Grid.Column="2"
+                                               Margin="10,0,10,0"
+                                               FontSize="15"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding DateDisplay}"
+                                               Grid.Column="3"
+                                               FontSize="15"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             </Grid>
             <Border Grid.Row="2" 
                     Grid.Column="0" 

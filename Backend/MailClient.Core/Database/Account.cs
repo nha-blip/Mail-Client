@@ -10,6 +10,7 @@ namespace MailClient
     internal class Account
     {
         private DatabaseHelper db;
+        private int AccountID;
         private string Email;
         private string Password;
         private string Username;
@@ -19,8 +20,7 @@ namespace MailClient
         private string OutgoingPort;
         public Account(string email, string password, string username,
                    string incomingServer, string incomingPort,
-                   string outgoingServer, string outgoingPort,
-                   DatabaseHelper databaseHelper)
+                   string outgoingServer, string outgoingPort)
         {
             Email = email;
             Password = password;
@@ -31,6 +31,8 @@ namespace MailClient
             OutgoingPort = outgoingPort;
             db = new DatabaseHelper();
         }
+        public int GetAccountID() { return  AccountID; }
+        public void SetAccountID(int ID) { this.AccountID = ID; }
         public string GetEmail() { return Email; }
         public void SetEmail(string Email) { this.Email = Email; }
 
@@ -59,7 +61,8 @@ namespace MailClient
             INSERT INTO Account
             (Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort)
             VALUES
-            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort)
+            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort);
+            SELECT SCOPE_IDENTITY();
             End";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Email",Email),
@@ -70,7 +73,11 @@ namespace MailClient
                 new SqlParameter("@OutgoingServer",OutgoingServer),
                 new SqlParameter("@OutgoingPort",OutgoingPort)
             };
-            db.ExecuteNonQuery(query, parameters);
+            DataTable dt=db.ExecuteQuery(query, parameters);
+            if (dt.Rows.Count > 0)
+            {
+                this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
+            }
         }
         public int CheckAccount(string email, string password)
         {
@@ -87,6 +94,15 @@ namespace MailClient
                 return 1;
             else
                 throw new Exception("Account not found");
+        }
+        public void DeleteAccount()
+        {
+            string query = @"Delete from Account where AccountID=@AccountID";
+            SqlParameter[] parameter = new SqlParameter[]
+            {
+                new SqlParameter("@AccountID",AccountID)
+            };
+            db.ExecuteNonQuery(query, parameter);     
         }
 
     }

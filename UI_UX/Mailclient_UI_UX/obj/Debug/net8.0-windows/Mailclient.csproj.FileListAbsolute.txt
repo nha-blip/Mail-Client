@@ -73,6 +73,7 @@ C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\forg
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\VerificationCode.baml
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Compose.g.cs
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Compose.baml
+<<<<<<< HEAD
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.sourcelink.json
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Logingg.g.cs
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Logingg.baml
@@ -89,3 +90,99 @@ C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Syst
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win\lib\net7.0\System.Management.dll
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.csproj.Up2Date
+=======
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\refint\Mailclient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.pdb
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Mailclient.exe
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Mailclient.deps.json
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Mailclient.runtimeconfig.json
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Mailclient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Mailclient.pdb
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Azure.Core.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Azure.Identity.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Bcl.AsyncInterfaces.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Bcl.Cryptography.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Data.SqlClient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Caching.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Caching.Memory.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Options.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Extensions.Primitives.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Identity.Client.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.Identity.Client.Extensions.Msal.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.Abstractions.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.Logging.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.Protocols.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.IdentityModel.Tokens.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Microsoft.SqlServer.Server.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.ClientModel.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Configuration.ConfigurationManager.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Diagnostics.EventLog.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.IdentityModel.Tokens.Jwt.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.IO.Pipelines.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Memory.Data.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Security.Cryptography.Pkcs.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Text.Encodings.Web.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\System.Text.Json.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\cs\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\de\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\es\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\fr\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\it\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\ja\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\ko\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\pl\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\pt-BR\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\ru\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\tr\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\unix\lib\net8.0\Microsoft.Data.SqlClient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\Microsoft.Data.SqlClient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Database.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\Database.pdb
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.csproj.AssemblyReference.cache
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Compose.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\forgotPassword.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Login.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\MainWindow.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Register.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\VerificationCode.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\App.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient_MarkupCompile.cache
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient_MarkupCompile.lref
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Compose.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\forgotPassword.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Login.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\MainWindow.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Register.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\VerificationCode.baml
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.g.resources
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.GeneratedMSBuildEditorConfig.editorconfig
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.AssemblyInfoInputs.cache
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.AssemblyInfo.cs
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.csproj.CoreCompileInputs.cache
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.sourcelink.json
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.csproj.Up2Date
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\Mailclient.genruntimeconfig.cache
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\ref\Mailclient.dll
+D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\bin\Debug\net8.0-windows\appsettings.json
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e

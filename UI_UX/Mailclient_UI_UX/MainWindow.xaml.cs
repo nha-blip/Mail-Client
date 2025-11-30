@@ -16,7 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using Database;
 namespace Mailclient
 {
     /// <summary>
@@ -26,153 +26,25 @@ namespace Mailclient
     {
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
+<<<<<<< HEAD
         private List<Email> allEmails;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
+=======
+        private MailClient.ListEmail list;
+        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#A8C7FA"));
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
         // 2. XÓA BỎ CLASS "EMAIL" ĐƠN GIẢN (LỒNG BÊN TRONG)
         // (Đã xóa)
 
         // Hàm để tạo danh sách (Giữ nguyên)
-        public List<Email> CreateEmailList()
-        {
-            List<Email> emailList = new List<Email>();
-
-            // Đối tượng 1 (Chưa đọc)
-            emailList.Add(new Email
-            {
-                Title = "Xin đừng trả lời",
-                Subject = "Bạn đã nộp bài làm cho Nộp Bài tập Chương 5...",
-                Date = new DateTime(2025, 11, 10),
-                IsRead = false,
-                IsChecked = false, // Khởi tạo giá trị
-                loai = "inbox"
-            });
-
-            // Đối tượng 2 (Chưa đọc)
-            emailList.Add(new Email
-            {
-                Title = "Trần Văn Như Y",
-                Subject = "IT005.Q16: Thông báo lịch học tuần này (11/11)...",
-                Date = new DateTime(2025, 11, 10),
-                IsRead = false,
-                IsChecked = false,
-                loai = "inbox"
-            });
-            emailList.Add(new Email
-            {
-                Title = "Phòng Đào tạo",
-                Subject = "Thông báo V/v đăng ký học phần Học kỳ 2",
-                Date = new DateTime(2025, 11, 10),
-                IsRead = false,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 2. Spam - Quảng cáo
-            emailList.Add(new Email
-            {
-                Title = "FPT Shop",
-                Subject = "KHUYẾN MÃI ĐỘC QUYỀN: Giảm giá 50% cho iPhone 20!",
-                Date = new DateTime(2025, 11, 10),
-                IsRead = true,
-                IsChecked = false,
-                loai = "spam"
-            });
-
-            // 3. Sent - Đã gửi
-            emailList.Add(new Email
-            {
-                Title = "Me (Gửi: Thầy A)",
-                Subject = "Em xin nộp bổ sung Bài tập Lớn ạ",
-                Date = new DateTime(2025, 11, 9),
-                IsRead = true,
-                IsChecked = false,
-                loai = "sent"
-            });
-
-            // 4. Inbox - Cá nhân
-            emailList.Add(new Email
-            {
-                Title = "Nguyễn Văn B",
-                Subject = "Cuối tuần này đi cafe không?",
-                Date = new DateTime(2025, 11, 9),
-                IsRead = false,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 5. Inbox - Hệ thống (Giống ví dụ của bạn)
-            emailList.Add(new Email
-            {
-                Title = "Diễn đàn - Trường Đ...",
-                Subject = "[Diễn đàn UIT] Trả lời chủ đề: Thảo luận môn XYZ",
-                Date = new DateTime(2025, 11, 8),
-                IsRead = true,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 6. Spam - Lừa đảo
-            emailList.Add(new Email
-            {
-                Title = "Tài khoản Ngân hàng",
-                Subject = "CẢNH BÁO BẢO MẬT: Tài khoản của bạn đã bị khóa",
-                Date = new DateTime(2025, 11, 8),
-                IsRead = false,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 7. Inbox - Công việc/Học tập
-            emailList.Add(new Email
-            {
-                Title = "Phòng, CTSV",
-                Subject = "Thông báo về việc tham gia Tuần lễ Sinh viên 5 Tốt",
-                Date = new DateTime(2025, 11, 7),
-                IsRead = true,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 8. Sent - Đã gửi
-            emailList.Add(new Email
-            {
-                Title = "Me (Gửi: Nhóm 5)",
-                Subject = "Tài liệu và phân công cho slide thuyết trình",
-                Date = new DateTime(2025, 11, 7),
-                IsRead = true,
-                IsChecked = false,
-                loai = "sent"
-            });
-
-            // 9. Inbox - Thông báo (Giống ví dụ của bạn)
-            emailList.Add(new Email
-            {
-                Title = "Xin đừng trả lời",
-                Subject = "Bạn đã nộp bài làm cho Lớp 2 | Bài tập LAB 03...",
-                Date = new DateTime(2025, 11, 6),
-                IsRead = true,
-                IsChecked = false,
-                loai = "inbox"
-            });
-
-            // 10. Inbox - Mạng xã hội
-            emailList.Add(new Email
-            {
-                Title = "LinkedIn",
-                Subject = "Bạn có 3 lời mời kết nối mới",
-                Date = new DateTime(2025, 11, 6),
-                IsRead = false,
-                IsChecked = false,
-                loai = "inbox"
-            });
-            return emailList;
-        }
+        
 
 
         // Hàm khởi tạo (Constructor)
         public MainWindow()
         {
             InitializeComponent();
+<<<<<<< HEAD
             this.MaxHeight = SystemParameters.WorkArea.Height +16; //hiện taskbar khi phóng to
             // 3. SỬA LẠI: Nạp dữ liệu vào "allEmails"
 
@@ -181,6 +53,11 @@ namespace Mailclient
             allEmails = CreateEmailList();
             var filteredEmails = allEmails.Where(email => email.loai == "inbox" ).ToList();
             MyEmailList.ItemsSource = filteredEmails;
+=======
+
+            // 3. SỬA LẠI: Nạp dữ liệu vào "list.listemail"
+            list = new MailClient.ListEmail();
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -209,18 +86,15 @@ namespace Mailclient
             if (string.IsNullOrEmpty(searchText))
             {
                 // Hiển thị lại danh sách "gốc"
-                MyEmailList.ItemsSource = allEmails;
+                MyEmailList.ItemsSource = list.listemail;
             }
             else
             {
-                // Lọc từ danh sách "gốc" (allEmails)
-                var filteredEmails = allEmails.Where(email =>
+                // Lọc từ danh sách "gốc" (list.listemail)
+                var filteredEmails = list.listemail.Where(email =>
 
                     // SỬA LỖI CS8602: Thêm kiểm tra "!= null"
-                    (email.Title != null && email.Title.ToLower().Contains(searchText)) ||
-                    (email.Subject != null && email.Subject.ToLower().Contains(searchText))
-
-                ).ToList();
+                    (email.Subject != null && email.Subject.ToLower().Contains(searchText))).ToList();
 
                 // Hiển thị danh sách đã lọc
                 MyEmailList.ItemsSource = filteredEmails;
@@ -229,10 +103,17 @@ namespace Mailclient
 
         private void inbox(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
             var filteredEmails = allEmails.Where(email =>email.loai=="inbox"
                 ).ToList();
             resetcolor();
             inboxbt.Background = colorSelected;
+=======
+            resetcolor();
+
+            inboxbt.Background = colorSelected;
+            var filteredEmails = list.listemail.Where(email =>email.FolderName=="Inbox").ToList();
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -249,15 +130,26 @@ namespace Mailclient
         {
             resetcolor();
             sentbt.Background = colorSelected;
+<<<<<<< HEAD
             var filteredEmails = allEmails.Where(email => email.loai == "sent").ToList();
+=======
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Sent").ToList();
+
+            // Hiển thị danh sách đã lọc
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             MyEmailList.ItemsSource = filteredEmails;
         }
 
         private void spam(object sender, RoutedEventArgs e)
         {
             resetcolor();
+<<<<<<< HEAD
             spambt.Background= colorSelected;
             var filteredEmails = allEmails.Where(email => email.loai == "spam").ToList();
+=======
+            spambt.Background = colorSelected;
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Spam").ToList();
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
@@ -266,8 +158,13 @@ namespace Mailclient
         private void drafts(object sender, RoutedEventArgs e)
         {
             resetcolor();
+<<<<<<< HEAD
             draftsbt.Background= colorSelected;
             var filteredEmails = allEmails.Where(email => email.loai == "draft").ToList();
+=======
+            draftsbt.Background = colorSelected;
+            var filteredEmails = list.listemail.Where(email => email.FolderName=="Draft").ToList();
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
@@ -279,6 +176,7 @@ namespace Mailclient
             resetcolor();
             allmailbt.Background= colorSelected;
             // Hiển thị danh sách đã lọc
+<<<<<<< HEAD
             var filteredEmails = allEmails.Where(email => email.loai != "trash").ToList();
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -497,4 +395,11 @@ namespace Mailclient
             }
         }
     }
+=======
+            MyEmailList.ItemsSource = list.listemail;
+        }
+
+    } 
+    
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 }
