@@ -10,3 +10,4 @@ packages/
 # Bỏ qua các file hệ thống
 .DS_Store
 Thumbs.db
+/.vs

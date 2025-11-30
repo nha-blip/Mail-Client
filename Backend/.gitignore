@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE configs
+.vs/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Sensitive data
+Credentials/
+credentials.json
+token.json
+
+# Logs
+*.log
