@@ -85,17 +85,42 @@
     <None Remove="Font\Roboto_SemiCondensed-Thin.ttf" />
     <None Remove="Font\Roboto_SemiCondensed-ThinItalic.ttf" />
     <None Remove="image\allmail.png" />
+    <None Remove="image\bg_uit.jpg" />
     <None Remove="image\drafts.png" />
+    <None Remove="image\email.png" />
+    <None Remove="image\google logo.webp" />
+    <None Remove="image\google_logo-removebg-preview.png" />
     <None Remove="image\inbox.png" />
-    <None Remove="image\note.png" />
+    <None Remove="image\information.png" />
+    <None Remove="image\logo %282%29.png" />
+    <None Remove="image\logo uit.png" />
+    <None Remove="image\Logo-google-icon-PNG.png" />
+    <None Remove="image\logo.png" />
+    <None Remove="image\logo_uit.png" />
+    <None Remove="image\multiple-emails.png" />
     <None Remove="image\pencil.png" />
     <None Remove="image\search.png" />
     <None Remove="image\send.png" />
     <None Remove="image\sent.png" />
+    <None Remove="image\setting.png" />
     <None Remove="image\settings.png" />
     <None Remove="image\spam.png" />
     <None Remove="image\spam1.png" />
     <None Remove="image\trash.png" />
+    <None Remove="image\trashmail.png" />
+    <None Remove="image\uit.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="image\information.png" />
+    <Resource Include="image\sent.png" />
+    <Resource Include="image\setting.png" />
+    <Resource Include="image\spam.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="MailKit" Version="4.14.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -174,18 +199,14 @@
     <Resource Include="Font\Roboto_SemiCondensed-SemiBoldItalic.ttf" />
     <Resource Include="Font\Roboto_SemiCondensed-Thin.ttf" />
     <Resource Include="Font\Roboto_SemiCondensed-ThinItalic.ttf" />
-    <Resource Include="image\allmail.png" />
-    <Resource Include="image\drafts.png" />
+    <Resource Include="image\bg_uit.jpg" />
+    <Resource Include="image\google_logo-removebg-preview.png" />
     <Resource Include="image\inbox.png" />
-    <Resource Include="image\note.png" />
+    <Resource Include="image\logo_uit.png" />
+    <Resource Include="image\multiple-emails.png" />
+    <Resource Include="image\drafts.png" />
     <Resource Include="image\pencil.png" />
-    <Resource Include="image\search.png" />
-    <Resource Include="image\send.png" />
-    <Resource Include="image\sent.png" />
-    <Resource Include="image\settings.png" />
-    <Resource Include="image\spam.png" />
-    <Resource Include="image\spam1.png" />
-    <Resource Include="image\trash.png" />
+    <Resource Include="image\trashmail.png" />
   </ItemGroup>
 
 </Project>

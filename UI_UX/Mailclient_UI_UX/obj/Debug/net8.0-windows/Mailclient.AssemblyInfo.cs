@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mailclient")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+34d7f62072016a26588e498ebd830c6f918f155d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mailclient")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mailclient")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

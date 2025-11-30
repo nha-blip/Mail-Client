@@ -1,16 +1,17 @@
-﻿// Thêm các "using" cần thiết ở đầu file
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq; // <-- QUAN TRỌNG: Cần cho .Where()
+using System.Linq; 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -23,9 +24,10 @@ namespace Mailclient
     /// </summary>
     public partial class MainWindow : Window
     {
+
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private List<Email> allEmails;
-        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#A8C7FA"));
+        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         // 2. XÓA BỎ CLASS "EMAIL" ĐƠN GIẢN (LỒNG BÊN TRONG)
         // (Đã xóa)
 
@@ -166,25 +168,31 @@ namespace Mailclient
             return emailList;
         }
 
+
         // Hàm khởi tạo (Constructor)
         public MainWindow()
         {
             InitializeComponent();
-
+            this.MaxHeight = SystemParameters.WorkArea.Height +16; //hiện taskbar khi phóng to
             // 3. SỬA LẠI: Nạp dữ liệu vào "allEmails"
-            allEmails = CreateEmailList();
 
+            inboxbt.Background=colorSelected;
             // Gán danh sách "gốc" cho ListBox
+            allEmails = CreateEmailList();
             var filteredEmails = allEmails.Where(email => email.loai == "inbox" ).ToList();
-            inboxbt.Background = colorSelected;
-            // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
-            
 
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
         private void OPLogin(object sender, RoutedEventArgs e)
         {
-            Login login = new Login();
+            Logingg login = new Logingg();
             login.Show();
         }
 
@@ -221,35 +229,34 @@ namespace Mailclient
 
         private void inbox(object sender, RoutedEventArgs e)
         {
-            resetcolor();
-            inboxbt.Background = colorSelected;
             var filteredEmails = allEmails.Where(email =>email.loai=="inbox"
                 ).ToList();
+            resetcolor();
+            inboxbt.Background = colorSelected;
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
         private void resetcolor()
         {
-            inboxbt.Background = Brushes.White;
-            sentbt.Background = Brushes.White;
-            draftsbt.Background = Brushes.White;
-            spambt.Background = Brushes.White;
-            allmailbt.Background = Brushes.White;
+            inboxbt.Background = Brushes.Transparent;
+            sentbt.Background = Brushes.Transparent;
+            draftsbt.Background = Brushes.Transparent;
+            spambt.Background = Brushes.Transparent;
+            allmailbt.Background = Brushes.Transparent;
+            trashmailbt.Background = Brushes.Transparent;
         }
         private void sent(object sender, RoutedEventArgs e)
         {
             resetcolor();
             sentbt.Background = colorSelected;
             var filteredEmails = allEmails.Where(email => email.loai == "sent").ToList();
-
-            // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
 
         private void spam(object sender, RoutedEventArgs e)
         {
             resetcolor();
-            spambt.Background = colorSelected;
+            spambt.Background= colorSelected;
             var filteredEmails = allEmails.Where(email => email.loai == "spam").ToList();
 
             // Hiển thị danh sách đã lọc
@@ -259,7 +266,7 @@ namespace Mailclient
         private void drafts(object sender, RoutedEventArgs e)
         {
             resetcolor();
-            draftsbt.Background = colorSelected;
+            draftsbt.Background= colorSelected;
             var filteredEmails = allEmails.Where(email => email.loai == "draft").ToList();
 
             // Hiển thị danh sách đã lọc
@@ -268,12 +275,156 @@ namespace Mailclient
 
         private void allmail(object sender, RoutedEventArgs e)
         {
+
             resetcolor();
-            allmailbt.Background = colorSelected;
+            allmailbt.Background= colorSelected;
             // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = allEmails;
+            var filteredEmails = allEmails.Where(email => email.loai != "trash").ToList();
+            MyEmailList.ItemsSource = filteredEmails;
+        }
+        private void trash(object sender, RoutedEventArgs e)
+        {
+            resetcolor();
+            trashmailbt.Background = colorSelected;
+            var filteredEmails = allEmails.Where(email => email.loai == "trash").ToList();
+            // Hiển thị danh sách đã lọc
+            MyEmailList.ItemsSource = filteredEmails;
+        }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            EnableBlur();
         }
 
+        // =============================================================
+        // ĐOẠN CODE DƯỚI ĐÂY LÀ ĐỂ GỌI WINDOWS API LÀM MỜ NỀN
+        // =============================================================
+        private void EnableBlur()
+        {
+            var windowHelper = new WindowInteropHelper(this);
+            var accent = new AccentPolicy();
+            accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
+            accent.GradientColor = unchecked((int)0x66000000);
+
+            var accentStructSize = Marshal.SizeOf(accent);
+            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+            Marshal.StructureToPtr(accent, accentPtr, false);
+
+            var data = new WindowCompositionAttributeData();
+            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
+            data.SizeOfData = accentStructSize;
+            data.Data = accentPtr;
+
+            SetWindowCompositionAttribute(windowHelper.Handle, ref data);
+            Marshal.FreeHGlobal(accentPtr);
+        }
+
+        [DllImport("user32.dll")]
+        internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WindowCompositionAttributeData
+        {
+            public WindowCompositionAttribute Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        internal enum WindowCompositionAttribute
+        {
+            WCA_ACCENT_POLICY = 19
+        }
+
+        internal enum AccentState
+        {
+            ACCENT_DISABLED = 0,
+            ACCENT_ENABLE_GRADIENT = 1,
+            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+            ACCENT_ENABLE_BLURBEHIND = 3,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4, 
+            ACCENT_INVALID_STATE = 5
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct AccentPolicy
+        {
+            public AccentState AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        private void close(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Minimize(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Normal)
+            {
+                // Nếu đang bình thường -> Phóng to
+                this.WindowState = WindowState.Maximized;
+                mainborder.Padding = new Thickness(8);
+                btnMaximize.Content = "\uE923";
+            }
+            else
+            {
+                // Nếu đang phóng to -> Trở về bình thường
+                this.WindowState = WindowState.Normal;
+                mainborder.Padding = new Thickness(0);
+                btnMaximize.Content = "\uE922";
+            }
+        }
+
+        private void deletemail(object sender, RoutedEventArgs e)
+        {
+            // Lấy Button được click
+            var button = sender as Button;
+
+            // Lấy đối tượng Email được liên kết với Button đó
+            var emailToDelete = button?.DataContext as Email;
+
+            if (emailToDelete != null)
+            {
+                // Thực hiện logic xóa:
+                // 1. Chuyển email sang loại "trash" (thùng rác)
+                string folder = emailToDelete.loai;
+                emailToDelete.loai = "trash";
+
+                if (folder == "inbox")
+                {
+                    var filteredEmails = allEmails.Where(email => email.loai == "inbox").ToList();
+                    MyEmailList.ItemsSource = filteredEmails;
+                }
+                else if (folder == "spam")
+                {
+                    var filteredEmails = allEmails.Where(email => email.loai == "spam").ToList();
+                    MyEmailList.ItemsSource = filteredEmails;
+                }
+                else if (folder == "drafts")
+                {
+                    var filteredEmails = allEmails.Where(email => email.loai == "drafts").ToList();
+                    MyEmailList.ItemsSource = filteredEmails;
+                }
+                else if (folder == "sent")
+                {
+                    var filteredEmails = allEmails.Where(email => email.loai == "sent").ToList();
+                    MyEmailList.ItemsSource = filteredEmails;
+                }
+                else if(folder == "trash") { }
+                else
+                {
+                    var filteredEmails = allEmails.Where(email => email.loai != "trash").ToList();
+                    MyEmailList.ItemsSource = filteredEmails;
+                }
+            }
+        }
     } // <-- KẾT THÚC CLASS MAINWINDOW
 
 
