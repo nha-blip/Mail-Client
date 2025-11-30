@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Mailclient"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:chrome="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         MouseDown="Window_MouseDown"
@@ -559,10 +560,11 @@
                             </Border.Background>
                         </Border>
                         <ListBox x:Name="MyEmailList"
-                             BorderThickness="0"
-                             Background="Transparent" 
-                             HorizontalContentAlignment="Stretch"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                 BorderThickness="0"
+                                 SelectionChanged="content"
+                                 Background="Transparent" 
+                                 HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                             <ListBox.Margin>10,10,10,10</ListBox.Margin>
 
@@ -638,6 +640,29 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+                        <Border x:Name="mailcontent" 
+                                Margin="20" 
+                                BorderThickness="0" 
+                                Background="White"
+                                Visibility="Collapsed">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Button x:Name="return" 
+                                        Grid.Row="0"
+                                        Focusable="False"
+                                        Width="50"
+                                        Background="Transparent"
+                                        HorizontalAlignment="Left"
+                                        Content="⬅"
+                                        Click="returnMain"
+                                        MouseEnter="return_MouseEnter"/>
+                                <wv2:WebView2 x:Name="contentEmail"
+                                              Grid.Row="1"/>
+                            </Grid>
+                        </Border>
                         <local:Compose x:Name="composecontent"
                            Visibility="Collapsed"
                            HorizontalAlignment="Right"
