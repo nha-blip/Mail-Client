@@ -27,7 +27,7 @@ namespace Mailclient
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
-        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#A8C7FA"));
+        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         // 2. XÓA BỎ CLASS "EMAIL" ĐƠN GIẢN (LỒNG BÊN TRONG)
         // (Đã xóa)
 
@@ -42,6 +42,8 @@ namespace Mailclient
 
             // 3. SỬA LẠI: Nạp dữ liệu vào "list.listemail"
             list = new MailClient.ListEmail();
+            var filter = list.listemail.Where(email => email.FolderName == "Inbox");
+            MyEmailList.ItemsSource = filter;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -246,14 +248,14 @@ namespace Mailclient
             var button = sender as Button;
 
             // Lấy đối tượng Email được liên kết với Button đó
-            var emailToDelete = button?.DataContext as Email;
+            var emailToDelete = button?.DataContext as MailClient.Email;
 
             if (emailToDelete != null)
             {
                 // Thực hiện logic xóa:
                 // 1. Chuyển email sang loại "trash" (thùng rác)
-                string folder = emailToDelete.loai;
-                emailToDelete.loai = "Trash";
+                string folder = emailToDelete.FolderName;
+                emailToDelete.FolderName = "Trash";
 
                 if (folder == "Inbox")
                 {

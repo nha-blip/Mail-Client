@@ -21,7 +21,6 @@ namespace MailClient.Core.Services
         // Can be used to ensure the connection remain active or update its status
         public EventHandler TokenRefreshed;
         private String? _cachedEmail = String.Empty;
-
         // Sign in
         public async Task SignInAsync(String credentialPath, String tokenPath)
         {

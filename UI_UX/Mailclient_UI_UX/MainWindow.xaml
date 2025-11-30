@@ -402,8 +402,11 @@
                     <Border>
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+
                                 <GradientStop Color="#30FFFFFF" Offset="0"/>
+
                                 <GradientStop Color="#30FFFFFF" Offset="1"/>
+
                             </LinearGradientBrush>
                         </Border.Background>
                     </Border>
@@ -602,7 +605,7 @@
                                         <CheckBox x:Name="Checkbox1" Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
