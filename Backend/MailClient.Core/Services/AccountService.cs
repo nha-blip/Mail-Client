@@ -9,6 +9,7 @@ using Google.Apis.Util;
 using MailKit.Net.Smtp;
 using MailKit.Net.Imap;
 using MailKit.Security;
+using System.Runtime.CompilerServices;
 
 namespace MailClient.Core.Services
 {
@@ -19,6 +20,7 @@ namespace MailClient.Core.Services
         // Event fires when a token refresh successfully occurs
         // Can be used to ensure the connection remain active or update its status
         public EventHandler TokenRefreshed;
+        private String? _cachedEmail = String.Empty;
 
         // Sign in
         public async Task SignInAsync(String credentialPath, String tokenPath)
@@ -43,10 +45,16 @@ namespace MailClient.Core.Services
             return _credential != null && !String.IsNullOrEmpty(_credential.Token.RefreshToken);
         }
 
+        // Set cachedEmail <IMPORTANT FOR LATTER OPERATIONS>
+        public void setCurrentEmail(String email)
+        {
+            _cachedEmail = email;
+        }
+
         // Get email
         public String GetCurrentUserEmail()
         {
-            return _credential?.UserId; // ? => check if _credential is null before accessing UserId
+            return !String.IsNullOrEmpty(_cachedEmail) ? _cachedEmail : _credential?.UserId; // ? => check if _credential is null before accessing UserId
         }
 
         // Ensures the access token is valid (refreshing if neccessary) and returns it
@@ -80,17 +88,17 @@ namespace MailClient.Core.Services
         {
             try
             {
-                if (Directory.Exists(tokenPath))
-                {
-                    Directory.Delete(tokenPath, true);
-                }
-                _credential = null;
+                // This is the correct way to clean up the token store file
+                var dataStore = new FileDataStore(tokenPath, true);
+                await dataStore.DeleteAsync<UserCredential>("user");
 
-                await Task.CompletedTask;
+                // Clear the in-memory credential
+                _credential = null;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                // Use System.Console as the namespace is not included globally
+                System.Console.WriteLine($"Error during logout cleanup: {e.Message}");
             }
         }
     }
