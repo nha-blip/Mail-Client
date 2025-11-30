@@ -1,9 +1,15 @@
-﻿C:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.i.cs
+<<<<<<< HEAD
+﻿
 
-FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\Compose.xaml;;
-FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\forgotPassword.xaml;;
-FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\Login.xaml;;
 FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\MainWindow.xaml;;
-FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\Register.xaml;;
-FC:\Users\buitr\source\repos\UI_UX\Mailclient_UI_UX\VerificationCode.xaml;;
+=======
+﻿D:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.i.cs
+
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\Compose.xaml;;
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\forgotPassword.xaml;;
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\Login.xaml;;
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\MainWindow.xaml;;
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\Register.xaml;;
+FD:\NHA\IT008_Lập trình trực quan\MailClient.UI\Mail-Client\UI_UX\Mailclient_UI_UX\VerificationCode.xaml;;
+>>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 

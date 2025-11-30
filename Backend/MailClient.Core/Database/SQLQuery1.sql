@@ -1,9 +1,10 @@
-﻿Create Database MailClient
+﻿drop database MailClient
+Create Database MailClient
 Go
 use MailClient
 Go
-Create Table Account(
-	ID int Identity(1,1),				--khóa chính
+Create Table Account(	
+	AccountID int Identity,				-- Khóa chính
 	Email nvarchar(255) Unique,				-- Tên mail
 	EncryptedPassword nvarchar(512),	-- Mật khẩu sau khi mã hóa
 	AccountName nvarchar(100),			-- Tên tài khoản
@@ -11,19 +12,20 @@ Create Table Account(
 	IncomingPort int,					-- Cổng nhận mail
 	OutgoingServer nvarchar(100),		-- Server gửi mail
 	OutgoingPort int,					-- Cổng gửi mail
-	Constraint Account_PK Primary key (ID)
+	Constraint Account_PK Primary key (AccountID)
 )
 Create table Folder(
-	ID int identity(1,1),						--Khóa chính	
-	AccountID int not null,						--Khóa ngoại bảng Account
-	FolderName nvarchar(100),						-- Tên thư mục
-	TotalMail int default 0,					--Tổng số thư
-	Constraint Folder_PK primary key (ID),
-	Constraint Folder_FK Foreign key (AccountID) references Account(ID) on delete cascade
+	FolderID int Identity,				-- Khóa chính 
+	AccountID int,		--Khóa ngoại bảng Account
+	FolderName nvarchar(100),			-- Tên thư mục
+	TotalMail int default 0,			--Tổng số thư
+	Constraint Folder_PK primary key (FolderID),
+	Constraint Folder_FK Foreign key (AccountID) references Account(AccountID) on delete cascade
 )
 Create Table Email(
 	ID bigint identity(1,1),		--Khóa chính
-	FolderID int not null,			--Khóa ngoại bảng Folder
+	AccountID int,
+	FolderID int,			--Khóa ngoại bảng Folder
 	SubjectEmail nvarchar(255),		--Subject email	
 	FromAdd nvarchar(255),			
 	ToAdd nvarchar(255),
@@ -33,8 +35,10 @@ Create Table Email(
 	IsRead bit default 0,			--Đánh dấu đã đọc
 	IsFlag bit default 0,
 	Constraint Email_PK primary key (ID),
-	Constraint Email_FK foreign key (FolderID) references Folder(ID) on delete cascade,
+	Constraint Email_FK_Folder foreign key (FolderID) references Folder(FolderID) on delete cascade,
+	Constraint Email_FK_Account foreign key (AccountID) references Account(AccountID)
 )
+
 create table Attachment(
 	ID int identity (1,1),			--Khóa chính
 	EmailID bigint not null,		--Khóa ngoại bảng Email
@@ -46,27 +50,41 @@ create table Attachment(
 	Constraint Attachment_PK Primary key (ID),
 	Constraint Attachment_FK foreign key (EmailID) references Email(ID) on delete cascade
 )
-select *
-from Email
-Drop table Folder
-SELECT * FROM Folder;
+Select * from Account
+select * from Folder
+select * from Email
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Inbox');
 
-INSERT INTO Folder (AccountID, FolderName, TotalMail)
-VALUES
-(1, 'Inbox', 0),
-(1, 'Sent', 0),
-(1, 'Trash', 0),
-(2, 'Inbox', 0),
-(2, 'Archive', 0);
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Sent');
 
-INSERT INTO Email (FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, IsFlag)
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Spam');
+INSERT INTO Folder (AccountID, FolderName)
+VALUES (5, N'Draft');
+
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
 VALUES 
-(9, 'Meeting Reminder', 'boss@example.com', 'employee1@example.com;employee2@example.com', '2025-11-11 08:30', '2025-11-11 08:31', 'Please attend the meeting at 9 AM.', 0, 0),
+(5, 33, N'Welcome to the system', N'system@example.com', N'user5@example.com',
+        '2025-01-10 08:30:00', '2025-01-10 08:30:05', N'Chào mừng bạn đến với hệ thống.');
 
-(9, 'Project Update', 'manager@example.com', 'team@example.com', '2025-11-10 10:00', '2025-11-10 10:01', 'Project status update attached.', 1, 0),
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 34, N'Monthly Report', N'report@example.com', N'user5@example.com',
+        '2025-01-11 09:00:00', '2025-01-11 09:00:03', N'Báo cáo tháng đã được gửi.');
 
-(9, 'Invoice November', 'finance@example.com', 'client@example.com', '2025-11-09 09:00', '2025-11-09 09:05', 'Please find attached invoice for November.', 0, 1),
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 35, N'Password Change Notification', N'security@example.com', N'user5@example.com',
+        '2025-01-12 15:12:00', '2025-01-12 15:12:10', N'Mật khẩu tài khoản của bạn vừa được thay đổi.');
 
-(9, 'Party Invitation', 'hr@example.com', 'staff@example.com', '2025-11-08 15:00', '2025-11-08 15:02', 'Join us for the company party this Friday.', 1, 0),
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 33, N'Meeting Schedule', N'manager@example.com', N'user5@example.com',
+        '2025-01-13 10:20:00', '2025-01-13 10:20:06', N'Cuộc họp sẽ diễn ra vào chiều nay.');
 
-(9, 'Weekly Report', 'teamlead@example.com', 'manager@example.com', '2025-11-07 18:00', '2025-11-07 18:05', 'Attached is the weekly report.', 0, 0);
+INSERT INTO Email (AccountID, FolderID, SubjectEmail, FromAdd, ToAdd, DateSent, DateReceived, BodyText)
+VALUES 
+(5, 34, N'Payment Received', N'billing@example.com', N'user5@example.com',
+        '2025-01-14 13:45:00', '2025-01-14 13:45:04', N'Chúng tôi đã nhận được khoản thanh toán của bạn.');

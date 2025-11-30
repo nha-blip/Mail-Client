@@ -36,6 +36,7 @@ namespace MailClient.Console
 
                 if (accountService.IsSignedIn())
                 {
+                    accountService.setCurrentEmail("nguyencsgo2006@gmail.com");
                     System.Console.WriteLine("---------------------------------------------");
                     System.Console.WriteLine("Sign in complete! Successfully obtained token.");
                     System.Console.WriteLine($"Logged in Email: {accountService.GetCurrentUserEmail()}");
@@ -44,7 +45,7 @@ namespace MailClient.Console
                     // --- Send email test ---
                     // Renamed the variable and class usage to MailModel as requested
                     MailModel mailModel = new MailModel();
-                    mailModel.From = accountService.GetCurrentUserEmail(); // MUST be the authenticated user's email
+                    mailModel.From = "nguyencsgo2006@gmail.com"; // MUST be the authenticated user's email
                     mailModel.To = new List<String> { "huunguyen.personal@gmail.com" }; // Change to a valid recipient
                     mailModel.Subject = "Test Email from MailClient OAuth2";
                     mailModel.TextBody = "This is the plain text body of the test email.";
