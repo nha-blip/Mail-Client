@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Mailclient"
              mc:Ignorable="d"
-             FontFamily="/Font/#Roboto"
-             Height="350" Width="400">
+             FontFamily="Segoe UI"
+             Height="400" Width="500">
     <UserControl.Resources>
         <Style x:Key="PrimaryButton" TargetType="Button">
 
@@ -73,22 +73,36 @@
             <Border Grid.Row="0" 
                     Background="#EAF1FB" 
                     Padding="10"
+                    MouseLeftButtonDown="maximize"
                     CornerRadius="8,8,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0"
                     Text="New Message" 
                     FontWeight="Bold"/>
                     <Button Grid.Column="1"
-                        Content="✕"
-                        Background="Transparent"
-                        Foreground="Black"
-                        Width="20"
-                        Click="closecompose"
-                        BorderThickness="0"/>
+                            Content="&#xE921;"
+                            FontFamily="Segoe MDL2 Assets" 
+                            Background="Transparent"
+                            Foreground="Black"
+                            Width="20"
+                            FontSize="10"
+                            Click="Minimize"
+                            BorderThickness="0"
+                            />
+                    <Button Grid.Column="2"
+                            Content="&#xE8BB;"
+                            FontFamily="Segoe MDL2 Assets" 
+                            Background="Transparent"
+                            Foreground="Black"
+                            Width="20"
+                            FontSize="10"
+                            Click="closecompose"
+                            BorderThickness="0"/>
                 </Grid>
             </Border>
             <Border Grid.Row="1" BorderBrush="#F1F3F4" BorderThickness="0,0,0,1">
@@ -144,10 +158,24 @@
              />
 
             <Border Grid.Row="4" Background="#EAF1FB" Padding="10" CornerRadius="0,0,8,8">
-                <Button Content="Send" 
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="Send" 
+                            Grid.Column="0"
                         Width="80" 
                         Style="{StaticResource PrimaryButton}"
                         HorizontalAlignment="Left"/>
+                    <Button x:Name="attachment"
+                            Grid.Column="1"
+                            Style="{StaticResource PrimaryButton}"
+                            Content="&#xE16C;"
+                            Click="opfile"
+                            FontSize="18"
+                            FontFamily="Segoe MDL2 Assets"/>
+                </Grid>
             </Border>
         </Grid>
     </Border>

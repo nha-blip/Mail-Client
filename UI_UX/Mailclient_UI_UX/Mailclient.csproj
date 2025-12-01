@@ -85,6 +85,8 @@
     <None Remove="Font\Roboto_SemiCondensed-Thin.ttf" />
     <None Remove="Font\Roboto_SemiCondensed-ThinItalic.ttf" />
     <None Remove="image\allmail.png" />
+    <None Remove="image\attach-document.png" />
+    <None Remove="image\back.png" />
     <None Remove="image\bg_uit.jpg" />
     <None Remove="image\drafts.png" />
     <None Remove="image\email.png" />
@@ -92,6 +94,7 @@
     <None Remove="image\google_logo-removebg-preview.png" />
     <None Remove="image\inbox.png" />
     <None Remove="image\information.png" />
+    <None Remove="image\left-arrow.png" />
     <None Remove="image\logo %282%29.png" />
     <None Remove="image\logo uit.png" />
     <None Remove="image\Logo-google-icon-PNG.png" />
@@ -112,7 +115,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="image\attach-document.png" />
+    <Resource Include="image\back.png" />
     <Resource Include="image\information.png" />
+    <Resource Include="image\left-arrow.png" />
     <Resource Include="image\sent.png" />
     <Resource Include="image\setting.png" />
     <Resource Include="image\spam.png" />
@@ -120,12 +126,14 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.72.0.3966" />
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\Parsing\Parsing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

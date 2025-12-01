@@ -10,7 +10,7 @@
         MouseDown="Window_MouseDown"
         Title="MainWindow" Height="650" Width="1000"
         WindowStartupLocation="CenterScreen"
-        FontFamily="/Font/#Roboto"
+        FontFamily="Segoe UI"
         WindowStyle="None"
         ResizeMode="CanResize"
         AllowsTransparency="True"
@@ -95,8 +95,8 @@
 
         <Style x:Key="MenuSearchButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="Black"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Height" Value="50"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -223,7 +223,7 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="260"/>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0"
                   Grid.Column="0"
@@ -412,13 +412,14 @@
                         </Border.Background>
                     </Border>
                     <Button Content="Login"
-                            Margin="10,5,15,5"
+                            Margin="0,5,18,5"
                         Width="90"
                         Style="{StaticResource ComposeButtonStyle}"
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Right"
                         Click="OPLogin"/>
                 </Grid>
             </Grid>
+
             <Border Grid.Row="2" 
                     Grid.Column="0" 
                     MinWidth="260">
@@ -528,7 +529,7 @@
                             Margin="10">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#F0FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0"/>
                                     <GradientStop Color="#FFFFFFFF" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
@@ -565,9 +566,88 @@
                                  Background="Transparent" 
                                  HorizontalContentAlignment="Stretch"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.Resources>
 
+                                <Style x:Key="ScrollBarLineButton" TargetType="{x:Type RepeatButton}">
+                                    <Setter Property="Focusable" Value="False"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                                <Border Background="Transparent" Width="17" Height="17">
+                                                    <Path Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" 
+                                                      Fill="#606060" 
+                                                      HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+                                <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border x:Name="border" 
+                                                        CornerRadius="8" 
+                                                        Background="#CDCDCD" 
+                                                        Margin="4,0" />
+
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="border" Property="Background" Value="#A6A6A6"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter TargetName="border" Property="Background" Value="#606060"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+                                <Style TargetType="{x:Type ScrollBar}">
+                                    <Setter Property="Width" Value="17"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                                <Grid x:Name="GridRoot" Background="{TemplateBinding Background}">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition MaxHeight="17"/>
+                                                        <RowDefinition Height="0.00001*"/>
+                                                        <RowDefinition MaxHeight="17"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <RepeatButton Grid.Row="0" Style="{StaticResource ScrollBarLineButton}" Command="ScrollBar.LineUpCommand">
+                                                        <RepeatButton.Content>
+                                                            <Geometry>M 0 4 L 3.5 0 L 7 4 Z</Geometry>
+                                                        </RepeatButton.Content>
+                                                    </RepeatButton>
+
+                                                    <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="true" Focusable="false">
+                                                        <Track.Thumb>
+                                                            <Thumb Style="{StaticResource ScrollBarThumb}"/>
+                                                        </Track.Thumb>
+                                                    </Track>
+
+                                                    <RepeatButton Grid.Row="2" Style="{StaticResource ScrollBarLineButton}" Command="ScrollBar.LineDownCommand">
+                                                        <RepeatButton.Content>
+                                                            <Geometry>M 0 0 L 3.5 4 L 7 0 Z</Geometry>
+                                                        </RepeatButton.Content>
+                                                    </RepeatButton>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.Resources>
                             <ListBox.Margin>10,10,10,10</ListBox.Margin>
-
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Background" Value="Transparent"/>
@@ -585,11 +665,11 @@
                                         </Setter.Value>
                                     </Setter>
                                     <Style.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="Background" Value="#EAF1FB"/>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#81D4FA"/>
                                         </Trigger>
                                         <DataTrigger Binding="{Binding IsChecked}" Value="True">
-                                            <Setter Property="Background" Value="#E7F3FF"/>
+                                            <Setter Property="Background" Value="Aqua"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -604,7 +684,7 @@
                                             <ColumnDefinition Width="80"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <CheckBox x:Name="Checkbox1" Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                                        <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
@@ -641,10 +721,12 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                         <Border x:Name="mailcontent" 
-                                Margin="20" 
-                                BorderThickness="0" 
+                                Margin="10" 
                                 Background="White"
-                                Visibility="Collapsed">
+                                Visibility="Collapsed"
+                                ClipToBounds="True"
+                                CornerRadius="10"
+                                >
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="30"/>
@@ -653,12 +735,19 @@
                                 <Button x:Name="return" 
                                         Grid.Row="0"
                                         Focusable="False"
+                                        Height="30"
                                         Width="50"
-                                        Background="Transparent"
+                                        Style="{StaticResource MenuSearchButtonStyle}"
                                         HorizontalAlignment="Left"
-                                        Content="⬅"
                                         Click="returnMain"
-                                        MouseEnter="return_MouseEnter"/>
+                                        PreviewMouseLeftButtonDown="returnmainW">
+                                    <Button.Tag>
+                                        <Image Source="/image/left-arrow.png" 
+                                               VerticalAlignment="Top"
+                                               Height="25"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Button.Tag>
+                                </Button>
                                 <wv2:WebView2 x:Name="contentEmail"
                                               Grid.Row="1"/>
                             </Grid>

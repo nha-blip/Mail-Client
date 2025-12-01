@@ -20,6 +20,7 @@ namespace Mailclient
     /// </summary>
     public partial class Compose : UserControl
     {
+        bool isminimize = false;
         public Compose()
         {
             InitializeComponent();
@@ -28,6 +29,25 @@ namespace Mailclient
         private void closecompose(object sender, RoutedEventArgs e)
         {
             this.Visibility = Visibility.Collapsed; 
+        }
+
+        private void Minimize(object sender, RoutedEventArgs e)
+        {
+            isminimize=true;
+            this.Height = 40;
+            this.Width = 200;
+        }
+
+        private void maximize(object sender, MouseButtonEventArgs e)
+        {
+            isminimize = false;
+            this.Height = 400;
+            this.Width = 500;
+        }
+
+        private void opfile(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
