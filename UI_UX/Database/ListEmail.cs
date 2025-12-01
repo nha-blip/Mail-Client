@@ -12,17 +12,23 @@ namespace MailClient
         private DatabaseHelper db;
         public int soluong;
         public List<Email> listemail;
-        public ListEmail()
+        public ListEmail(int accountID)
         {
             listemail = new List<Email>();
             db = new DatabaseHelper();
-            string query = @"SELECT E.*, F.FolderName,A.AccountName 
-                            FROM Email E
-                            JOIN Folder F ON E.FolderID = F.FolderID AND E.AccountID = F.AccountID
-                            JOIN Account A ON E.AccountID=A.AccountID";
-            DataTable email = db.ExecuteQuery(query);
+            // 1. Sửa câu truy vấn: Dùng @AccID làm tham số
+            string query = "SELECT * FROM Email WHERE AccountID = @AccID ORDER BY DateReceived ASC";
 
-            foreach (DataRow row in email.Rows)
+            // 2. Tạo tham số và truyền giá trị thật từ App.CurrentAccountID vào
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@AccID", accountID)
+            };
+
+            // 3. Gọi hàm ExecuteQuery kèm theo parameters
+            DataTable dt = db.ExecuteQuery(query, parameters);
+
+            foreach (DataRow row in dt.Rows)
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');

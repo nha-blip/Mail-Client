@@ -49,6 +49,35 @@ namespace MailClient
                 return cmd.ExecuteNonQuery();
             }
         }
+        public int LoginOrRegisterGoogle(string email, string displayName)
+        {
+            // Sửa 'EmailAddress' thành 'Email' (hoặc tên đúng trong DB của bạn)
+            string checkQuery = "SELECT AccountID FROM Account WHERE Email = @Email";
+
+            SqlParameter[] checkParams = { new SqlParameter("@Email", email) };
+
+            DataTable dt = ExecuteQuery(checkQuery, checkParams);
+
+            if (dt.Rows.Count > 0)
+            {
+                return Convert.ToInt32(dt.Rows[0]["AccountID"]);
+            }
+            else
+            {
+                // Sửa ở đây nữa:
+                string insertQuery = @"INSERT INTO Account(Email, EncryptedPassword, AccountName) 
+                               VALUES(@Email, 'GoogleAuth', @Name);
+                               SELECT SCOPE_IDENTITY();";
+
+                SqlParameter[] insertParams = {
+            new SqlParameter("@Email", email),
+            new SqlParameter("@Name", displayName)
+        };
+
+                DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
+                return Convert.ToInt32(dtNew.Rows[0][0]);
+            }
+        }
 
     }
 }
