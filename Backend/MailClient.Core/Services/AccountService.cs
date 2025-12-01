@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using Google.Apis.Util;
+using Google.Apis.PeopleService.v1;
 using MailKit.Net.Smtp;
 using MailKit.Net.Imap;
 using MailKit.Security;
 using System.Runtime.CompilerServices;
+using Google.Apis.Services;
 
 namespace MailClient.Core.Services
 {
@@ -17,10 +19,48 @@ namespace MailClient.Core.Services
     {
         private UserCredential _credential;
         public UserCredential Credential => _credential;
+
         // Event fires when a token refresh successfully occurs
         // Can be used to ensure the connection remain active or update its status
         public EventHandler TokenRefreshed;
         private String? _cachedEmail = String.Empty;
+
+        // Get Email Info
+        private async Task<String> FetchPrimaryEmailAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (_credential == null)
+                    return String.Empty;
+
+                var peopleService = new PeopleServiceService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = _credential,
+                    ApplicationName = "MailClient"
+                });
+
+                var request = peopleService.People.Get("people/me");
+                request.PersonFields = "emailAddresses";
+
+                var profile = await request.ExecuteAsync(cancellationToken);
+
+                var primaryEmail = profile.EmailAddresses?.FirstOrDefault()?.Value;
+
+                if (!String.IsNullOrEmpty(primaryEmail))
+                {
+                    Console.WriteLine($"[DEBUG] Successfully fetched email: {primaryEmail}");
+                    return primaryEmail;
+                }
+
+                Console.WriteLine("[DEBUG] People API returned profile but contained no email addresses.");
+                return String.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[ERROR] FetchPrimaryEmailAsync failed: {ex.Message}");
+                return string.Empty;
+            }
+        }
 
         // Sign in
         public async Task SignInAsync(String credentialPath, String tokenPath)
@@ -28,7 +68,7 @@ namespace MailClient.Core.Services
             using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
             {
                 String credPath = tokenPath;
-                String[] Scopes = { "https://mail.google.com" };
+                String[] Scopes = { "https://mail.google.com", "profile", "email" };
 
                 _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
@@ -36,6 +76,15 @@ namespace MailClient.Core.Services
                     "user",
                     CancellationToken.None,
                     new FileDataStore(credPath, true));
+            }
+
+            if (IsSignedIn())
+            {
+                String email = await FetchPrimaryEmailAsync(CancellationToken.None);
+                if (!String.IsNullOrEmpty(email))
+                {
+                    SetCurrentEmail(email);
+                }
             }
         }
 
@@ -46,7 +95,7 @@ namespace MailClient.Core.Services
         }
 
         // Set cachedEmail <IMPORTANT FOR LATTER OPERATIONS>
-        public void setCurrentEmail(String email)
+        private void SetCurrentEmail(String email)
         {
             _cachedEmail = email;
         }
@@ -89,11 +138,14 @@ namespace MailClient.Core.Services
             try
             {
                 // This is the correct way to clean up the token store file
-                var dataStore = new FileDataStore(tokenPath, true);
-                await dataStore.DeleteAsync<UserCredential>("user");
+                if (Directory.Exists(tokenPath))
+                {
+                    Directory.Delete(tokenPath, true);
+                }
 
                 // Clear the in-memory credential
                 _credential = null;
+                _cachedEmail = String.Empty;
             }
             catch (Exception e)
             {
