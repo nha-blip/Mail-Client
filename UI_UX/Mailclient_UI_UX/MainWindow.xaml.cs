@@ -1,4 +1,7 @@
-﻿using Microsoft.Win32;
+﻿using Database;
+using System.IO;
+using Microsoft.Win32;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,7 +20,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Database;
 namespace Mailclient
 {
     /// <summary>
@@ -26,13 +29,8 @@ namespace Mailclient
     {
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
-<<<<<<< HEAD
-        private List<Email> allEmails;
-        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
-=======
         private MailClient.ListEmail list;
-        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#A8C7FA"));
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
+        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         // 2. XÓA BỎ CLASS "EMAIL" ĐƠN GIẢN (LỒNG BÊN TRONG)
         // (Đã xóa)
 
@@ -40,32 +38,20 @@ namespace Mailclient
         
 
 
-        // Hàm khởi tạo (Constructor)
         public MainWindow()
         {
             InitializeComponent();
-<<<<<<< HEAD
-            this.MaxHeight = SystemParameters.WorkArea.Height +16; //hiện taskbar khi phóng to
-            // 3. SỬA LẠI: Nạp dữ liệu vào "allEmails"
-
-            inboxbt.Background=colorSelected;
-            // Gán danh sách "gốc" cho ListBox
-            allEmails = CreateEmailList();
-            var filteredEmails = allEmails.Where(email => email.loai == "inbox" ).ToList();
-            MyEmailList.ItemsSource = filteredEmails;
-=======
-
-            // 3. SỬA LẠI: Nạp dữ liệu vào "list.listemail"
             list = new MailClient.ListEmail();
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
+            inboxbt.Background = colorSelected;
+            var filter = list.listemail.Where(email => email.FolderName == "Inbox");
+            MyEmailList.ItemsSource = filter;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ButtonState == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
+            // Cho phép kéo cửa sổ
+            this.DragMove();
+
         }
         private void OPLogin(object sender, RoutedEventArgs e)
         {
@@ -103,17 +89,9 @@ namespace Mailclient
 
         private void inbox(object sender, RoutedEventArgs e)
         {
-<<<<<<< HEAD
-            var filteredEmails = allEmails.Where(email =>email.loai=="inbox"
-                ).ToList();
             resetcolor();
-            inboxbt.Background = colorSelected;
-=======
-            resetcolor();
-
             inboxbt.Background = colorSelected;
             var filteredEmails = list.listemail.Where(email =>email.FolderName=="Inbox").ToList();
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -130,26 +108,17 @@ namespace Mailclient
         {
             resetcolor();
             sentbt.Background = colorSelected;
-<<<<<<< HEAD
-            var filteredEmails = allEmails.Where(email => email.loai == "sent").ToList();
-=======
             var filteredEmails = list.listemail.Where(email => email.FolderName=="Sent").ToList();
 
             // Hiển thị danh sách đã lọc
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             MyEmailList.ItemsSource = filteredEmails;
         }
 
         private void spam(object sender, RoutedEventArgs e)
         {
             resetcolor();
-<<<<<<< HEAD
-            spambt.Background= colorSelected;
-            var filteredEmails = allEmails.Where(email => email.loai == "spam").ToList();
-=======
             spambt.Background = colorSelected;
             var filteredEmails = list.listemail.Where(email => email.FolderName=="Spam").ToList();
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
@@ -158,14 +127,8 @@ namespace Mailclient
         private void drafts(object sender, RoutedEventArgs e)
         {
             resetcolor();
-<<<<<<< HEAD
-            draftsbt.Background= colorSelected;
-            var filteredEmails = allEmails.Where(email => email.loai == "draft").ToList();
-=======
             draftsbt.Background = colorSelected;
             var filteredEmails = list.listemail.Where(email => email.FolderName=="Draft").ToList();
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
-
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -176,15 +139,14 @@ namespace Mailclient
             resetcolor();
             allmailbt.Background= colorSelected;
             // Hiển thị danh sách đã lọc
-<<<<<<< HEAD
-            var filteredEmails = allEmails.Where(email => email.loai != "trash").ToList();
+            var filteredEmails = list.listemail.Where(email => email.FolderName != "trash").ToList();
             MyEmailList.ItemsSource = filteredEmails;
         }
         private void trash(object sender, RoutedEventArgs e)
         {
             resetcolor();
             trashmailbt.Background = colorSelected;
-            var filteredEmails = allEmails.Where(email => email.loai == "trash").ToList();
+            var filteredEmails = list.listemail.Where(email => email.FolderName == "Trash").ToList();
             // Hiển thị danh sách đã lọc
             MyEmailList.ItemsSource = filteredEmails;
         }
@@ -262,21 +224,47 @@ namespace Mailclient
             this.WindowState = WindowState.Minimized;
         }
 
+        private Rect _restoreLoc;
+
         private void Maximize(object sender, RoutedEventArgs e)
         {
-            if (this.WindowState == WindowState.Normal)
+            // Kiểm tra: Nếu kích thước hiện tại đang bằng kích thước vùng làm việc -> Đang phóng to
+            bool isMaximized = (this.Width >= SystemParameters.WorkArea.Width &&
+                                this.Height >= SystemParameters.WorkArea.Height);
+
+            if (isMaximized)
             {
-                // Nếu đang bình thường -> Phóng to
-                this.WindowState = WindowState.Maximized;
-                mainborder.Padding = new Thickness(8);
-                btnMaximize.Content = "\uE923";
+                // === TRƯỜNG HỢP 1: ĐANG TO -> THU NHỎ LẠI ===
+
+                // 1. Cho phép thay đổi kích thước lại
+                this.ResizeMode = ResizeMode.CanResize;
+
+                // 2. Khôi phục vị trí và kích thước cũ (lấy từ biến đã lưu)
+                this.Left = _restoreLoc.Left;
+                this.Top = _restoreLoc.Top;
+                this.Width = _restoreLoc.Width;
+                this.Height = _restoreLoc.Height;
+
+                btnMaximize.Content = "\uE922";
             }
             else
             {
-                // Nếu đang phóng to -> Trở về bình thường
-                this.WindowState = WindowState.Normal;
-                mainborder.Padding = new Thickness(0);
-                btnMaximize.Content = "\uE922";
+                // === TRƯỜNG HỢP 2: ĐANG NHỎ -> PHÓNG TO HẾT CỠ ===
+
+                // 1. Lưu lại vị trí hiện tại trước khi phóng to
+                _restoreLoc = new Rect(this.Left, this.Top, this.Width, this.Height);
+
+                // 2. Set kích thước bằng ĐÚNG vùng làm việc (WorkArea = Màn hình - Taskbar)
+                // Cách này đảm bảo 100% không đè Taskbar
+                this.Left = SystemParameters.WorkArea.Left;
+                this.Top = SystemParameters.WorkArea.Top;
+                this.Width = SystemParameters.WorkArea.Width;
+                this.Height = SystemParameters.WorkArea.Height;
+
+                // 3. Khóa không cho người dùng kéo dãn khi đang full màn hình
+                this.ResizeMode = ResizeMode.NoResize;
+
+                btnMaximize.Content = "\uE923";
             }
         }
 
@@ -286,42 +274,73 @@ namespace Mailclient
             var button = sender as Button;
 
             // Lấy đối tượng Email được liên kết với Button đó
-            var emailToDelete = button?.DataContext as Email;
+            var emailToDelete = button?.DataContext as MailClient.Email;
 
             if (emailToDelete != null)
             {
                 // Thực hiện logic xóa:
                 // 1. Chuyển email sang loại "trash" (thùng rác)
-                string folder = emailToDelete.loai;
-                emailToDelete.loai = "trash";
+                string folder = emailToDelete.FolderName;
+                emailToDelete.FolderName = "Trash";
 
-                if (folder == "inbox")
+                if (folder == "Inbox")
                 {
-                    var filteredEmails = allEmails.Where(email => email.loai == "inbox").ToList();
+                    var filteredEmails = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
                     MyEmailList.ItemsSource = filteredEmails;
                 }
-                else if (folder == "spam")
+                else if (folder == "Spam")
                 {
-                    var filteredEmails = allEmails.Where(email => email.loai == "spam").ToList();
+                    var filteredEmails = list.listemail.Where(email => email.FolderName == "Spam").ToList();
                     MyEmailList.ItemsSource = filteredEmails;
                 }
-                else if (folder == "drafts")
+                else if (folder == "Drafts")
                 {
-                    var filteredEmails = allEmails.Where(email => email.loai == "drafts").ToList();
+                    var filteredEmails = list.listemail.Where(email => email.FolderName == "Drafts").ToList();
                     MyEmailList.ItemsSource = filteredEmails;
                 }
-                else if (folder == "sent")
+                else if (folder == "Sent")
                 {
-                    var filteredEmails = allEmails.Where(email => email.loai == "sent").ToList();
+                    var filteredEmails = list.listemail.Where(email => email.FolderName == "Sent").ToList();
                     MyEmailList.ItemsSource = filteredEmails;
                 }
-                else if(folder == "trash") { }
+                else if(folder == "Trash") { }
                 else
                 {
-                    var filteredEmails = allEmails.Where(email => email.loai != "trash").ToList();
+                    var filteredEmails = list.listemail.Where(email => email.FolderName!= "Trash").ToList();
                     MyEmailList.ItemsSource = filteredEmails;
                 }
             }
+        }
+
+
+        private async void content(object sender, SelectionChangedEventArgs e)
+        {
+            mailcontent.Visibility= Visibility.Visible;
+            await contentEmail.EnsureCoreWebView2Async();
+            string duongDan = "C:/Users/buitr/Downloads/KET_QUA_VIEW_Test2.html";
+
+            if (File.Exists(duongDan))
+            {
+                // Bước 1: Đọc nội dung file (Biến nó thành <html><body>...</html>)
+                string maHTML = File.ReadAllText(duongDan);
+
+                // Bước 2: Nạp mã HTML đó vào WebView2
+                contentEmail.NavigateToString(maHTML);
+            }
+        }
+
+
+        private void returnMain(object sender, RoutedEventArgs e)
+        {
+            contentEmail.NavigateToString("");
+            contentEmail.IsHitTestVisible = true;
+            mailcontent.Visibility = Visibility.Collapsed;
+            MyEmailList.SelectedIndex = -1;
+        }
+
+        private void return_MouseEnter(object sender, MouseEventArgs e)
+        {
+            //mailcontent.Visibility = Visibility.Collapsed;
         }
     } // <-- KẾT THÚC CLASS MAINWINDOW
 
@@ -395,11 +414,4 @@ namespace Mailclient
             }
         }
     }
-=======
-            MyEmailList.ItemsSource = list.listemail;
-        }
-
-    } 
-    
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
 }

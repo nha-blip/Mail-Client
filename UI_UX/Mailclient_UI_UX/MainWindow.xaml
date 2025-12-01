@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Mailclient"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:chrome="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         MouseDown="Window_MouseDown"
@@ -403,7 +404,6 @@
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
 
-<<<<<<< HEAD
                                 <GradientStop Color="#30FFFFFF" Offset="0"/>
 
                                 <GradientStop Color="#30FFFFFF" Offset="1"/>
@@ -418,35 +418,6 @@
                         HorizontalAlignment="Center"
                         Click="OPLogin"/>
                 </Grid>
-=======
-                                        <ColumnDefinition Width="100"/>
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox x:Name="Checkbox1"
-                                              Grid.Column="0"
-                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                              Margin="0,0,10,0"
-                                              />
-                                    <TextBlock Text="{Binding AccountName}"
-                                               Grid.Column="1"
-                                               HorizontalAlignment="Left"
-                                               Margin="0,0,20,0"
-                                               TextTrimming="CharacterEllipsis"
-                                               FontSize="15"/>
-                                    <TextBlock Text="{Binding Subject}"
-                                               Grid.Column="2"
-                                               Margin="10,0,10,0"
-                                               FontSize="15"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding DateDisplay}"
-                                               Grid.Column="3"
-                                               FontSize="15"
-                                               HorizontalAlignment="Right"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
->>>>>>> b7e1c1dc3b36cf7b95fecfc6a485e78b613a006e
             </Grid>
             <Border Grid.Row="2" 
                     Grid.Column="0" 
@@ -589,10 +560,11 @@
                             </Border.Background>
                         </Border>
                         <ListBox x:Name="MyEmailList"
-                             BorderThickness="0"
-                             Background="Transparent" 
-                             HorizontalContentAlignment="Stretch"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                 BorderThickness="0"
+                                 SelectionChanged="content"
+                                 Background="Transparent" 
+                                 HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                             <ListBox.Margin>10,10,10,10</ListBox.Margin>
 
@@ -635,7 +607,7 @@
                                         <CheckBox x:Name="Checkbox1" Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
@@ -668,6 +640,29 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+                        <Border x:Name="mailcontent" 
+                                Margin="20" 
+                                BorderThickness="0" 
+                                Background="White"
+                                Visibility="Collapsed">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Button x:Name="return" 
+                                        Grid.Row="0"
+                                        Focusable="False"
+                                        Width="50"
+                                        Background="Transparent"
+                                        HorizontalAlignment="Left"
+                                        Content="⬅"
+                                        Click="returnMain"
+                                        MouseEnter="return_MouseEnter"/>
+                                <wv2:WebView2 x:Name="contentEmail"
+                                              Grid.Row="1"/>
+                            </Grid>
+                        </Border>
                         <local:Compose x:Name="composecontent"
                            Visibility="Collapsed"
                            HorizontalAlignment="Right"
