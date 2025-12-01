@@ -36,7 +36,6 @@ namespace MailClient.Console
 
                 if (accountService.IsSignedIn())
                 {
-                    accountService.SetCurrentEmail(accountService.FetchPrimaryEmailAsync());
                     System.Console.WriteLine("---------------------------------------------");
                     System.Console.WriteLine("Sign in complete! Successfully obtained token.");
                     System.Console.WriteLine($"Logged in Email: {accountService.GetCurrentUserEmail()}");
