@@ -70,13 +70,30 @@ namespace MailClient
             }
         }
 
+        // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
+        private DateTime GetGmailInternalDate(long? internalDate)
+        {
+            if (internalDate == null) return DateTime.Now;
+            try
+            {
+                // Google trả về số mili-giây tính từ năm 1970 (Unix Time)
+                // Dùng hàm này để đổi ra ngày giờ chuẩn, không lo bị lỗi định dạng
+                return DateTimeOffset.FromUnixTimeMilliseconds(internalDate.Value).LocalDateTime;
+            }
+            catch
+            {
+                // Nếu có lỗi gì đó thì mới lấy giờ hiện tại
+                return DateTime.Now;
+            }
+        }
+
         public async Task SyncEmailsToDatabase(int localAccountID)
         {
             if (Service == null) return;
 
             var request = Service.Users.Messages.List("me");
             request.LabelIds = new List<string>() { "INBOX" };
-            request.MaxResults = 20;
+            request.MaxResults = 10;
 
             var response = await request.ExecuteAsync();
 
@@ -101,14 +118,12 @@ namespace MailClient
                         emailReq.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Raw;
                         var emailInfo = await emailReq.ExecuteAsync();
                         byte[] emailBytes = Convert.FromBase64String(emailInfo.Raw.Replace("-", "+").Replace("_", "/"));
-
                         using (var stream = new MemoryStream(emailBytes))
                         {
                             var mimeMessage = MimeMessage.Load(stream);
 
                             // Parse
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
-
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
                             emailToSave.FolderID = 16; // Ví dụ Inbox

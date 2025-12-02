@@ -10,8 +10,7 @@ using MimeKit;
 using Google.Apis.Auth.OAuth2;
 using MailClient.Core.Models; // Vẫn giữ namespace này nếu cần cho MailModel/EmailParser
 using System.Threading;
-using System.Security.Authentication;
-using Database; // Giả sử class Email nằm trong namespace này hoặc được tham chiếu
+using System.Security.Authentication; // Giả sử class Email nằm trong namespace này hoặc được tham chiếu
 
 namespace MailClient.Core.Services
 {

@@ -1,4 +1,9 @@
-﻿﻿using System;
+
+
+using MailClient;
+using Microsoft.Win32;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -18,10 +23,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using Database;
-using MailClient;
-using Microsoft.Win32;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
 namespace Mailclient
 {
     /// <summary>
@@ -67,6 +68,7 @@ namespace Mailclient
                 if (currentFolder == "Inbox")
                 {
                     inboxbt.Background = colorSelected;
+                   
                     MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
                 }
                 else if (currentFolder == "AllMail")

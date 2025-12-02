@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions; // Quan trọng để dùng Regex
 using System.Threading.Tasks;
-using Database;
 using MimeKit;
 
 namespace Mailclient

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <UserSecretsId>74e95762-d935-430b-ae3e-444ccc34d55f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -129,6 +130,7 @@
     <PackageReference Include="Google.Apis.Gmail.v1" Version="1.72.0.3966" />
     <PackageReference Include="Google.Apis.PeopleService.v1" Version="1.72.0.3973" />
     <PackageReference Include="MailKit" Version="4.14.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="MimeKit" Version="4.14.0" />
   </ItemGroup>
