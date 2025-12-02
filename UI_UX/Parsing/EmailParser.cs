@@ -85,6 +85,7 @@ namespace Mailclient
             StringBuilder attachmentsHtml = new StringBuilder();
             if (email.Attachments.Count > 0)
             {
+                // ... (Code cũ của bạn) ...
                 attachmentsHtml.Append("<div class='attachments-area'>");
                 attachmentsHtml.Append($"<div class='attachments-title'>{email.Attachments.Count} tệp đính kèm</div>");
                 attachmentsHtml.Append("<div class='attachments-list'>");
@@ -219,6 +220,7 @@ namespace Mailclient
         }
 
         public string GetSenderName(string fullFromHeader)
+        private string GetSenderName(string fullFromHeader)
         {
             int index = fullFromHeader.IndexOf('<');
             if (index > 0) return fullFromHeader.Substring(0, index).Trim(' ', '"');

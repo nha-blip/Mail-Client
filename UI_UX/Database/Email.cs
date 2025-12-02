@@ -61,6 +61,17 @@ namespace MailClient
         public void AddEmail() // Thêm thư vào database
         {
             string toString = string.Join(",", To.Select(e => e.Trim()));
+            string checkQuery = @"SELECT COUNT(*) FROM Email 
+                          WHERE BodyText=@BodyText";
+
+            SqlParameter[] checkParams = new SqlParameter[]
+            {
+                new SqlParameter("@BodyText",BodyText)
+            };
+            DataTable data = db.ExecuteQuery(checkQuery, checkParams);
+            if (data.Rows.Count > 0 && Convert.ToInt32(data.Rows[0][0]) > 0) return;
+            
+
             string query = @"Insert into Email(AccountID,FolderID, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
                             Values(@AccountID,@FolderID, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead);
                             SELECT SCOPE_IDENTITY();";
@@ -110,19 +121,5 @@ namespace MailClient
             
             db.ExecuteNonQuery(query, parameters);
         }
-        //public void PrintE()
-        //{
-        //    Console.WriteLine("EmailID: " + emailID);
-        //    Console.WriteLine("Email: " + email);
-        //    Console.WriteLine("FolderName: " + FolderName);
-        //    Console.WriteLine("Subject: " + Subject);
-        //    Console.WriteLine("From: " + From);
-        //    Console.WriteLine("To: " + string.Join(", ", To)); // Nối mảng To thành chuỗi
-        //    Console.WriteLine("Date Sent: " + DateSent);
-        //    Console.WriteLine("Date Received: " + DateReceived);
-        //    Console.WriteLine("Body Text: " + BodyText);
-        //    Console.WriteLine("Is Read: " + (IsRead ? "Yes" : "No"));
-        //    Console.WriteLine(new string('-', 50));
-        //}
     }
 }
