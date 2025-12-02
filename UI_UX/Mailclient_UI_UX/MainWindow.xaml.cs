@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Database;
+using MailClient;
+using Microsoft.Win32;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -18,10 +22,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using Database;
-using MailClient;
-using Microsoft.Win32;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
 namespace Mailclient
 {
     /// <summary>
@@ -32,7 +32,7 @@ namespace Mailclient
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
-        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
+        private SolidColorBrush colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         private GmailStore gmailStore;
@@ -63,6 +63,7 @@ namespace Mailclient
                 if (currentFolder == "Inbox")
                 {
                     inboxbt.Background = colorSelected;
+                   
                     MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
                 }
                 else if (currentFolder == "AllMail")

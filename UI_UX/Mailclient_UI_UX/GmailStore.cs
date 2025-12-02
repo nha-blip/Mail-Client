@@ -33,7 +33,7 @@ namespace MailClient
                 if (!File.Exists(jsonPath))
                 {
                     // Thử tìm đường dẫn tuyệt đối nếu file local ko có (Code hỗ trợ bạn debug)
-                    jsonPath = @"D:\NHA\IT008_Lập trình trực quan\test\UI_UX-20251201T123457Z-1-001\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
+                    jsonPath = @"D:\drive-download-20251202T014458Z-1-001\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
                 using (var stream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))
@@ -55,13 +55,29 @@ namespace MailClient
 
                 var profile = await Service.Users.GetProfile("me").ExecuteAsync();
                 UserEmail = profile.EmailAddress;
-
                 return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi đăng nhập Google: " + ex.Message);
                 return false;
+            }
+        }
+
+        // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
+        private DateTime GetGmailInternalDate(long? internalDate)
+        {
+            if (internalDate == null) return DateTime.Now;
+            try
+            {
+                // Google trả về số mili-giây tính từ năm 1970 (Unix Time)
+                // Dùng hàm này để đổi ra ngày giờ chuẩn, không lo bị lỗi định dạng
+                return DateTimeOffset.FromUnixTimeMilliseconds(internalDate.Value).LocalDateTime;
+            }
+            catch
+            {
+                // Nếu có lỗi gì đó thì mới lấy giờ hiện tại
+                return DateTime.Now;
             }
         }
 
@@ -72,7 +88,7 @@ namespace MailClient
             // Lấy danh sách ID thư
             var request = Service.Users.Messages.List("me");
             request.LabelIds = new List<string>() { "INBOX" };
-            request.MaxResults = 50;
+            request.MaxResults = 10;
 
             var response = await request.ExecuteAsync();
 
@@ -88,25 +104,19 @@ namespace MailClient
                     // 1. Lấy Header
                     string subject = GetHeader(emailInfo.Payload.Headers, "Subject");
                     string from = GetHeader(emailInfo.Payload.Headers, "From");
-                    string dateStr = GetHeader(emailInfo.Payload.Headers, "Date");
 
                     // 2. LẤY FULL BODY (Thay vì Snippet)
                     string body = GetEmailBody(emailInfo.Payload);
 
-                    // 3. Xử lý ngày tháng
-                    DateTimeOffset dateOffset;
-                    if (!DateTimeOffset.TryParse(dateStr, out dateOffset))
-                        dateOffset = DateTimeOffset.Now;
-                    DateTime dateReceived = dateOffset.DateTime;
 
+                    DateTime dateReceived = GetGmailInternalDate(emailInfo.InternalDate);
                     // 4. Lưu vào Database
                     string[] to = { "me" };
 
-                    // Kiểm tra thư đã tồn tại chưa để tránh trùng (Dựa vào ID thư của Google nếu bạn lưu nó, hoặc tạm thời check subject/time)
                     // Ở đây mình insert luôn để demo:
                     MailClient.Email newEmail = new MailClient.Email(
                         localAccountID, 1, "Inbox", UserEmail,
-                        subject, from, to, dateReceived, DateTime.Now,
+                        subject, from, to, dateReceived, dateReceived,
                         body, // <-- Giờ đây là HTML xịn
                         false
                     );

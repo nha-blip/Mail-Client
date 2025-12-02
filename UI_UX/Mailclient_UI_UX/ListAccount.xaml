@@ -10,7 +10,7 @@
         <ListView ItemsSource="{Binding Accounts}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <local:AccountItem/>
+                    <!--<local:AccountItem/>-->
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

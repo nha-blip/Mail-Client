@@ -687,7 +687,7 @@
                                         <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding SenderName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 
@@ -731,6 +731,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="30"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="10"/>
                                 </Grid.RowDefinitions>
                                 <Button x:Name="return" 
                                         Grid.Row="0"
@@ -750,6 +751,7 @@
                                 </Button>
                                 <wv2:WebView2 x:Name="contentEmail"
                                               Grid.Row="1"/>
+                                <Grid Grid.Row="2" />
                             </Grid>
                         </Border>
                         <local:Compose x:Name="composecontent"
