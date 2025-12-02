@@ -68,8 +68,9 @@ namespace Mailclient
 
                     // 5. KẾT NỐI DATABASE
                     // Gọi hàm để kiểm tra xem Email này đã có trong DB chưa, nếu chưa thì tạo mới
-                    DatabaseHelper db = new DatabaseHelper();
-                    int accID = db.LoginOrRegisterGoogle(googleHelper.UserEmail, googleHelper.UserEmail);
+                    //Account acc = new Account(googleHelper.UserEmail, googleHelper.UserEmail);
+                    DatabaseHelper dp = new DatabaseHelper();
+                    int accID = dp.LoginOrRegisterGoogle(googleHelper.UserEmail, googleHelper.UserEmail);
 
                     // 6. LƯU THÔNG TIN VÀO BIẾN TOÀN CỤC (Để MainWindow dùng)
                     App.CurrentAccountID = accID;       // Lưu ID để biết đang tải thư của ai

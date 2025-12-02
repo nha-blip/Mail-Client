@@ -24,12 +24,7 @@ namespace MailClient
             {
                 Account a = new Account(
                                         Convert.ToString(row["Email"]) ?? "",
-                                        Convert.ToString(row["EncryptedPassword"]) ?? "",
-                                        Convert.ToString(row["AccountName"]) ?? "",
-                                        Convert.ToString(row["IncomingServer"]) ?? "",
-                                        Convert.ToString(row["IncomingPort"]) ?? "",
-                                        Convert.ToString(row["OutgoingServer"]) ?? "",
-                                        Convert.ToString(row["OutgoingPort"]) ?? ""
+                                        Convert.ToString(row["AccountName"]) ?? ""
                                         );
                 a.AccountID=Convert.ToInt32(row["AccountID"]);
                 listAccount.Add(a);

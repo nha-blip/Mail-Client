@@ -17,7 +17,10 @@ namespace MailClient
             listemail = new List<Email>();
             db = new DatabaseHelper();
             // 1. Sửa câu truy vấn: Dùng @AccID làm tham số
-            string query = "SELECT * FROM Email WHERE AccountID = @AccID ORDER BY DateReceived ASC";
+            string query = @"SELECT * FROM Email E
+                             JOIN Folder F ON F.FolderID = E.FolderID
+                             JOIN Account A ON A.AccountID=E.AccountID
+                             WHERE E.AccountID = @AccID ORDER BY E.DateSent DESC";
 
             // 2. Tạo tham số và truyền giá trị thật từ App.CurrentAccountID vào
             SqlParameter[] parameters = new SqlParameter[]
@@ -27,16 +30,14 @@ namespace MailClient
 
             // 3. Gọi hàm ExecuteQuery kèm theo parameters
             DataTable dt = db.ExecuteQuery(query, parameters);
-
             foreach (DataRow row in dt.Rows)
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
                 
                 Email e = new Email(
-                    Convert.ToInt32(row["AccountID"]),
-                    Convert.ToInt32(row["FolderID"]),
                     Convert.ToString(row["FolderName"]) ?? "",
+                    Convert.ToString(row["FromUser"])?? "",
                     Convert.ToString(row["AccountName"]) ?? "",
                     Convert.ToString(row["SubjectEmail"]) ?? "",
                     Convert.ToString(row["FromAdd"]) ?? "",
@@ -47,6 +48,7 @@ namespace MailClient
                     Convert.ToBoolean(row["IsRead"] ?? false),
                     Convert.ToInt32(row["ID"])
                 );
+
                 listemail.Add(e);
             }
         }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Data;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client;
 
 namespace MailClient
 {
@@ -49,6 +50,7 @@ namespace MailClient
                 return cmd.ExecuteNonQuery();
             }
         }
+
         public int LoginOrRegisterGoogle(string email, string displayName)
         {
             // Sửa 'EmailAddress' thành 'Email' (hoặc tên đúng trong DB của bạn)
@@ -73,8 +75,21 @@ namespace MailClient
             new SqlParameter("@Email", email),
             new SqlParameter("@Name", displayName)
         };
-
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
+                string query = @"INSERT INTO Folder (AccountID, FolderName)
+                        VALUES
+                            (@AccID, 'Inbox'),
+                            (@AccID, 'Sent'),
+                            (@AccID, 'Spam'),
+                            (@AccID, 'Trash'),
+                            (@AccID, 'Draft');
+                        ";
+                SqlParameter[] folder = new SqlParameter[]
+                {
+                new SqlParameter("@AccID",Convert.ToInt32(dtNew.Rows[0][0]))
+                };
+                ExecuteNonQuery(query, folder);
+                
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }
         }

@@ -687,7 +687,7 @@
                                         <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
 

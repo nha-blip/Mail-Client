@@ -14,48 +14,61 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
-        public string IncomingServer { get; set; }
-        public string IncomingPort { get; set; }
-        public string OutgoingServer { get; set; }
-        public string OutgoingPort { get; set; }
-        public Account(string email, string password, string username,
-                   string incomingServer, string incomingPort,
-                   string outgoingServer, string outgoingPort)
+        public Account(string email,string username)
         {
             Email = email;
-            Password = password;
             Username = username;
-            IncomingServer = incomingServer;
-            IncomingPort = incomingPort;
-            OutgoingServer = outgoingServer;
-            OutgoingPort = outgoingPort;
             db = new DatabaseHelper();
-        }       
+        } 
+        public Account(int id)
+        {
+            AccountID = id;
+            string query = @"select * from Account where AccountID=@AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@AccountID",id)
+            };
+            db=new DatabaseHelper();
+            DataTable dt = db.ExecuteQuery(query, parameters);
+            if (dt.Rows.Count > 0)
+            {
+                Username = Convert.ToString(dt.Rows[0]["AccountName"]) ?? "";
+                Email = Convert.ToString(dt.Rows[0]["Email"]) ?? "";
+            }
+        }
         public void AddAccount()
         {
             string query = @"
             IF NOT EXISTS (SELECT 1 FROM Account WHERE Email = @Email)
             Begin
             INSERT INTO Account
-            (Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort)
+            (Email, EncryptedPassword, AccountName)
             VALUES
-            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort);
+            (@Email, 'GoogleAuth', @AccountName);
             SELECT SCOPE_IDENTITY();
             End";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Email",Email),
-                new SqlParameter("@EncryptedPassword",Password),
-                new SqlParameter("@AccountName",Username),
-                new SqlParameter("@IncomingServer",IncomingServer),
-                new SqlParameter("@IncomingPort",IncomingPort),
-                new SqlParameter("@OutgoingServer",OutgoingServer),
-                new SqlParameter("@OutgoingPort",OutgoingPort)
+                new SqlParameter("@AccountName",Username)
             };
             DataTable dt=db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
+            query = @"INSERT INTO Folder (AccountID, FolderName)
+                        VALUES
+                            (@AccID, 'Inbox'),
+                            (@AccID, 'Sent'),
+                            (@AccID, 'Spam'),
+                            (@AccID, 'Trash'),
+                            (@AccID, 'Draft');
+                        ";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@AccID",AccountID)
+            };
+            db.ExecuteNonQuery(query, folder);
         }
         public int CheckAccount(string email, string password)
         {
@@ -81,6 +94,25 @@ namespace MailClient
                 new SqlParameter("@AccountID",AccountID)
             };
             db.ExecuteNonQuery(query, parameter);     
+        }
+        public int LoginOrRegisterGoogle()
+        {
+            // Sửa 'EmailAddress' thành 'Email' (hoặc tên đúng trong DB của bạn)
+            string checkQuery = "SELECT AccountID FROM Account WHERE Email = @Email";
+
+            SqlParameter[] checkParams = { new SqlParameter("@Email", Email) };
+
+            DataTable dt = db.ExecuteQuery(checkQuery, checkParams);
+
+            if (dt.Rows.Count > 0)
+            {
+                return Convert.ToInt32(dt.Rows[0]["AccountID"]);
+            }
+            else
+            {
+                AddAccount();
+                return AccountID;
+            }
         }
 
     }

@@ -1,11 +1,13 @@
-﻿using MimeKit;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Text.RegularExpressions; // Quan trọng để dùng Regex
 using System.Threading.Tasks;
+using Database;
+using MimeKit;
 
 namespace Mailclient
 {
@@ -15,46 +17,56 @@ namespace Mailclient
         // PHẦN 1: LOGIC PARSING CHÍNH
         // =========================================================================
 
-        public async Task<ParsedEmail> ParseAsync(MimeMessage rawMessage)
+        public async Task<MailClient.Email> ParseAsync(MimeMessage rawMessage)
         {
             return await Task.Run(() =>
             {
-                var parsedEmail = new ParsedEmail();
+                var dbEmail = new MailClient.Email();
 
-                // 1. Trích xuất Headers
-                parsedEmail.MessageId = rawMessage.MessageId;
-                parsedEmail.Subject = rawMessage.Subject;
-                parsedEmail.Date = rawMessage.Date;
-                parsedEmail.From = rawMessage.From.ToString();
-                parsedEmail.To.AddRange(rawMessage.To.Select(r => r.ToString()));
+                // 1. Map Header
+                dbEmail.Subject = rawMessage.Subject ?? "(No Subject)";
+                dbEmail.From = GetSenderEmail(rawMessage.From.ToString());
+                dbEmail.FromUser = GetSenderName(rawMessage.From.ToString());
+                dbEmail.To = rawMessage.To.Select(m => m.ToString()).ToArray();
+                dbEmail.DateSent = rawMessage.Date.DateTime;
+                dbEmail.DateReceived = DateTime.Now;
+                dbEmail.IsRead = false;
 
-                // 2. Trích xuất Body (HTML & Text)
-                // Sử dụng HtmlPreviewVisitor để xử lý ảnh nội tuyến (cid:)
+                // 2. Map Body
                 var visitor = new HtmlPreviewVisitor();
                 rawMessage.Accept(visitor);
-                parsedEmail.BodyAsHtml = visitor.HtmlBody;
+                dbEmail.BodyText = visitor.HtmlBody;
 
-                // 3. Trích xuất Attachments (File đính kèm)
-                foreach (var attachment in visitor.Attachments.OfType<MimePart>())
+                // 3. Map Attachments (Trực tiếp sang class Attachment của DB)
+                foreach (var mimePart in visitor.Attachments.OfType<MimePart>())
                 {
-                    var attachmentInfo = new ParsedAttachmentInfo
-                    {
-                        FileName = attachment.FileName,
-                        SizeInBytes = attachment.Content?.Stream?.Length ?? 0,
-                        OriginalMimePart = attachment // Lưu tham chiếu để save sau này
-                    };
-                    parsedEmail.Attachments.Add(attachmentInfo);
+                    // Tạo đối tượng Attachment (Entity)
+                    var dbAttachment = new MailClient.Attachment();
+
+                    dbAttachment.Name = mimePart.FileName ?? "unnamed";
+                    dbAttachment.TypeMine = mimePart.ContentType.MimeType ?? "application/octet-stream"; // Lưu ý: TypeMine (theo class cũ của bạn)
+                    dbAttachment.Size = (int)(mimePart.Content?.Stream?.Length ?? 0); // Ép kiểu long -> int
+                    dbAttachment.IsDownload = 0; // Mặc định chưa tải
+
+                    // Lưu "chìa khóa" MimePart vào thuộc tính tạm mới thêm
+                    dbAttachment.OriginalMimePart = mimePart;
+
+                    // Thêm vào danh sách tạm của Email
+                    dbEmail.TempAttachments.Add(dbAttachment);
                 }
 
-                return parsedEmail;
+                return dbEmail;
             });
         }
 
-        public async Task SaveAttachmentAsync(ParsedAttachmentInfo attachmentInfo, string savePath)
+        public async Task SaveAttachmentAsync(MailClient.Attachment attachment, string savePath)
         {
-            using (var stream = File.Create(savePath))
+            if (attachment.OriginalMimePart != null)
             {
-                await attachmentInfo.OriginalMimePart.Content.DecodeToAsync(stream);
+                using (var stream = File.Create(savePath))
+                {
+                    await attachment.OriginalMimePart.Content.DecodeToAsync(stream);
+                }
             }
         }
 
@@ -62,41 +74,41 @@ namespace Mailclient
         // PHẦN 2: TẠO GIAO DIỆN HTML (VIEW TEMPLATE - GMAIL STYLE)
         // =========================================================================
 
-        public string GenerateDisplayHtml(ParsedEmail email, string customAvatarUrl = null)
+        public string GenerateDisplayHtml(MailClient.Email email, string customAvatarUrl = null)
         {
-            // ... (Phần 1 và 2: Xử lý Header và Avatar GIỮ NGUYÊN) ...
+            // 1. Chuẩn bị dữ liệu
             string senderName = GetSenderName(email.From);
             string senderEmail = GetSenderEmail(email.From);
-            string dateString = email.Date.ToString("HH:mm, dd/MM/yyyy");
+            string dateString = email.DateSent.ToString("HH:mm, dd/MM/yyyy");
+            string initials = GetInitials(senderName);
+            string avatarColor = GetColorFromString(senderName);
+            string recipientsString = (email.To != null && email.To.Length > 0)
+                              ? string.Join(", ", email.To)
+                              : "me";
 
-            string avatarHtml;
-            if (!string.IsNullOrEmpty(customAvatarUrl))
-            {
-                avatarHtml = $@"<img class='avatar-img' src='{customAvatarUrl}' alt='AV' />";
-            }
-            else
-            {
-                string initials = GetInitials(senderName);
-                string avatarColor = GetColorFromString(senderName);
-                avatarHtml = $@"<div class='avatar-text' style='background-color: {avatarColor}'>{initials}</div>";
-            }
+            // Xử lý Avatar HTML (giữ nguyên logic cũ) ...
+            string avatarHtml = !string.IsNullOrEmpty(customAvatarUrl)
+                ? $@"<img class='avatar-img' src='{customAvatarUrl}' alt='AV' />"
+                : $@"<div class='avatar-text' style='background-color: {avatarColor}'>{initials}</div>";
 
-            // ... (Phần 3: Xử lý Attachments GIỮ NGUYÊN) ...
+            // --- [SỬA ĐỔI] Xử lý Attachments từ List<Attachment> ---
             StringBuilder attachmentsHtml = new StringBuilder();
-            if (email.Attachments.Count > 0)
+            if (email.TempAttachments != null && email.TempAttachments.Count > 0)
             {
-                // ... (Code cũ của bạn) ...
                 attachmentsHtml.Append("<div class='attachments-area'>");
-                attachmentsHtml.Append($"<div class='attachments-title'>{email.Attachments.Count} tệp đính kèm</div>");
+                attachmentsHtml.Append($"<div class='attachments-title'>{email.TempAttachments.Count} tệp đính kèm</div>");
                 attachmentsHtml.Append("<div class='attachments-list'>");
-                foreach (var att in email.Attachments)
+
+                foreach (var att in email.TempAttachments)
                 {
-                    string size = FormatBytes(att.SizeInBytes);
+                    string size = FormatBytes(att.Size); // att.Size giờ là int
+                    // Replace dấu ' trong tên file để tránh lỗi JS nếu tên file có ký tự đặc biệt
+                    string safeName = att.Name.Replace("'", "\\'");
                     attachmentsHtml.Append($@"
-                        <div class='attachment-card' title='{att.FileName}'>
+                        <div class='attachment-card' title='{att.Name}' onclick=""sendDownloadRequest('{safeName}')"">
                             <div class='attachment-preview'>FILE</div>
                             <div class='attachment-footer'>
-                                <div class='att-name'>{att.FileName}</div>
+                                <div class='att-name'>{att.Name}</div>
                                 <div class='att-size'>{size}</div>
                             </div>
                         </div>");
@@ -105,7 +117,7 @@ namespace Mailclient
             }
 
             // *** GỌI HÀM LỌC NỘI DUNG TẠI ĐÂY ***
-            string cleanBodyContent = ExtractBodyContent(email.BodyAsHtml);
+            string cleanBodyContent = ExtractBodyContent(email.BodyText); // Sử dụng BodyText
 
             string template = $@"
             <!DOCTYPE html>
@@ -113,8 +125,23 @@ namespace Mailclient
             <head>
                 <meta charset='UTF-8'>
                 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <style>
-                    /* ... (Các CSS cũ giữ nguyên) ... */
+                <style> 
+                    ::-webkit-scrollbar {{
+                width: 10px;
+                height: 10px;
+            }}
+            ::-webkit-scrollbar-track {{
+                background: transparent;
+            }}
+            ::-webkit-scrollbar-thumb {{
+                background-color: #c1c1c1;
+                border-radius: 6px;
+                border: 2px solid #fff; /* Viền trắng để tách biệt */
+            }}
+            ::-webkit-scrollbar-thumb:hover {{
+                background-color: #a8a8a8;
+            }}
+
                     body {{
                         font-family: 'Google Sans', Roboto, Helvetica, Arial, sans-serif;
                         background-color: #ffffff;
@@ -123,8 +150,7 @@ namespace Mailclient
                         color: #202124;
                         overflow-x: hidden;
                     }}
-                    /* ... */
-
+                    
                     /* CẬP NHẬT CSS CHO EMAIL BODY ĐỂ TRÁNH VỠ KHUNG */
                     .email-body {{
                         font-size: 14px;
@@ -144,7 +170,6 @@ namespace Mailclient
                     .email-body p {{ margin-bottom: 1em; }}
                     .email-body img {{ max-width: 100%; height: auto; }}
 
-                    /* ... (Các CSS khác giữ nguyên) ... */
                     .subject-header {{ margin-bottom: 20px; border-bottom: 1px solid transparent; }}
                     .subject-text {{ font-size: 22px; font-weight: 400; margin: 0; line-height: 1.5; color: #1f1f1f; }}
                     .sender-header {{ display: flex; align-items: flex-start; margin-bottom: 20px; }}
@@ -168,7 +193,30 @@ namespace Mailclient
                     .att-size {{ font-size: 11px; color: #5f6368; }}
                     .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; text-align: center; }}
                     @media (max-width: 600px) {{ .email-body, .attachments-area {{ padding-left: 0; }} .avatar-container {{ display: none; }} }}
+                    
+                    /* Thêm hiệu ứng click để người dùng biết là nút bấm được */
+                    .attachment-card:active {{
+                        transform: scale(0.98);
+                        background-color: #e8eaed;
+                    }}
                 </style>
+
+                <script>
+    function sendDownloadRequest(fileName) {{
+        console.log('User clicked download: ' + fileName); // Log để kiểm tra
+        
+        try {{
+            if (window.chrome && window.chrome.webview) {{
+                window.chrome.webview.postMessage('DOWNLOAD:' + fileName);
+            }} else {{
+                alert('Lỗi: Không tìm thấy kết nối tới ứng dụng!');
+            }}
+        }} catch (e) {{
+            console.error('Lỗi khi gửi tin nhắn: ' + e);
+        }}
+    }}
+</script>               
+
             </head>
             <body>
                 <div class='subject-header'>
@@ -182,7 +230,7 @@ namespace Mailclient
                             <span class='sender-name'>{senderName}</span>
                             <span class='sender-email'>&lt;{senderEmail}&gt;</span>
                         </div>
-                        <div class='to-me'>tới {string.Join(", ", email.To)}</div>
+                        <div class='to-me'>tới {recipientsString}</div>
                     </div>
                     <div class='email-date'>{dateString}</div>
                 </div>
@@ -194,13 +242,15 @@ namespace Mailclient
                 {attachmentsHtml}
 
                 <div class='footer'>
-                    Hiển thị bởi Mail Client (Nhóm Đồ Án)
+                    Hiển thị bởi Mail Client (Ruby Chan)
                 </div>
             </body>
             </html>";
 
             return template;
         }
+
+
 
         // =========================================================================
         // PHẦN 3: CÁC HÀM HỖ TRỢ (HELPER METHODS)
@@ -221,6 +271,7 @@ namespace Mailclient
 
         private string GetSenderName(string fullFromHeader)
         {
+            if (string.IsNullOrEmpty(fullFromHeader)) return "Unknown";
             int index = fullFromHeader.IndexOf('<');
             if (index > 0) return fullFromHeader.Substring(0, index).Trim(' ', '"');
             return fullFromHeader;
@@ -228,6 +279,7 @@ namespace Mailclient
 
         private string GetSenderEmail(string fullFromHeader)
         {
+            if (string.IsNullOrEmpty(fullFromHeader)) return "";
             int start = fullFromHeader.IndexOf('<');
             int end = fullFromHeader.IndexOf('>');
             if (start >= 0 && end > start) return fullFromHeader.Substring(start + 1, end - start - 1);
@@ -260,7 +312,6 @@ namespace Mailclient
             string content = html;
 
             // 1. Tìm nội dung bên trong thẻ <body> (nếu có)
-            // RegexOptions.Singleline giúp dấu chấm (.) khớp với cả ký tự xuống dòng
             var match = Regex.Match(html, @"<body[^>]*>(.*?)</body>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
             if (match.Success)
@@ -269,18 +320,9 @@ namespace Mailclient
             }
 
             // 2. Xóa các thẻ HTML bao quanh gây lỗi giao diện (nếu còn sót lại)
-            // Xóa <!DOCTYPE ...>
             content = Regex.Replace(content, @"<!DOCTYPE[^>]*>", "", RegexOptions.IgnoreCase);
-
-            // Xóa <html> và </html>
             content = Regex.Replace(content, @"<html[^>]*>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"</html>", "", RegexOptions.IgnoreCase);
-
-            // Xóa <head>...</head> nếu muốn (tùy chọn, nhưng thường email marketing để CSS trong head nên ta giữ lại)
-            // Nếu bạn thấy CSS của email làm hỏng giao diện chính, hãy uncomment dòng dưới:
-            // content = Regex.Replace(content, @"<head[^>]*>.*?</head>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-            // Xóa thẻ body mở và đóng còn sót (trường hợp regex trên không bắt trọn)
             content = Regex.Replace(content, @"<body[^>]*>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"</body>", "", RegexOptions.IgnoreCase);
 
