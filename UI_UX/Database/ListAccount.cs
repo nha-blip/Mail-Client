@@ -35,17 +35,6 @@ namespace MailClient
         {
             a.AddAccount();
             listAccount.Add(a);
-            Folder[] f = new Folder[]{
-                new Folder(a.AccountID,"Inbox",0),
-                new Folder(a.AccountID,"Sent",0),
-                new Folder(a.AccountID,"Draft",0),
-                new Folder(a.AccountID,"Spam",0),
-                new Folder(a.AccountID,"All mail",0)
-            };
-            foreach (Folder f2 in f)
-            {
-                f2.AddFolder();
-            }
         }
         public void RemoveAccount(Account a)
         {

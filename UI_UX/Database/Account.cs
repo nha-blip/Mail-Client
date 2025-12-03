@@ -56,19 +56,6 @@ namespace MailClient
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
-            query = @"INSERT INTO Folder (AccountID, FolderName)
-                        VALUES
-                            (@AccID, 'Inbox'),
-                            (@AccID, 'Sent'),
-                            (@AccID, 'Spam'),
-                            (@AccID, 'Trash'),
-                            (@AccID, 'Draft');
-                        ";
-            SqlParameter[] folder = new SqlParameter[]
-            {
-                new SqlParameter("@AccID",AccountID)
-            };
-            db.ExecuteNonQuery(query, folder);
         }
         public int CheckAccount(string email, string password)
         {
@@ -95,25 +82,7 @@ namespace MailClient
             };
             db.ExecuteNonQuery(query, parameter);     
         }
-        public int LoginOrRegisterGoogle()
-        {
-            // Sửa 'EmailAddress' thành 'Email' (hoặc tên đúng trong DB của bạn)
-            string checkQuery = "SELECT AccountID FROM Account WHERE Email = @Email";
-
-            SqlParameter[] checkParams = { new SqlParameter("@Email", Email) };
-
-            DataTable dt = db.ExecuteQuery(checkQuery, checkParams);
-
-            if (dt.Rows.Count > 0)
-            {
-                return Convert.ToInt32(dt.Rows[0]["AccountID"]);
-            }
-            else
-            {
-                AddAccount();
-                return AccountID;
-            }
-        }
+        
 
     }
 }

@@ -153,5 +153,48 @@ namespace MailClient
         }
         // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
         public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
+        public void UpdateFolderEmail(string foldername)
+        {
+            // Lấy ID của folder Trash
+            string query = @"Select FolderID from Folder where FolderName=@FolderName and AccountID = @AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@FolderName",foldername),
+                new SqlParameter("@AccountID",AccountID)
+            };
+            DataTable dt = db.ExecuteQuery(query, parameters);
+            int newfolderID = Convert.ToInt32(dt.Rows[0][0]);
+            
+            //Giảm TotalMail của Source
+            query = @"UPDATE Folder 
+                        SET TotalMail = TotalMail - 1 
+                        WHERE FolderID = @SourceFolderID";
+            SqlParameter[] source = new SqlParameter[]
+            {
+                new SqlParameter("@SourceFolderID",FolderID)
+            };
+            db.ExecuteNonQuery(query, source);
+            FolderID = newfolderID;
+
+            // Chuyển folderID mail hiện tại sang Trash
+            query = @"Update Email Set FolderID=@FolderID where ID=@ID";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@FolderID",newfolderID),
+                new SqlParameter("@ID",emailID)
+            };
+            db.ExecuteNonQuery(query, folder);
+
+            // Tăng TotalMail của Trash
+            query = @"UPDATE Folder 
+                        SET TotalMail = TotalMail + 1 
+                        WHERE FolderID = @SourceFolderID";
+            SqlParameter[] trash = new SqlParameter[]
+            {
+                new SqlParameter("@SourceFolderID",FolderID)
+            };
+            db.ExecuteNonQuery(query, trash);
+
+        }
     }
 }
