@@ -12,6 +12,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MailClient;
+using MailClient.Core.Models;
+using MailClient.Core.Services;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Mailclient
 {
@@ -21,9 +25,29 @@ namespace Mailclient
     public partial class Compose : UserControl
     {
         bool isminimize = false;
+        public GmailStore _store;
+        public AccountService accountService;
+        public MailService mailService;
+        public Account acc;
         public Compose()
         {
             InitializeComponent();
+
+            // Cần phải khởi tạo _store ở đây. Lưu ý: Store này CHƯA ĐĂNG NHẬP.
+            acc = new Account(App.CurrentAccountID);
+            _store = new GmailStore();
+            accountService = new AccountService(_store);
+            mailService = new MailService(accountService);
+        }
+        public void SetAuthenticatedStore(GmailStore authenticatedStore)
+        {
+            // Cập nhật trường _store bằng đối tượng đã được đăng nhập
+            _store = authenticatedStore ?? throw new ArgumentNullException(nameof(authenticatedStore));
+
+            // Khởi tạo lại các service với store mới
+            accountService = new AccountService(_store);
+            mailService = new MailService(accountService);
+
         }
 
         private void closecompose(object sender, RoutedEventArgs e)
@@ -48,6 +72,75 @@ namespace Mailclient
         private void opfile(object sender, RoutedEventArgs e)
         {
 
+        }
+        // Đảm bảo hàm được đánh dấu là async
+        private async void Send_Click(object sender, RoutedEventArgs e)
+        {
+            // Kiểm tra xem đã triển khai AccountService hay chưa
+            if (_store.Service == null)
+            {
+                MessageBox.Show("Phiên làm việc đã kết thúc hoặc chưa đăng nhập. Vui lòng đăng nhập lại.", "Lỗi Xác thực", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // SỬ DỤNG INSTANCE ĐÃ CÓ VÀ ĐÃ ĐĂNG NHẬP
+            Email model = new Email();
+            // 1. Thu thập và thiết lập dữ liệu cơ bản
+            try
+            {
+                // 1.1. Thiết lập Người gửi (From)
+                model.From = accountService.GetCurrentUserEmail();
+                // 1.2. Thiết lập Người nhận (To), tách chuỗi bằng dấu phẩy
+                // .Split(',') tạo mảng string[], .ToList() chuyển thành List<string>
+                model.To = To.Text.Split(","); // Loại bỏ khoảng trắng thừa
+                model.AccountName = acc.Username;                   
+
+                // Kiểm tra xem có người nhận nào không
+                if (!model.To.Any())
+                {
+                    MessageBox.Show("Vui lòng nhập ít nhất một địa chỉ người nhận (To).", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // 1.3. Thiết lập Cc và Bcc (nếu có trường văn bản tương ứng trên UI)
+                //model.Cc = Cc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                //                   .Select(s => s.Trim())
+                //                   .ToList();
+
+                //model.Bcc = Bcc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                //                    .Select(s => s.Trim())
+                //                    .ToList();
+
+                // 1.4. Thiết lập Chủ đề và Nội dung
+                model.Subject = Subject.Text;
+                model.BodyText = Body.Text; // Giả sử Body.Text chứa nội dung HTML
+
+                // 1.5. Thiết lập Ngày gửi
+                model.DateSent = DateTime.Now;
+
+                // 1.6. Thiết lập Tệp đính kèm (Giả sử bạn có List<string> chứa đường dẫn file)
+                // Nếu bạn có một danh sách riêng cho đường dẫn file (ví dụ: model.Attachments đã được thêm vào trước đó)
+                // model.Attachments = AttachmentsList; 
+
+                // 2. Gửi Email
+                // Bắt đầu thao tác gửi email bất đồng bộ
+                await mailService.SendEmailAsync(model);
+
+                // 3. Xử lý thành công
+                MessageBox.Show("Email đã được gửi thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // Bạn có thể thêm code để xóa nội dung form tại đây (ClearForm())
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Xử lý lỗi nếu người dùng chưa đăng nhập (từ MailService)
+                MessageBox.Show($"Lỗi xác thực: {ex.Message}\nVui lòng đăng nhập lại.", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                // Xử lý các lỗi khác (lỗi kết nối, lỗi server SMTP, v.v.)
+                MessageBox.Show($"Đã xảy ra lỗi trong quá trình gửi email: {ex.Message}", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

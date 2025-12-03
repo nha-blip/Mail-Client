@@ -1,4 +1,5 @@
-﻿using Database;
+
+
 using MailClient;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
@@ -32,15 +33,21 @@ namespace Mailclient
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
-        private SolidColorBrush colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
+        private MailClient.ListAccount account;
+        private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         private GmailStore gmailStore;
         private MailClient.ListAccount listAcc;
+        private MailClient.Email _currentReadingEmail;
         public MainWindow()
         {
             gmailStore = new GmailStore();
             InitializeComponent();
+            InitializeWebView();
+            account = new MailClient.ListAccount();
+            Account a = new Account(App.CurrentAccountID);
+            account.AddAccount(a);
             list = new MailClient.ListEmail(App.CurrentAccountID);
             inboxbt.Background = colorSelected;
             var filter = list.listemail.Where(email => email.FolderName == "Inbox");
@@ -55,7 +62,7 @@ namespace Mailclient
             {
                 // 1. Tải thư từ Google -> Lưu vào SQL
                 // (Hàm này nằm trong file GmailStore.cs mình gửi bài trước)
-                await App.CurrentGmailStore.SyncEmailsToDatabase(App.CurrentAccountID);
+                await App.CurrentGmailStore.SyncAllFoldersToDatabase(App.CurrentAccountID);
 
                 // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu
                 list = new MailClient.ListEmail(App.CurrentAccountID);
@@ -73,18 +80,18 @@ namespace Mailclient
                     MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName != "Trash").ToList();
                 }
 
-                 //(Tùy chọn) Hiện thông báo nhỏ để biết đã xong
-                 //MessageBox.Show("Đã cập nhật thư mới từ Gmail!");
+                //(Tùy chọn) Hiện thông báo nhỏ để biết đã xong
+                //MessageBox.Show("Đã cập nhật thư mới từ Gmail!");
             }
         }
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(5); // mỗi phút đồng bộ
+            syncTimer.Interval = TimeSpan.FromSeconds(5); 
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
-        private void syncTimer_Tick(object sender,EventArgs e)
+        private void syncTimer_Tick(object sender, EventArgs e)
         {
             SyncAndReload();
         }
@@ -109,6 +116,7 @@ namespace Mailclient
 
         private void opcompose(object sender, RoutedEventArgs e)
         {
+            composecontent.SetAuthenticatedStore(App.CurrentGmailStore);
             composecontent.Visibility = Visibility.Visible;
         }
 
@@ -386,49 +394,31 @@ namespace Mailclient
                 }
             }
         }
-
-
         private async void content(object sender, SelectionChangedEventArgs e)
         {
             // 1. Kiểm tra an toàn
             if (MyEmailList.SelectedIndex == -1 || MyEmailList.SelectedItem == null) return;
 
+            var selectedEmail = MyEmailList.SelectedItem as MailClient.Email;
+            _currentReadingEmail = selectedEmail;
+
             mailcontent.Visibility = Visibility.Visible;
-            await contentEmail.EnsureCoreWebView2Async();
 
-            // Lấy email đang chọn từ giao diện (đây là object từ Database)
-            var dbEmail = MyEmailList.SelectedItem as MailClient.Email;
-
-            if (dbEmail != null)
+            if (contentEmail.CoreWebView2 == null)
             {
-                // 2. CHUYỂN ĐỔI DỮ LIỆU (Mapping)
-                // Vì hàm GenerateDisplayHtml yêu cầu đầu vào là 'ParsedEmail',
-                // ta cần tạo một đối tượng ParsedEmail tạm từ dữ liệu Database.
+                await contentEmail.EnsureCoreWebView2Async();
+            }
 
-                var parsedEmail = new ParsedEmail
-                {
-                    Subject = dbEmail.Subject,
-                    From = dbEmail.From,
-                    Date = dbEmail.DateSent,
-                    // BodyText trong DB lúc này đã là HTML sạch (do GmailStore lưu)
-                    BodyAsHtml = dbEmail.BodyText ?? "",
+            // 2. Lấy đối tượng Email từ giao diện
+            if (_currentReadingEmail != null)
+            {
+                // Lấy danh sách file đính kèm cho biến _currentReadingEmail
+                List<MailClient.Attachment> attachments = MailClient.Attachment.GetListAttachments(_currentReadingEmail.emailID);
+                _currentReadingEmail.TempAttachments = attachments;
 
-                    // Chuyển đổi danh sách người nhận (To)
-                    // (Giả sử dbEmail.To là mảng string[], cần chuyển sang List<string>)
-                    To = dbEmail.To != null ? new List<string>(dbEmail.To) : new List<string>()
-                };
-
-                // Nếu bạn có lưu File đính kèm vào DB hoặc thư mục, bạn có thể add vào parsedEmail.Attachments ở đây
-                // Ví dụ: parsedEmail.Attachments.Add(new ParsedAttachmentInfo { FileName = "...", SizeInBytes = ... });
-
-                // 3. GỌI HÀM TẠO GIAO DIỆN ĐẸP (Từ EmailParser)
                 var parser = new EmailParser();
-
-                // Tùy chọn: Truyền Logo vào nếu muốn (ví dụ logo Gmail)
-                // string logoUrl = "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg";
-                string htmlDisplay = parser.GenerateDisplayHtml(parsedEmail, null);
-
-                // 4. HIỂN THỊ LÊN WEBVIEW
+                // Dùng biến _currentReadingEmail để tạo HTML
+                string htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
                 contentEmail.NavigateToString(htmlDisplay);
             }
         }
@@ -456,5 +446,129 @@ namespace Mailclient
             // Lấy lại Focus cho Window
             this.Focus();
         }
-    } // <-- KẾT THÚC CLASS MAINWINDOW
-}
+        private async void ContentEmail_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            string message = e.TryGetWebMessageAsString();
+
+            if (!string.IsNullOrEmpty(message) && message.StartsWith("DOWNLOAD:"))
+            {
+                string fileNameToDownload = message.Substring("DOWNLOAD:".Length);
+
+                if (_currentReadingEmail == null || _currentReadingEmail.TempAttachments == null)
+                {
+                    MessageBox.Show("Dữ liệu email đã bị mất, vui lòng mở lại thư.", "Lỗi");
+                    return;
+                }
+
+                // Tìm file trong danh sách attachment của email này
+                var attachment = _currentReadingEmail.TempAttachments.FirstOrDefault(a => a.Name == fileNameToDownload);
+
+                if (attachment != null)
+                {
+                    // Hỏi người dùng muốn lưu đâu
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.FileName = attachment.Name;
+                    if (saveFileDialog.ShowDialog() == true)
+                    {
+                        string destinationPath = saveFileDialog.FileName;
+
+                        try
+                        {
+                            // 1. Xác định đường dẫn file trong Cache
+                            string cacheFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+                            // Tên file trong cache phải đúng quy tắc đã lưu: {ID}_{Name}
+                            string cachedFileName = $"{attachment.Name}";
+                            string sourcePath = System.IO.Path.Combine(cacheFolder, cachedFileName);
+
+                            // 2. Kiểm tra xem file có trong Cache không
+                            if (File.Exists(sourcePath))
+                            {
+                                // Copy từ Cache ra chỗ người dùng chọn
+                                File.Copy(sourcePath, destinationPath, true);
+                                MessageBox.Show("Đã lưu file thành công!", "Thông báo");
+                            }
+                            else
+                            {
+                                // Trường hợp hiếm: File trong cache bị xóa mất
+                                MessageBox.Show($"Không tìm thấy file gốc tại: {sourcePath}\nCó thể bạn đã xóa bộ nhớ đệm.", "Lỗi File Missing");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Lỗi khi lưu file: " + ex.Message);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async void InitializeWebView()
+        {
+            // Đảm bảo WebView2 đã sẵn sàng
+            await contentEmail.EnsureCoreWebView2Async();
+
+            // Đăng ký sự kiện lắng nghe (chỉ 1 lần)
+            contentEmail.WebMessageReceived += ContentEmail_WebMessageReceived;
+
+            // 2. [THÊM MỚI] Đăng ký sự kiện chặn link để mở ra trình duyệt ngoài
+            contentEmail.NavigationStarting += ContentEmail_NavigationStarting;
+
+            // 3. [THÊM MỚI] Sự kiện click link mở tab mới (target="_blank")
+            contentEmail.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
+        }
+
+        private void ContentEmail_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
+        {
+            // Kiểm tra xem đường dẫn có phải là Link Web không (http hoặc https)
+            if (e.Uri != null && (e.Uri.StartsWith("http://") || e.Uri.StartsWith("https://")))
+            {
+                // 1. HỦY việc load trang web đè lên nội dung email
+                e.Cancel = true;
+
+                // 2. Mở đường dẫn bằng trình duyệt mặc định của Windows
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = e.Uri,
+                        UseShellExecute = true // Quan trọng: Để Windows tự chọn trình duyệt
+                    };
+                    System.Diagnostics.Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Không thể mở liên kết: " + ex.Message);
+                }
+            }
+        }
+
+        private void CoreWebView2_NewWindowRequested(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            // 1. [QUAN TRỌNG] Chặn WebView2 không cho tự mở cửa sổ popup
+            e.Handled = true;
+
+            // 2. Lấy đường dẫn (Uri) mà người dùng muốn mở
+            string url = e.Uri;
+
+            // 3. Kiểm tra và mở bằng trình duyệt ngoài
+            if (!string.IsNullOrEmpty(url) && (url.StartsWith("http://") || url.StartsWith("https://")))
+            {
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true // Bắt buộc để Windows tự chọn trình duyệt mặc định
+                    };
+                    System.Diagnostics.Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi mở link: " + ex.Message);
+                }
+            }
+        }
+    }
+
+} // <-- KẾT THÚC CLASS MAINWINDOW
+

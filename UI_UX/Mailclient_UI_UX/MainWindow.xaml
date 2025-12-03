@@ -706,12 +706,10 @@
                                             </Grid.ColumnDefinitions>
 
                                             <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
-
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding SenderName}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding Subject}" Foreground="#9E9E9E" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
-
                                             <Grid Grid.Column="2" >
                                                 <Button Content="&#xE74D;" 
                                                     x:Name="DeleteButton"

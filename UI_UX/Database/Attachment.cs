@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using MimeKit;
 
 namespace MailClient
 {
@@ -19,7 +20,12 @@ namespace MailClient
         public string TypeMine { get; set; }
         public int Size { get; set; }
         public int IsDownload { get; set; }
-        public Attachment(int emailID, string name, string typeMine, int size, int isDownload,int ID=0)
+        public MimePart OriginalMimePart { get; set; }
+        public Attachment()
+        {
+            this.db = new DatabaseHelper();
+        }
+        public Attachment(int emailID, string name, string typeMine, int size, int isDownload, int ID = 0)
         {
             this.db = new DatabaseHelper();
             this.EmailID = emailID;
@@ -29,22 +35,6 @@ namespace MailClient
             this.IsDownload = isDownload;
             this.ID = ID;
         }
-        public int GetID() { return ID; }
-        public void SetID(int ID) { this.ID = ID; }
-        public int GetEmailID() { return EmailID; }
-        public void SetEmailID(int emailID) { this.EmailID = emailID; }
-
-        public string GetName() { return Name; }
-        public void SetName(string name) { this.Name = name; }
-
-        public string GetTypeMine() { return TypeMine; }
-        public void SetTypeMine(string typeMine) { this.TypeMine = typeMine; }
-
-        public int GetSize() { return Size; }
-        public void SetSize(int size) { this.Size = size; }
-
-        public int GetIsDownload() { return IsDownload; }
-        public void SetIsDownload(int isDownload) { this.IsDownload = isDownload; }
         public void AddAttachment()
         {
             string query = @"Insert into Attachment(EmailID,NameFile,TypeMime,Size,Downloaded)
@@ -58,8 +48,8 @@ namespace MailClient
                 new SqlParameter("@Size",Size),
                 new SqlParameter("@Downloaded",IsDownload)
             };
-            DataTable dt=db.ExecuteQuery(query, parameters);
-            if(dt.Rows.Count > 0)
+            DataTable dt = db.ExecuteQuery(query, parameters);
+            if (dt.Rows.Count > 0)
             {
                 this.EmailID = Convert.ToInt32(dt.Rows[0][0]);
             }
@@ -77,6 +67,42 @@ namespace MailClient
         {
             string query = @"Delete from Attachment where IsFlag=1";
             db.ExecuteNonQuery(query);
+        }
+
+        public static List<Attachment> GetListAttachments(int emailID)
+        {
+            List<Attachment> list = new List<Attachment>();
+            DatabaseHelper db = new DatabaseHelper();
+
+            string query = "SELECT * FROM Attachment WHERE EmailID = @EmailID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@EmailID", emailID)
+            };
+
+            DataTable dt = db.ExecuteQuery(query, parameters);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                // Mapping dữ liệu từ SQL sang Object Attachment
+                Attachment att = new Attachment();
+                att.ID = Convert.ToInt32(row["ID"]);
+                att.EmailID = Convert.ToInt32(row["EmailID"]);
+
+                // Kiểm tra null để tránh lỗi
+                att.Name = row["NameFile"] != DBNull.Value ? row["NameFile"].ToString() : "Unknown";
+                att.TypeMine = row["TypeMime"] != DBNull.Value ? row["TypeMime"].ToString() : "";
+
+                // Size trong DB là bigint (long), ép sang int cho class Attachment
+                att.Size = row["Size"] != DBNull.Value ? Convert.ToInt32(row["Size"]) : 0;
+
+                // Downloaded là bit (bool), cần convert sang int (0 hoặc 1)
+                att.IsDownload = (row["Downloaded"] != DBNull.Value && (bool)row["Downloaded"]) ? 1 : 0;
+
+                list.Add(att);
+            }
+
+            return list;
         }
     }
 }

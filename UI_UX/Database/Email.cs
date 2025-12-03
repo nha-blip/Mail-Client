@@ -39,22 +39,6 @@ namespace MailClient
                 return From;
             }
         }
-        public string DateDisplay
-        {
-            get
-            {
-                if (DateSent.Date == DateTime.Today)
-                {
-                    // Nếu là hôm nay → chỉ hiển thị giờ:phút
-                    return DateSent.ToString("HH:mm");
-                }
-                else
-                {
-                    // Nếu không phải hôm nay → hiển thị dd/MM/yyyy
-                    return DateSent.ToString("dd/MM/yyyy");
-                }
-            }
-        }
         // Tạo email
         public Email(int accountID,int FolderID,string FolderName,string AccountName,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
         {            

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,30 +11,37 @@ using System.Windows;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
+using Google.Apis.PeopleService.v1;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using System.Windows.Threading;
+using Mailclient;
+using MailClient.Core.Services;
+using Microsoft.Data.SqlClient;
+using MimeKit; // Cần thư viện này
+
 namespace MailClient
 {
-
     public class GmailStore
     {
-        
-        static string[] Scopes = { GmailService.Scope.GmailModify };
         static string ApplicationName = "WPF Mail Client";
         public GmailService Service { get; private set; }
         public string UserEmail { get; private set; }
-
+        public string Username { get; private set; }
+        static string[] Scopes = {
+            "https://mail.google.com/",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+                GmailService.Scope.MailGoogleCom,
+        };
         public async Task<bool> LoginAsync()
         {
             try
             {
                 UserCredential credential;
-                // Nhớ sửa đường dẫn file json của bạn nếu cần
                 string jsonPath = @"mailclient.json";
                 if (!File.Exists(jsonPath))
                 {
-                    // Thử tìm đường dẫn tuyệt đối nếu file local ko có (Code hỗ trợ bạn debug)
+                    // Đường dẫn dự phòng (Hardcode để debug)
                     jsonPath = @"D:\drive-download-20251202T014458Z-1-001\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
@@ -55,7 +64,21 @@ namespace MailClient
 
                 var profile = await Service.Users.GetProfile("me").ExecuteAsync();
                 UserEmail = profile.EmailAddress;
+
+                // 2. People API (để lấy Display Name)
+                var peopleService = new PeopleServiceService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = ApplicationName
+                });
+
+                var request = peopleService.People.Get("people/me");
+                request.PersonFields = "names";
+
+                var me = await request.ExecuteAsync();
+                Username = me.Names?.FirstOrDefault()?.DisplayName ?? "";
                 return true;
+
             }
             catch (Exception ex)
             {
@@ -63,134 +86,118 @@ namespace MailClient
                 return false;
             }
         }
+       
 
-        // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
-        private DateTime GetGmailInternalDate(long? internalDate)
+        public int GetFolderIDByFolderName(string folderName)
         {
-            if (internalDate == null) return DateTime.Now;
-            try
+            string query = @"Select FolderID
+                            From Folder
+                            Where FolderName=@folderName And AccountID=@AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
             {
-                // Google trả về số mili-giây tính từ năm 1970 (Unix Time)
-                // Dùng hàm này để đổi ra ngày giờ chuẩn, không lo bị lỗi định dạng
-                return DateTimeOffset.FromUnixTimeMilliseconds(internalDate.Value).LocalDateTime;
+                new SqlParameter("@folderName",folderName),
+                new SqlParameter("@AccountID",App.CurrentAccountID)
+            };
+            DatabaseHelper db=new DatabaseHelper();
+            DataTable dt=db.ExecuteQuery(query,parameters);
+            return Convert.ToInt32(dt.Rows[0][0]);
+        }
+        public static string ConvertToSentenceCase(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
             }
-            catch
+            string lowerCase = input.ToLower();
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+            string result = lowerCase.Substring(0, 1).ToUpper() + lowerCase.Substring(1);
+
+            return result;
+        }
+        public async Task SyncAllFoldersToDatabase(int localAccountID)
+        {
+            string[] foldersToSync = { "INBOX", "SENT", "DRAFT", "TRASH","SPAM" };
+
+            foreach (var folderName in foldersToSync)
             {
-                // Nếu có lỗi gì đó thì mới lấy giờ hiện tại
-                return DateTime.Now;
+                await SyncEmailsToDatabase(localAccountID, folderName);
             }
         }
-
-        public async Task SyncEmailsToDatabase(int localAccountID)
+        public async Task SyncEmailsToDatabase(int localAccountID,string foldername)
         {
             if (Service == null) return;
 
-            // Lấy danh sách ID thư
             var request = Service.Users.Messages.List("me");
-            request.LabelIds = new List<string>() { "INBOX" };
-            request.MaxResults = 10;
+            request.LabelIds = new List<string>() { foldername };
+            request.MaxResults = 20;
 
             var response = await request.ExecuteAsync();
 
             if (response.Messages != null)
             {
+                var parser = new EmailParser();
+
+                // 1. TẠO THƯ MỤC CACHE (Nếu chưa có)
+                // Đường dẫn: bin/Debug/net8.0-windows/Attachments/
+                string cacheFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+                if (!Directory.Exists(cacheFolder))
+                {
+                    Directory.CreateDirectory(cacheFolder);
+                }
+
                 foreach (var msgItem in response.Messages)
                 {
-                    // Lấy chi tiết thư (Full format)
-                    var emailReq = Service.Users.Messages.Get("me", msgItem.Id);
-                    emailReq.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Full;
-                    var emailInfo = await emailReq.ExecuteAsync();
+                    try
+                    {
+                        // Tải RAW
+                        var emailReq = Service.Users.Messages.Get("me", msgItem.Id);
+                        emailReq.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Raw;
+                        var emailInfo = await emailReq.ExecuteAsync();
+                        byte[] emailBytes = Convert.FromBase64String(emailInfo.Raw.Replace("-", "+").Replace("_", "/"));
+                        using (var stream = new MemoryStream(emailBytes))
+                        {
+                            var mimeMessage = MimeMessage.Load(stream);
 
-                    // 1. Lấy Header
-                    string subject = GetHeader(emailInfo.Payload.Headers, "Subject");
-                    string from = GetHeader(emailInfo.Payload.Headers, "From");
+                            // Parse
+                            MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
+                            // Điền thông tin còn thiếu
+                            emailToSave.AccountID = localAccountID;
+                            emailToSave.FolderName = ConvertToSentenceCase(foldername);
+                            emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
+                            emailToSave.AccountName = UserEmail;
 
-                    // 2. LẤY FULL BODY (Thay vì Snippet)
-                    string body = GetEmailBody(emailInfo.Payload);
+                            // Lưu Email vào DB
+                            emailToSave.AddEmail();
 
-                    DateTime dateReceived = GetGmailInternalDate(emailInfo.InternalDate);
-                    // 4. Lưu vào Database
-                    string[] to = { "me" };
+                            // 2. LƯU ATTACHMENT
+                            if (emailToSave.emailID > 0 && emailToSave.TempAttachments.Count > 0)
+                            {
+                                foreach (var attach in emailToSave.TempAttachments)
+                                {
+                                    // A. Lưu thông tin vào DB
+                                    attach.EmailID = emailToSave.emailID;
+                                    attach.AddAttachment(); // Lúc này attach.ID được tạo ra (ví dụ: 101)
 
-                    // Lấy hoặc tạo FolderID cho Inbox của account này
-                    var db = new DatabaseHelper();
-                    int inboxFolderId = db.GetOrCreateFolderId(localAccountID, "Inbox");
+                                    // B. Lưu file vật lý vào thư mục Cache
+                                    // Tên file: {ID}_{TênGốc} để tránh trùng lặp (ví dụ: 101_bailam.pdf)
+                                    string saveFileName = $"{attach.Name}";
+                                    string fullPath = Path.Combine(cacheFolder, saveFileName);
 
-                    // Tạo email với FolderID đúng
-                    MailClient.Email newEmail = new MailClient.Email(
-                        localAccountID, inboxFolderId, "Inbox", UserEmail,
-                        subject, from, to, dateReceived, dateReceived,
-                        body,
-                        false
-                    );
-                    newEmail.AddEmail();
+                                    if (attach.OriginalMimePart != null)
+                                    {
+                                        using (var fileStream = File.Create(fullPath))
+                                        {
+                                            await attach.OriginalMimePart.Content.DecodeToAsync(fileStream);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex) { Console.WriteLine("Lỗi sync: " + ex.Message); }
                 }
             }
-        }
-
-        // --- CÁC HÀM HỖ TRỢ LẤY DỮ LIỆU ---
-
-        private string GetHeader(IList<MessagePartHeader> headers, string name)
-        {
-            var header = headers.FirstOrDefault(h => h.Name == name);
-            return header != null ? header.Value : "(No Subject)";
-        }
-
-        // Hàm đệ quy để tìm nội dung HTML trong đống Parts hỗn độn của Gmail
-        private string GetEmailBody(MessagePart payload)
-        {
-            string encodedData = "";
-
-            // Trường hợp 1: Body nằm ngay ở ngoài (thư đơn giản)
-            if (payload.Body != null && payload.Body.Data != null)
-            {
-                encodedData = payload.Body.Data;
-            }
-            // Trường hợp 2: Body nằm trong Parts (thư chứa HTML, file đính kèm...)
-            else if (payload.Parts != null)
-            {
-                foreach (var part in payload.Parts)
-                {
-                    // Ưu tiên lấy text/html
-                    if (part.MimeType == "text/html" && part.Body.Data != null)
-                    {
-                        encodedData = part.Body.Data;
-                        break;
-                    }
-                    // Nếu không có html thì lấy tạm text/plain
-                    if (part.MimeType == "text/plain" && part.Body.Data != null)
-                    {
-                        encodedData = part.Body.Data;
-                    }
-                    // Nếu vẫn chưa thấy, tìm sâu hơn (đệ quy)
-                    if (part.Parts != null)
-                    {
-                        string nested = GetEmailBody(part);
-                        if (!string.IsNullOrEmpty(nested)) return nested;
-                    }
-                }
-            }
-
-            // Giải mã Base64Url sang HTML String
-            if (!string.IsNullOrEmpty(encodedData))
-            {
-                return DecodeBase64Url(encodedData);
-            }
-
-            return "(Không có nội dung)";
-        }
-
-        // Hàm giải mã chuẩn của Google
-        private string DecodeBase64Url(string base64Url)
-        {
-            string base64 = base64Url.Replace("-", "+").Replace("_", "/");
-            switch (base64.Length % 4)
-            {
-                case 2: base64 += "=="; break;
-                case 3: base64 += "="; break;
-            }
-            byte[] bytes = Convert.FromBase64String(base64);
-            return Encoding.UTF8.GetString(bytes);
         }
     }
+
 }
