@@ -127,16 +127,9 @@ namespace MailClient
                                SELECT SCOPE_IDENTITY();";
 
                 SqlParameter[] insertParams = {
-<<<<<<< HEAD
                     new SqlParameter("@Email", email),
                     new SqlParameter("@Name", displayName)
                 };
-=======
-            new SqlParameter("@Email", email),
-            new SqlParameter("@Name", displayName)
-        };
-
->>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }

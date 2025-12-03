@@ -14,10 +14,6 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
-        public string IncomingServer { get; set; }
-        public string IncomingPort { get; set; }
-        public string OutgoingServer { get; set; }
-        public string OutgoingPort { get; set; }
         public Account(int id)
         {
             db = new DatabaseHelper();
@@ -36,17 +32,10 @@ namespace MailClient
                 this.Password = row["EncryptedPassword"].ToString();
             }
         }
-        public Account(string email, string password, string username,
-                   string incomingServer, string incomingPort,
-                   string outgoingServer, string outgoingPort)
+        public Account(string email, string username)
         {
             Email = email;
-            Password = password;
             Username = username;
-            IncomingServer = incomingServer;
-            IncomingPort = incomingPort;
-            OutgoingServer = outgoingServer;
-            OutgoingPort = outgoingPort;
             db = new DatabaseHelper();
         }       
         public void AddAccount()
@@ -55,29 +44,21 @@ namespace MailClient
             IF NOT EXISTS (SELECT 1 FROM Account WHERE Email = @Email)
             Begin
             INSERT INTO Account
-            (Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort)
+            (Email, EncryptedPassword, AccountName)
             VALUES
-            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort);
+            (@Email, @EncryptedPassword, @AccountName);
             SELECT SCOPE_IDENTITY();
             End";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Email",Email),
-                new SqlParameter("@EncryptedPassword",Password),
-                new SqlParameter("@AccountName",Username),
-                new SqlParameter("@IncomingServer",IncomingServer),
-                new SqlParameter("@IncomingPort",IncomingPort),
-                new SqlParameter("@OutgoingServer",OutgoingServer),
-                new SqlParameter("@OutgoingPort",OutgoingPort)
+                new SqlParameter("@EncryptedPassword","Google Auth"),
+                new SqlParameter("@AccountName",Username)
             };
             DataTable dt=db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
-<<<<<<< HEAD
-=======
-
->>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
         }
         public int CheckAccount(string email, string password)
         {
@@ -104,10 +85,6 @@ namespace MailClient
             };
             db.ExecuteNonQuery(query, parameter);     
         }
-<<<<<<< HEAD
-        
-=======
->>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
 
     }
 }
