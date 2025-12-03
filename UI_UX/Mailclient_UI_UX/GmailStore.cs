@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,12 +10,13 @@ using System.Windows;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
+using Google.Apis.PeopleService.v1;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using MimeKit; // Cần thư viện này
 using Mailclient;
-using Microsoft.Data.SqlClient;
 using MailClient.Core.Services;
+using Microsoft.Data.SqlClient;
+using MimeKit; // Cần thư viện này
 
 namespace MailClient
 {
@@ -25,10 +27,10 @@ namespace MailClient
         public string UserEmail { get; private set; }
         public string Username { get; private set; }
         static string[] Scopes = {
-            "https://mail.google.com/"
-            //GmailService.Scope.GmailModify,
-            //// THÊM SCOPE NÀY: Cần thiết để gửi email (SMTP/XOAUTH2)
-            //GmailService.Scope.GmailSend
+            "https://mail.google.com/",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+                GmailService.Scope.MailGoogleCom,
         };
         public async Task<bool> LoginAsync()
         {
@@ -61,7 +63,21 @@ namespace MailClient
 
                 var profile = await Service.Users.GetProfile("me").ExecuteAsync();
                 UserEmail = profile.EmailAddress;
+
+                // 2. People API (để lấy Display Name)
+                var peopleService = new PeopleServiceService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = ApplicationName
+                });
+
+                var request = peopleService.People.Get("people/me");
+                request.PersonFields = "names";
+
+                var me = await request.ExecuteAsync();
+                Username = me.Names?.FirstOrDefault()?.DisplayName ?? "";
                 return true;
+
             }
             catch (Exception ex)
             {
@@ -69,6 +85,7 @@ namespace MailClient
                 return false;
             }
         }
+       
 
         // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
         private DateTime GetGmailInternalDate(long? internalDate)
@@ -86,7 +103,20 @@ namespace MailClient
                 return DateTime.Now;
             }
         }
-
+        public int GetFolderIDByFolderName(string folderName)
+        {
+            string query = @"Select FolderID
+                            From Folder
+                            Where FolderName=@folderName And AccountID=@AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@folderName",folderName),
+                new SqlParameter("@AccountID",App.CurrentAccountID)
+            };
+            DatabaseHelper db=new DatabaseHelper();
+            DataTable dt=db.ExecuteQuery(query,parameters);
+            return Convert.ToInt32(dt.Rows[0][0]);
+        }
         public async Task SyncEmailsToDatabase(int localAccountID)
         {
             if (Service == null) return;
@@ -126,8 +156,8 @@ namespace MailClient
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
-                            emailToSave.FolderID = 16; // Ví dụ Inbox
                             emailToSave.FolderName = "Inbox";
+                            emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
                             emailToSave.AccountName = UserEmail;
 
                             // Lưu Email vào DB
