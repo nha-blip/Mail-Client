@@ -130,7 +130,6 @@ namespace MailClient
                     new SqlParameter("@Email", email),
                     new SqlParameter("@Name", displayName)
                 };
-
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }

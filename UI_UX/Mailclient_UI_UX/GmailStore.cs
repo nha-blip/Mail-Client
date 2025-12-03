@@ -7,7 +7,7 @@ using Google.Apis.Util.Store;
 using Mailclient;
 using MailClient.Core.Services;
 using Microsoft.Data.SqlClient;
-using MimeKit; // Cần thư viện này
+using MimeKit; 
 using System;
 using System.Collections.Generic;
 using System.Data;
