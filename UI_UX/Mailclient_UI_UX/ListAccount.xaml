@@ -5,14 +5,194 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Mailclient"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <ListView ItemsSource="{Binding Accounts}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <!--<local:AccountItem/>-->
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </Grid>
+              ClipToBounds="True"
+             Height="410"
+             Width="310">
+
+    <Border CornerRadius="10"
+            Background="White"
+            Margin="10"
+            ClipToBounds="False">
+        <Border.Effect>
+            <DropShadowEffect Direction="270" 
+                  ShadowDepth="0" 
+                  Color="#B0B0B0" 
+                  Opacity="0.5" 
+                  BlurRadius="15" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="60"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Background="#EAF1FB"
+                CornerRadius="10,10,0,0"
+                ClipToBounds="True">
+                <TextBlock Text="Quản lý tài khoản" 
+               VerticalAlignment="Center" 
+               HorizontalAlignment="Center" 
+               FontSize="18" 
+               FontWeight="Bold" 
+               Foreground="#333"/>
+            </Border>
+            <ListView x:Name="AccountListView" 
+              Grid.Row="1"
+              ItemsSource="{Binding UiAccount}"
+              Background="Transparent"
+              BorderThickness="0"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+              HorizontalContentAlignment="Stretch">
+
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Margin" Value="10,5"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <Border Background="{TemplateBinding Background}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border x:Name="AccountCard"
+                        Background="White" 
+                        CornerRadius="10" 
+                        BorderThickness="1" 
+                        BorderBrush="Transparent"
+                        Padding="10">
+
+                            <Border.Effect>
+                                <DropShadowEffect Color="#DDDDDD" Direction="270" ShadowDepth="2" BlurRadius="5" Opacity="0.3"/>
+                            </Border.Effect>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <Ellipse Width="40" Height="40" Fill="#0078D4"/>
+                                    <TextBlock Text="{Binding Username, StringFormat={}{0:1}}" 
+                                       Foreground="White" 
+                                       FontWeight="Bold" 
+                                       FontSize="18" 
+                                       VerticalAlignment="Center" 
+                                       HorizontalAlignment="Center"/>
+                                </Grid>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                                    <TextBlock Text="{Binding Username}" 
+                                       FontWeight="Bold" 
+                                       FontSize="14" 
+                                       Foreground="#333"/>
+                                    <TextBlock Text="{Binding EmailAddress}" 
+                                       FontSize="12" 
+                                       Foreground="Gray" 
+                                       TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="2"
+                                Content="&#xE7E8;" 
+                                FontFamily="Segoe MDL2 Assets" 
+                                FontSize="16"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="#D93025"
+                                ToolTip="Đăng xuất"
+                                Cursor="Hand">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FEECEC"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="AccountCard" 
+                                                    Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" 
+                                                    To="#0078D4" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Border>
+
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}" Value="True">
+                                <Setter TargetName="AccountCard" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="AccountCard" Property="Background" Value="#F8FDFF"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Border Grid.Row="2"
+                    Background="#EAF1FB"
+                    CornerRadius="0,0,10,10">
+                <Button x:Name="addnew"
+                        Content="+ Thêm tài khoản mới"
+                        Height="40"
+                        Margin="20,0,20,10"
+                        Background="#0078D4"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        BorderThickness="0"
+                        Click="addAcc"
+                        Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="20"/>
+                        </Style>
+                    </Button.Resources>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="border"
+                                                Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>

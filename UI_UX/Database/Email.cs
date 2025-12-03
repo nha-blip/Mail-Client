@@ -24,6 +24,21 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
+        public string SenderName
+        {
+            get
+            {
+
+                int index = From.IndexOf('<');
+
+                if (index > 0)
+                {
+                    return From.Substring(0, index).Trim().Trim('"');
+                }
+
+                return From;
+            }
+        }
         public string DateDisplay
         {
             get
@@ -56,7 +71,7 @@ namespace MailClient
             this.emailID = ID;
             this.IsFlag = false;
             this.FolderID= FolderID;
-            this.AccountName = AccountName;
+            this.AccountName = SenderName;
         }
         public void AddEmail() // Thêm thư vào database
         {
@@ -72,8 +87,8 @@ namespace MailClient
             if (data.Rows.Count > 0 && Convert.ToInt32(data.Rows[0][0]) > 0) return;
             
 
-            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
-                            Values(@AccountID,@FolderID, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead);
+            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead, AccountName)
+                            Values(@AccountID,@FolderID, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @AccountName);
                             SELECT SCOPE_IDENTITY();";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@AccountID",AccountID),
@@ -84,7 +99,8 @@ namespace MailClient
                 new SqlParameter("@DateSent",DateSent),
                 new SqlParameter("@DateReceived",DateReceived),
                 new SqlParameter("@BodyText",BodyText),
-                new SqlParameter("@IsRead",IsRead)
+                new SqlParameter("@IsRead",IsRead),
+                new SqlParameter("@AccountName",AccountName)
             };
             
             DataTable dt=db.ExecuteQuery(query, parameters);

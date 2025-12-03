@@ -108,16 +108,19 @@ namespace MailClient
                     // 2. LẤY FULL BODY (Thay vì Snippet)
                     string body = GetEmailBody(emailInfo.Payload);
 
-
                     DateTime dateReceived = GetGmailInternalDate(emailInfo.InternalDate);
                     // 4. Lưu vào Database
                     string[] to = { "me" };
 
-                    // Ở đây mình insert luôn để demo:
+                    // Lấy hoặc tạo FolderID cho Inbox của account này
+                    var db = new DatabaseHelper();
+                    int inboxFolderId = db.GetOrCreateFolderId(localAccountID, "Inbox");
+
+                    // Tạo email với FolderID đúng
                     MailClient.Email newEmail = new MailClient.Email(
-                        localAccountID, 1, "Inbox", UserEmail,
+                        localAccountID, inboxFolderId, "Inbox", UserEmail,
                         subject, from, to, dateReceived, dateReceived,
-                        body, // <-- Giờ đây là HTML xịn
+                        body,
                         false
                     );
                     newEmail.AddEmail();

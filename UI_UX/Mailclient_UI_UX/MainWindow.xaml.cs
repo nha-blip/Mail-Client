@@ -36,6 +36,7 @@ namespace Mailclient
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         private GmailStore gmailStore;
+        private MailClient.ListAccount listAcc;
         public MainWindow()
         {
             gmailStore = new GmailStore();
@@ -95,10 +96,14 @@ namespace Mailclient
         }
         private void OPLogin(object sender, RoutedEventArgs e)
         {
-            Logingg login = new Logingg();
-            login.Show();
-            ListAccount listAccount = new ListAccount();
-            listAccount.Visibility=Visibility.Visible;
+            // Đảo ngược trạng thái: Đang đóng thì mở, đang mở thì đóng
+            AccountPopup.IsOpen = !AccountPopup.IsOpen;
+
+            // Nếu mở ra thì có thể load dữ liệu (Tùy chọn)
+            if (AccountPopup.IsOpen)
+            {
+                // ListAccountControl.LoadDataFromSQL(); // Nếu cần refresh
+            }
 
         }
 

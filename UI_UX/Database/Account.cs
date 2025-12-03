@@ -18,6 +18,24 @@ namespace MailClient
         public string IncomingPort { get; set; }
         public string OutgoingServer { get; set; }
         public string OutgoingPort { get; set; }
+        public Account(int id)
+        {
+            db = new DatabaseHelper();
+            this.AccountID = id;
+
+            // Tự động vào SQL lấy thông tin ra luôn
+            string query = "SELECT * FROM Account WHERE AccountID = @ID";
+            SqlParameter[] p = { new SqlParameter("@ID", id) };
+
+            DataTable dt = db.ExecuteQuery(query, p);
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+                this.Email = row["Email"].ToString();
+                this.Username = row["AccountName"].ToString();
+                this.Password = row["EncryptedPassword"].ToString();
+            }
+        }
         public Account(string email, string password, string username,
                    string incomingServer, string incomingPort,
                    string outgoingServer, string outgoingPort)
@@ -56,6 +74,7 @@ namespace MailClient
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
+
         }
         public int CheckAccount(string email, string password)
         {

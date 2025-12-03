@@ -219,7 +219,6 @@ namespace Mailclient
             return string.Format("{0:n1} {1}", number, suffixes[counter]);
         }
 
-        public string GetSenderName(string fullFromHeader)
         private string GetSenderName(string fullFromHeader)
         {
             int index = fullFromHeader.IndexOf('<');
