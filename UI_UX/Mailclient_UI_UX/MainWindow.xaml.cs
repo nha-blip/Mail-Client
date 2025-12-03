@@ -62,7 +62,7 @@ namespace Mailclient
             {
                 // 1. Tải thư từ Google -> Lưu vào SQL
                 // (Hàm này nằm trong file GmailStore.cs mình gửi bài trước)
-                await App.CurrentGmailStore.SyncEmailsToDatabase(App.CurrentAccountID);
+                await App.CurrentGmailStore.SyncAllFoldersToDatabase(App.CurrentAccountID);
 
                 // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu
                 list = new MailClient.ListEmail(App.CurrentAccountID);
