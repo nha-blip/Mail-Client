@@ -24,6 +24,7 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
+        public List<string> AttachmentPaths { get; set; } = new List<string>();
         public string SenderName
         {
             get
