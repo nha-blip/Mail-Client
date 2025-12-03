@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -117,13 +118,34 @@ namespace MailClient
             DataTable dt=db.ExecuteQuery(query,parameters);
             return Convert.ToInt32(dt.Rows[0][0]);
         }
-        public async Task SyncEmailsToDatabase(int localAccountID)
+        public static string ConvertToSentenceCase(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+            string lowerCase = input.ToLower();
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+            string result = lowerCase.Substring(0, 1).ToUpper() + lowerCase.Substring(1);
+
+            return result;
+        }
+        public async Task SyncAllFoldersToDatabase(int localAccountID)
+        {
+            string[] foldersToSync = { "INBOX", "SENT", "DRAFT", "TRASH","SPAM" };
+
+            foreach (var folderName in foldersToSync)
+            {
+                await SyncEmailsToDatabase(localAccountID, folderName);
+            }
+        }
+        public async Task SyncEmailsToDatabase(int localAccountID,string foldername)
         {
             if (Service == null) return;
 
             var request = Service.Users.Messages.List("me");
-            request.LabelIds = new List<string>() { "INBOX" };
-            request.MaxResults = 10;
+            request.LabelIds = new List<string>() { foldername };
+            request.MaxResults = 50;
 
             var response = await request.ExecuteAsync();
 
@@ -156,7 +178,7 @@ namespace MailClient
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
-                            emailToSave.FolderName = "Inbox";
+                            emailToSave.FolderName = ConvertToSentenceCase(foldername);
                             emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
                             emailToSave.AccountName = UserEmail;
 
