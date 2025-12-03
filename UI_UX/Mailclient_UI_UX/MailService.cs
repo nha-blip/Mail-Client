@@ -9,7 +9,8 @@ using MailKit.Security;
 using MimeKit;
 using Google.Apis.Auth.OAuth2;
 using System.Threading;
-using System.Security.Authentication; 
+using System.Security.Authentication;
+using System.IO;
 
 namespace MailClient.Core.Services
 {
@@ -27,7 +28,6 @@ namespace MailClient.Core.Services
             _accountService = accountService ?? throw new ArgumentException(nameof(accountService));
         }
 
-        // ********** CẬP NHẬT: DÙNG CLASS EMAIL **********
         private MimeMessage CreateMimeMessage(Email mailModel)
         {
             var message = new MimeMessage();
@@ -52,12 +52,28 @@ namespace MailClient.Core.Services
             var bodyBuilder = new BodyBuilder();
             if (!String.IsNullOrEmpty(mailModel.BodyText))
             {
-                // Dùng BodyText làm nội dung TextBody
-                bodyBuilder.TextBody = mailModel.BodyText;
+                bodyBuilder.HtmlBody = mailModel.BodyText;
             }
 
-            // Handle attachments (Nếu Email class có chứa thông tin Attachment)
-            // Hiện tại không có thông tin Attachment trong class Email bạn cung cấp.
+            // Đính kèm tệp (Attachments)
+            if (mailModel.AttachmentPaths != null && mailModel.AttachmentPaths.Count > 0)
+            {
+                foreach (string filePath in mailModel.AttachmentPaths)
+                {
+                    if (File.Exists(filePath))
+                    {
+                        try
+                        {
+                            bodyBuilder.Attachments.Add(filePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Có thể log lỗi nếu file đang bị khóa bởi tiến trình khác
+                            Console.WriteLine($"Không thể đính kèm file {filePath}: {ex.Message}");
+                        }
+                    }
+                }
+            }
 
             // Set the complete body to MimeMessage
             message.Body = bodyBuilder.ToMessageBody();
@@ -69,7 +85,6 @@ namespace MailClient.Core.Services
             return message;
         }
 
-        // ********** CẬP NHẬT: DÙNG CLASS EMAIL **********
         public async Task SendEmailAsync(Email mailModel, CancellationToken cancellationToken = default)
         {
             // Check sign-in status and retreive required OAuth data
@@ -91,9 +106,6 @@ namespace MailClient.Core.Services
                     // Connect using implicit SSL
                     await client.ConnectAsync(SmtpHost, SmtpPort, SecureSocketOptions.SslOnConnect, cancellationToken);
                     client.SslProtocols = SslProtocols.Tls12;
-
-                    // ********** SỬA LỖI: BỎ MẬT KHẨU ỨNG DỤNG VÀ DÙNG XOAUTH2 **********
-                    // BỎ DÒNG NÀY: client.Authenticate("nhavotan2k6@gmail.com", "omhzionramrvglwu");
 
                     // Authenticate using XOAUTH2
                     var oauth2 = new MailKit.Security.SaslMechanismOAuth2(emailAddress, accessToken);

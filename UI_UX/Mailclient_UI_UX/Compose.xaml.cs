@@ -1,4 +1,8 @@
-﻿using System;
+﻿using MailClient;
+using MailClient.Core.Services;
+using Microsoft.Win32;
+using Org.BouncyCastle.Utilities.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,9 +16,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using MailClient;
-using MailClient.Core.Services;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Mailclient
 {
@@ -28,16 +29,17 @@ namespace Mailclient
         public AccountService accountService;
         public MailService mailService;
         public Account acc;
+        private List<string> _attachmentFiles;
         public Compose()
         {
             InitializeComponent();
 
             // Cần phải khởi tạo _store ở đây. Lưu ý: Store này CHƯA ĐĂNG NHẬP.
-            acc = new Account(App.CurrentAccountID);
             _store = new GmailStore();
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
-            acc = new Account(App.CurrentAccountID);    
+            acc = new Account(App.CurrentAccountID); 
+            _attachmentFiles = new List<string>();
         }
         public void SetAuthenticatedStore(GmailStore authenticatedStore)
         {
@@ -71,7 +73,25 @@ namespace Mailclient
 
         private void opfile(object sender, RoutedEventArgs e)
         {
+            // 1. Khởi tạo hộp thoại chọn file
+            OpenFileDialog openFileDialog = new OpenFileDialog();
 
+            // 2. Cho phép chọn nhiều file cùng lúc
+            openFileDialog.Multiselect = true;
+
+            // 3. Đặt tiêu đề cho hộp thoại
+            openFileDialog.Title = "Chọn tệp đính kèm";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string file in openFileDialog.FileNames)
+                {
+                    _attachmentFiles.Add(file);
+
+                    // Thêm tên file vào ListBox giao diện
+                    //lbAttachments.Items.Add(System.IO.Path.GetFileName(file));
+                }
+            }
         }
         // Đảm bảo hàm được đánh dấu là async
         private async void Send_Click(object sender, RoutedEventArgs e)
@@ -105,14 +125,19 @@ namespace Mailclient
 
                 // 1.4. Thiết lập Chủ đề và Nội dung
                 model.Subject = Subject.Text;
-                model.BodyText = Body.Text; // Giả sử Body.Text chứa nội dung HTML
+
+                string rawContent = Body.Text;
+                string htmlContent = rawContent.Replace("\r\n", "<br />").Replace("\n", "<br />");
+
+                // Bọc trong thẻ div để set font mặc định
+                model.BodyText = $@"<div style='font-family: Arial, sans-serif; font-size: 14px;'>{htmlContent}</div>";
 
                 // 1.5. Thiết lập Ngày gửi
                 model.DateSent = DateTime.Now;
 
                 // 1.6. Thiết lập Tệp đính kèm (Giả sử bạn có List<string> chứa đường dẫn file)
                 // Nếu bạn có một danh sách riêng cho đường dẫn file (ví dụ: model.Attachments đã được thêm vào trước đó)
-                // model.Attachments = AttachmentsList; 
+                model.AttachmentPaths = _attachmentFiles;
 
                 // 2. Gửi Email
                 // Bắt đầu thao tác gửi email bất đồng bộ

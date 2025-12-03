@@ -130,10 +130,6 @@ namespace MailClient
             DataTable dt=db.ExecuteQuery(query,parameters);
             return Convert.ToInt32(dt.Rows[0][0]);
         }
-<<<<<<< HEAD
-
-        public async Task SyncEmailsToDatabase(int localAccountID)
-=======
         public static string ConvertToSentenceCase(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -156,7 +152,6 @@ namespace MailClient
             }
         }
         public async Task SyncEmailsToDatabase(int localAccountID,string foldername)
->>>>>>> 6011824ca325a811752020a1063dfacff3a78037
         {
             if (Service == null) return;
 
@@ -195,12 +190,9 @@ namespace MailClient
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
-<<<<<<< HEAD
 
-                            emailToSave.FolderName = "Inbox";
-=======
                             emailToSave.FolderName = ConvertToSentenceCase(foldername);
->>>>>>> 6011824ca325a811752020a1063dfacff3a78037
+
                             emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
                             emailToSave.AccountName = UserEmail;
 
@@ -217,7 +209,7 @@ namespace MailClient
                                     attach.AddAttachment(); // Lúc này attach.ID được tạo ra (ví dụ: 101)
 
                                     // B. Lưu file vật lý vào thư mục Cache
-                                    // Tên file: {ID}_{TênGốc} để tránh trùng lặp (ví dụ: 101_bailam.pdf)
+                                    // Tên file: {TênGốc} để tránh trùng lặp (ví dụ: 101_bailam.pdf)
                                     string saveFileName = $"{attach.Name}";
                                     string fullPath = Path.Combine(cacheFolder, saveFileName);
 

@@ -26,6 +26,9 @@ namespace MailClient
         public bool IsFlag { get; set; }
         public bool IsChecked {get;set;}
         public string FromUser { get; set; }
+        public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
+        public List<string> AttachmentPaths { get; set; } = new List<string>();
+
         public string DateDisplay
         {
             get
@@ -150,8 +153,6 @@ namespace MailClient
             };
             
             db.ExecuteNonQuery(query, parameters);
-        }
-        // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
-        public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
+        }        
     }
 }
