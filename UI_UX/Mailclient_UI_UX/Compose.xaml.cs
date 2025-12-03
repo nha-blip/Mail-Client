@@ -141,6 +141,9 @@ namespace Mailclient
                 // Xử lý các lỗi khác (lỗi kết nối, lỗi server SMTP, v.v.)
                 MessageBox.Show($"Đã xảy ra lỗi trong quá trình gửi email: {ex.Message}", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            To.Text = "";
+            Subject.Text = "";
+            Body.Text = "";
         }
     }
 }

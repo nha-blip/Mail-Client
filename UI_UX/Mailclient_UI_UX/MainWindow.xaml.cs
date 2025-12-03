@@ -351,6 +351,7 @@ namespace Mailclient
                 if (emailToDelete != null)
                 {
                     // 1. Đánh dấu thư là rác
+                    emailToDelete.UpdateFolderEmail("Trash");
                     emailToDelete.FolderName = "Trash";
 
                     // 2. Cập nhật lại giao diện dựa trên MÀN HÌNH ĐANG MỞ

@@ -17,7 +17,7 @@ using Google.Apis.Util.Store;
 using Mailclient;
 using MailClient.Core.Services;
 using Microsoft.Data.SqlClient;
-using MimeKit; // Cần thư viện này
+using MimeKit;
 
 namespace MailClient
 {
@@ -31,7 +31,7 @@ namespace MailClient
             "https://mail.google.com/",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/userinfo.email",
-                GmailService.Scope.MailGoogleCom,
+            GmailService.Scope.MailGoogleCom,
         };
         public async Task<bool> LoginAsync()
         {
@@ -87,23 +87,7 @@ namespace MailClient
             }
         }
        
-
-        // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
-        private DateTime GetGmailInternalDate(long? internalDate)
-        {
-            if (internalDate == null) return DateTime.Now;
-            try
-            {
-                // Google trả về số mili-giây tính từ năm 1970 (Unix Time)
-                // Dùng hàm này để đổi ra ngày giờ chuẩn, không lo bị lỗi định dạng
-                return DateTimeOffset.FromUnixTimeMilliseconds(internalDate.Value).LocalDateTime;
-            }
-            catch
-            {
-                // Nếu có lỗi gì đó thì mới lấy giờ hiện tại
-                return DateTime.Now;
-            }
-        }
+        
         public int GetFolderIDByFolderName(string folderName)
         {
             string query = @"Select FolderID
