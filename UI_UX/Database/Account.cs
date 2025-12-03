@@ -14,48 +14,70 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
-        public Account(string email,string username)
-        {
-            Email = email;
-            Username = username;
-            db = new DatabaseHelper();
-        } 
+        public string IncomingServer { get; set; }
+        public string IncomingPort { get; set; }
+        public string OutgoingServer { get; set; }
+        public string OutgoingPort { get; set; }
         public Account(int id)
         {
-            AccountID = id;
-            string query = @"select * from Account where AccountID=@AccountID";
-            SqlParameter[] parameters = new SqlParameter[]
-            {
-                new SqlParameter("@AccountID",id)
-            };
-            db=new DatabaseHelper();
-            DataTable dt = db.ExecuteQuery(query, parameters);
+            db = new DatabaseHelper();
+            this.AccountID = id;
+
+            // Tự động vào SQL lấy thông tin ra luôn
+            string query = "SELECT * FROM Account WHERE AccountID = @ID";
+            SqlParameter[] p = { new SqlParameter("@ID", id) };
+
+            DataTable dt = db.ExecuteQuery(query, p);
             if (dt.Rows.Count > 0)
             {
-                Username = Convert.ToString(dt.Rows[0]["AccountName"]) ?? "";
-                Email = Convert.ToString(dt.Rows[0]["Email"]) ?? "";
+                DataRow row = dt.Rows[0];
+                this.Email = row["Email"].ToString();
+                this.Username = row["AccountName"].ToString();
+                this.Password = row["EncryptedPassword"].ToString();
             }
         }
+        public Account(string email, string password, string username,
+                   string incomingServer, string incomingPort,
+                   string outgoingServer, string outgoingPort)
+        {
+            Email = email;
+            Password = password;
+            Username = username;
+            IncomingServer = incomingServer;
+            IncomingPort = incomingPort;
+            OutgoingServer = outgoingServer;
+            OutgoingPort = outgoingPort;
+            db = new DatabaseHelper();
+        }       
         public void AddAccount()
         {
             string query = @"
             IF NOT EXISTS (SELECT 1 FROM Account WHERE Email = @Email)
             Begin
             INSERT INTO Account
-            (Email, EncryptedPassword, AccountName)
+            (Email, EncryptedPassword, AccountName, IncomingServer, IncomingPort, OutgoingServer, OutgoingPort)
             VALUES
-            (@Email, 'GoogleAuth', @AccountName);
+            (@Email, @EncryptedPassword, @AccountName, @IncomingServer, @IncomingPort, @OutgoingServer, @OutgoingPort);
             SELECT SCOPE_IDENTITY();
             End";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Email",Email),
-                new SqlParameter("@AccountName",Username)
+                new SqlParameter("@EncryptedPassword",Password),
+                new SqlParameter("@AccountName",Username),
+                new SqlParameter("@IncomingServer",IncomingServer),
+                new SqlParameter("@IncomingPort",IncomingPort),
+                new SqlParameter("@OutgoingServer",OutgoingServer),
+                new SqlParameter("@OutgoingPort",OutgoingPort)
             };
             DataTable dt=db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
         }
         public int CheckAccount(string email, string password)
         {
@@ -82,7 +104,10 @@ namespace MailClient
             };
             db.ExecuteNonQuery(query, parameter);     
         }
+<<<<<<< HEAD
         
+=======
+>>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
 
     }
 }

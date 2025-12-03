@@ -133,7 +133,7 @@
         </Style>
 
         <Style x:Key="ComposeButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#81D4FA"/>
+            <Setter Property="Background" Value="#00C6FF"/>
             <Setter Property="Foreground" Value="#000"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -411,7 +411,8 @@
                             </LinearGradientBrush>
                         </Border.Background>
                     </Border>
-                    <Button Content="Login"
+                    <Button Content="Account"
+                            x:Name="OpAccount"
                             Margin="0,5,18,5"
                         Width="90"
                         Style="{StaticResource ComposeButtonStyle}"
@@ -523,6 +524,7 @@
                                     Background="Transparent"/>
                         </StackPanel>
                     </Grid>
+
                     <Grid x:Name="listview"
                           Grid.Row="1">
                         <Border CornerRadius="8"
@@ -563,6 +565,10 @@
                         <ListBox x:Name="MyEmailList"
                                  BorderThickness="0"
                                  SelectionChanged="content"
+                                 VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  VirtualizingPanel.CacheLengthUnit="Page"
+                                  VirtualizingPanel.CacheLength="1,1"
                                  Background="Transparent" 
                                  HorizontalContentAlignment="Stretch"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -657,42 +663,55 @@
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Border x:Name="Bd" 
                                                 CornerRadius="10" 
-                                                Background="{TemplateBinding Background}" 
-                                                Padding="10,8">
+                                                Background="{TemplateBinding Background}" >
                                                     <ContentPresenter/>
                                                 </Border>
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
                                     <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#81D4FA"/>
+                                        <!--<Trigger Property="IsMouseOver" Value="True">
+                                            <Setter  Property="Background" Value="#E5F3FF"/>
                                         </Trigger>
-                                        <DataTrigger Binding="{Binding IsChecked}" Value="True">
+                                        -->
+                                        <!--<DataTrigger Binding="{Binding IsChecked}" Value="True">
                                             <Setter Property="Background" Value="Aqua"/>
-                                        </DataTrigger>
+                                        </DataTrigger>-->
                                     </Style.Triggers>
                                 </Style>
                             </ListBox.ItemContainerStyle>
 
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="30"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="80"/>
-                                        </Grid.ColumnDefinitions>
 
-                                        <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
+                                    <Border Background="White" 
+                                            x:Name="bgemail"
+                                            CornerRadius="10" 
+                                            BorderThickness="0"
+                                            Margin="5,5,5,5" 
+                                            Padding="10">
+                                        <Border.Effect>
+                                            <DropShadowEffect x:Name="shadow"
+                                              Color="Black" 
+                                              Direction="270" 
+                                              ShadowDepth="2" 
+                                              BlurRadius="5" 
+                                              Opacity="0.1"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
+                                            <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                        </StackPanel>
-
-                                        <Grid Grid.Column="2" >
-                                            <Button Content="&#xE74D;" 
+                                            </StackPanel>
+                                            <Grid Grid.Column="2" >
+                                                <Button Content="&#xE74D;" 
                                                     x:Name="DeleteButton"
                                                     FontFamily="Segoe MDL2 Assets" 
                                                     FontSize="16" 
@@ -702,20 +721,34 @@
                                                     Background="Transparent"
                                                     Visibility="Hidden"
                                                     Click="deletemail"/>
-                                            <TextBlock Text="{Binding DateDisplay}" 
+                                                <TextBlock Text="{Binding DateDisplay}" 
                                                        x:Name="DateText"
                                                        FontSize="12" 
                                                        Foreground="Gray" 
                                                        HorizontalAlignment="Right" 
                                                        VerticalAlignment="Center"/>
+                                            </Grid>
                                         </Grid>
-                                    </Grid>
+                                    </Border>
+
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}, Path=IsMouseOver}" Value="True">
                                             <Setter TargetName="DateText" Property="Visibility" Value="Hidden"/>
                                             <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
-
+                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                                            <Setter TargetName="bgemail" Property="BorderBrush" Value="#0078D4"/>
+                                            <Setter TargetName="bgemail" Property="Background" Value="#E5F5FF"/>
+                                            <Setter TargetName="bgemail" Property="Effect">
+                                                <Setter.Value>
+                                                    <DropShadowEffect Color="Black" 
+                                                                      Direction="270" 
+                                                                      ShadowDepth="2" 
+                                                                      BlurRadius="5" 
+                                                                      Opacity="0.3"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -762,6 +795,18 @@
                     </Grid>
                 </Grid>
             </Border>
+            <Popup x:Name="AccountPopup"
+                   PlacementTarget="{Binding ElementName=OpAccount}" 
+                   Placement="Bottom"
+                   HorizontalOffset="-200" 
+                   VerticalOffset="10"
+                   StaysOpen="False"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade">
+
+                <local:ListAccount x:Name="ListAccountControl" 
+                                   />
+            </Popup>
         </Grid>
     </Border>
 </Window>

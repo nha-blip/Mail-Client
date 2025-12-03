@@ -24,38 +24,30 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
-        public bool IsChecked {get;set;}
-        public string FromUser { get; set; }
-        public string DateDisplay
+        public string SenderName
         {
             get
             {
-                if (DateSent.Date == DateTime.Today)
+
+                int index = From.IndexOf('<');
+
+                if (index > 0)
                 {
-                    // Nếu là hôm nay → chỉ hiển thị giờ:phút
-                    return DateSent.ToString("HH:mm");
+                    return From.Substring(0, index).Trim().Trim('"');
                 }
-                else
-                {
-                    // Nếu không phải hôm nay → hiển thị dd/MM/yyyy
-                    return DateSent.ToString("dd/MM/yyyy");
-                }
+
+                return From;
             }
         }
         // Tạo email
-        public Email()
-        {
+        public Email(int accountID,int FolderID,string FolderName,string AccountName,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
+        {            
             this.db = new DatabaseHelper();
-            this.To = new string[] { }; // Khởi tạo mảng rỗng để tránh lỗi null
-        }
-        public Email(string folderName,string fromuser, string accountName,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
-        {
-            this.db = new DatabaseHelper();
-            this.FolderName = folderName;
+            this.AccountID = accountID;
+            this.FolderName = FolderName;
             this.Subject = subject;
             this.From = from;
             this.To = to;
-            this.FromUser = fromuser;
             this.DateSent = dateSent;
             this.DateReceived = dateReceived;
             this.BodyText = bodyText;
@@ -63,29 +55,7 @@ namespace MailClient
             this.emailID = ID;
             this.IsFlag = false;
             this.FolderID= FolderID;
-            this.AccountName = accountName;
-            string query = @"Select FolderID from Folder where FolderName=@FolderName";
-            SqlParameter[] folder = new SqlParameter[]
-            {
-                new SqlParameter("@FolderName",folderName)
-            };
-            DataTable f = db.ExecuteQuery(query, folder);
-            if(f.Rows.Count > 0 )
-            {
-                this.FolderID = Convert.ToInt32(f.Rows[0][0]);
-            }
-            f.Dispose();
-            query = @"Select AccountID from Account where AccountName=@AccountName";
-            SqlParameter[] account = new SqlParameter[]
-            {
-                new SqlParameter("@AccountName",accountName)
-            };
-            DataTable a = db.ExecuteQuery(query, account);
-            if (a.Rows.Count > 0)
-            {
-                this.AccountID = Convert.ToInt32(a.Rows[0][0]);
-            }
-            a.Dispose();
+            this.AccountName = SenderName;
         }
         public void AddEmail() // Thêm thư vào database
         {
@@ -101,20 +71,20 @@ namespace MailClient
             if (data.Rows.Count > 0 && Convert.ToInt32(data.Rows[0][0]) > 0) return;
             
 
-            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail,FromUser, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
-                            Values(@AccountID,@FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead);
+            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead, AccountName)
+                            Values(@AccountID,@FolderID, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @AccountName);
                             SELECT SCOPE_IDENTITY();";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@AccountID",AccountID),
                 new SqlParameter("@FolderID",FolderID),
                 new SqlParameter("@SubjectEmail",Subject),
-                new SqlParameter("@FromUser",FromUser),
                 new SqlParameter("@FromAdd",From),
                 new SqlParameter("@ToAdd",toString),
                 new SqlParameter("@DateSent",DateSent),
                 new SqlParameter("@DateReceived",DateReceived),
                 new SqlParameter("@BodyText",BodyText),
-                new SqlParameter("@IsRead",IsRead)
+                new SqlParameter("@IsRead",IsRead),
+                new SqlParameter("@AccountName",AccountName)
             };
             
             DataTable dt=db.ExecuteQuery(query, parameters);
@@ -151,6 +121,7 @@ namespace MailClient
             
             db.ExecuteNonQuery(query, parameters);
         }
+<<<<<<< HEAD
         // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
         public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
         public void UpdateFolderEmail(string foldername)
@@ -196,5 +167,7 @@ namespace MailClient
             db.ExecuteNonQuery(query, trash);
 
         }
+=======
+>>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
     }
 }

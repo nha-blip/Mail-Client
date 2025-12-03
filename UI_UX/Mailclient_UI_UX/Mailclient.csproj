@@ -114,6 +114,12 @@
     <None Remove="image\trashmail.png" />
     <None Remove="image\uit.png" />
   </ItemGroup>
+	
+	<ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="image\attach-document.png" />
@@ -138,6 +144,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Database\Database.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
+    <ProjectReference Include="..\NetWorking\NetWorking.csproj" />
     <ProjectReference Include="..\Parsing\Parsing.csproj" />
   </ItemGroup>
 

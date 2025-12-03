@@ -42,7 +42,7 @@ namespace MailClient
                 if (!File.Exists(jsonPath))
                 {
                     // Đường dẫn dự phòng (Hardcode để debug)
-                    jsonPath = @"D:\NHA\IT008_Lập trình trực quan\MailClient\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
+                    jsonPath = @"D:\drive-download-20251202T014458Z-1-001\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
                 using (var stream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))
@@ -87,7 +87,11 @@ namespace MailClient
             }
         }
        
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 1896dab998a8a33d2bb403ecf0e83fe2a21a921c
         public int GetFolderIDByFolderName(string folderName)
         {
             string query = @"Select FolderID
@@ -129,7 +133,7 @@ namespace MailClient
 
             var request = Service.Users.Messages.List("me");
             request.LabelIds = new List<string>() { foldername };
-            request.MaxResults = 50;
+            request.MaxResults = 20;
 
             var response = await request.ExecuteAsync();
 

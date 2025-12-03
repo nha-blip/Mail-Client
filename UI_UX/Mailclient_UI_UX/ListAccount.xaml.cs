@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Identity.Client;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -22,13 +23,31 @@ namespace Mailclient
     public partial class ListAccount : UserControl
     {
 
-        public ObservableCollection<MailClient.Account> Accounts { get; set; }
+        public ObservableCollection<MailClient.Account> UiAccounts { get; set; }
 
         public ListAccount()
         {
             InitializeComponent();
+            UiAccounts = new ObservableCollection<MailClient.Account>();
 
-            this.DataContext = new MailClient.ListAccount();
+            // Dòng này quan trọng để Binding hoạt động
+            AccountListView.ItemsSource = UiAccounts;
+
+            this.DataContext = this;
+        }
+        public void AddNewAccountToUI(MailClient.Account acc)
+        {
+            if (acc != null && UiAccounts != null)
+            {
+                // Thêm vào danh sách -> Giao diện tự động hiện thêm dòng mới
+                UiAccounts.Add(acc);
+            }
+        }
+
+        private void addAcc(object sender, RoutedEventArgs e)
+        {
+            Logingg login = new Logingg();
+            login.Show();
         }
     }
 }
