@@ -1,6 +1,8 @@
-﻿using System;
+﻿using MailClient; // Namespace chứa GmailStore và DatabaseHelper
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using MailClient; // Namespace chứa GmailStore và DatabaseHelper
 
 namespace Mailclient
 {
@@ -64,7 +65,7 @@ namespace Mailclient
                 if (success)
                 {
                     // Hiện thông báo chào mừng (Tùy chọn)
-                    // MessageBox.Show($"Đăng nhập thành công!\nXin chào: {googleHelper.UserEmail}");
+                    //MessageBox.Show($"Đăng nhập thành công!\nXin chào: {googleHelper.UserEmail}");
 
                     // 5. KẾT NỐI DATABASE
                     // Gọi hàm để kiểm tra xem Email này đã có trong DB chưa, nếu chưa thì tạo mới
@@ -76,11 +77,35 @@ namespace Mailclient
                     App.CurrentAccountID = accID;       // Lưu ID để biết đang tải thư của ai
                     App.CurrentGmailStore = googleHelper; // Lưu kết nối để tí nữa tải thư không cần login lại
 
-                    // 7. CHUYỂN MÀN HÌNH
-                    MainWindow main = new MainWindow();
-                    main.Show();
+                    MailClient.Account newAccount = new MailClient.Account(accID);
+                    newAccount.Email = googleHelper.UserEmail;
+                    newAccount.Username = googleHelper.UserEmail;
+                    var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
 
-                    // Đóng cửa sổ đăng nhập hiện tại
+                    if (mainWindow != null)
+                    {
+                        // TRƯỜNG HỢP 1: Đã có cửa sổ chính (Ví dụ: Đang ở Main bấm nút "Thêm tài khoản")
+                        // => Chỉ cần cập nhật thêm vào danh sách
+                        mainWindow.ListAccountControl.AddNewAccountToUI(newAccount);
+
+                        // Mở popup cho user thấy
+                        mainWindow.AccountPopup.IsOpen = true;
+
+                        // Đưa cửa sổ chính lên trên cùng
+                        mainWindow.Activate();
+                    }
+                    else
+                    {
+                        // TRƯỜNG HỢP 2: Chưa có cửa sổ chính (Ví dụ: Mới mở App lên là form Login luôn)
+                        // => Phải TẠO MỚI cửa sổ chính
+                        MainWindow newMain = new MainWindow();
+
+                        // Quan trọng: Phải hiện lên trước thì các Control bên trong mới được tạo
+                        newMain.Show();
+
+                        // Sau khi Show, gán dữ liệu tài khoản vào danh sách
+                        newMain.ListAccountControl.AddNewAccountToUI(newAccount);
+                    }
                     this.Close();
                 }
             }

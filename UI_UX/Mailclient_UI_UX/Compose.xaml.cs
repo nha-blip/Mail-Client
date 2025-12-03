@@ -137,7 +137,7 @@ namespace Mailclient
 
                 // 1.6. Thiết lập Tệp đính kèm (Giả sử bạn có List<string> chứa đường dẫn file)
                 // Nếu bạn có một danh sách riêng cho đường dẫn file (ví dụ: model.Attachments đã được thêm vào trước đó)
-                model.AttachmentPaths = _attachmentFiles;
+                //model.AttachmentPaths = _attachmentFiles;
 
                 // 2. Gửi Email
                 // Bắt đầu thao tác gửi email bất đồng bộ
@@ -158,6 +158,9 @@ namespace Mailclient
                 // Xử lý các lỗi khác (lỗi kết nối, lỗi server SMTP, v.v.)
                 MessageBox.Show($"Đã xảy ra lỗi trong quá trình gửi email: {ex.Message}", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            To.Text = "";
+            Subject.Text = "";
+            Body.Text = "";
         }
     }
 }

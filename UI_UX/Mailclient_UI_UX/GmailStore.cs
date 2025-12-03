@@ -41,7 +41,7 @@ namespace MailClient
             "https://mail.google.com/",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/userinfo.email",
-                GmailService.Scope.MailGoogleCom,
+            GmailService.Scope.MailGoogleCom,
         };
         public async Task<bool> LoginAsync()
         {
@@ -51,7 +51,6 @@ namespace MailClient
                 string jsonPath = @"mailclient.json";
                 if (!File.Exists(jsonPath))
                 {
-                    // Đường dẫn dự phòng (Hardcode để debug)
                     jsonPath = @"D:\Lập trình trực quan\Mail-Client\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
@@ -94,24 +93,6 @@ namespace MailClient
             {
                 MessageBox.Show("Lỗi đăng nhập Google: " + ex.Message);
                 return false;
-            }
-        }
-       
-
-        // Hàm này dùng để chuyển đổi con số InternalDate của Gmail thành DateTime
-        private DateTime GetGmailInternalDate(long? internalDate)
-        {
-            if (internalDate == null) return DateTime.Now;
-            try
-            {
-                // Google trả về số mili-giây tính từ năm 1970 (Unix Time)
-                // Dùng hàm này để đổi ra ngày giờ chuẩn, không lo bị lỗi định dạng
-                return DateTimeOffset.FromUnixTimeMilliseconds(internalDate.Value).LocalDateTime;
-            }
-            catch
-            {
-                // Nếu có lỗi gì đó thì mới lấy giờ hiện tại
-                return DateTime.Now;
             }
         }
 
@@ -157,7 +138,7 @@ namespace MailClient
 
             var request = Service.Users.Messages.List("me");
             request.LabelIds = new List<string>() { foldername };
-            request.MaxResults = 50;
+            request.MaxResults = 20;
 
             var response = await request.ExecuteAsync();
 

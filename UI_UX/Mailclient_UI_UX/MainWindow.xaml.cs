@@ -38,8 +38,8 @@ namespace Mailclient
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         private GmailStore gmailStore;
+        private MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
-
         public MainWindow()
         {
             gmailStore = new GmailStore();
@@ -87,7 +87,7 @@ namespace Mailclient
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(30); // mỗi phút đồng bộ
+            syncTimer.Interval = TimeSpan.FromSeconds(5); 
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
@@ -103,10 +103,14 @@ namespace Mailclient
         }
         private void OPLogin(object sender, RoutedEventArgs e)
         {
-            Logingg login = new Logingg();
-            login.Show();
-            ListAccount listAccount = new ListAccount();
-            listAccount.Visibility = Visibility.Visible;
+            // Đảo ngược trạng thái: Đang đóng thì mở, đang mở thì đóng
+            AccountPopup.IsOpen = !AccountPopup.IsOpen;
+
+            // Nếu mở ra thì có thể load dữ liệu (Tùy chọn)
+            if (AccountPopup.IsOpen)
+            {
+                // ListAccountControl.LoadDataFromSQL(); // Nếu cần refresh
+            }
 
         }
 
@@ -351,6 +355,7 @@ namespace Mailclient
                 if (emailToDelete != null)
                 {
                     // 1. Đánh dấu thư là rác
+                    emailToDelete.UpdateFolderEmail("Trash");
                     emailToDelete.FolderName = "Trash";
 
                     // 2. Cập nhật lại giao diện dựa trên MÀN HÌNH ĐANG MỞ

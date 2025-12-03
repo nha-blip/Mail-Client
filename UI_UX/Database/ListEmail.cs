@@ -34,10 +34,10 @@ namespace MailClient
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
-                
+
                 Email e = new Email(
                     Convert.ToString(row["FolderName"]) ?? "",
-                    Convert.ToString(row["FromUser"])?? "",
+                    Convert.ToString(row["FromUser"]) ?? "",
                     Convert.ToString(row["AccountName"]) ?? "",
                     Convert.ToString(row["SubjectEmail"]) ?? "",
                     Convert.ToString(row["FromAdd"]) ?? "",
@@ -56,12 +56,12 @@ namespace MailClient
         {
             string query = @"Delete From Email where IsFlag=1";
             db.ExecuteNonQuery(query);
-            foreach(Email e in listemail)
+            foreach (Email e in listemail)
             {
                 if (e.IsFlag)
                 {
                     listemail.Remove(e);
-                    
+
                     query = @"Update Folder set TotalMail=TotalMail-1 where FolderID=@FolderID and AccountID=@AccountID";
                     SqlParameter[] Update = new SqlParameter[]
                     {

@@ -14,12 +14,12 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
-        public Account(string email,string username)
+        public Account(string email, string username)
         {
             Email = email;
             Username = username;
             db = new DatabaseHelper();
-        } 
+        }
         public Account(int id)
         {
             AccountID = id;
@@ -28,7 +28,7 @@ namespace MailClient
             {
                 new SqlParameter("@AccountID",id)
             };
-            db=new DatabaseHelper();
+            db = new DatabaseHelper();
             DataTable dt = db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
@@ -51,11 +51,24 @@ namespace MailClient
                 new SqlParameter("@Email",Email),
                 new SqlParameter("@AccountName",Username)
             };
-            DataTable dt=db.ExecuteQuery(query, parameters);
+            DataTable dt = db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
-            }          
+            }
+            query = @"INSERT INTO Folder (AccountID, FolderName)
+                        VALUES
+                            (@AccID, 'Inbox'),
+                            (@AccID, 'Sent'),
+                            (@AccID, 'Spam'),
+                            (@AccID, 'Trash'),
+                            (@AccID, 'Draft');
+                        ";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@AccID",AccountID)
+            };
+            db.ExecuteNonQuery(query, folder);
         }
         public int CheckAccount(string email, string password)
         {
@@ -80,7 +93,7 @@ namespace MailClient
             {
                 new SqlParameter("@AccountID",AccountID)
             };
-            db.ExecuteNonQuery(query, parameter);     
+            db.ExecuteNonQuery(query, parameter);
         }
         public int LoginOrRegisterGoogle()
         {
