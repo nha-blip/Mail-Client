@@ -13,7 +13,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MailClient;
-using MailClient.Core.Models;
 using MailClient.Core.Services;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -28,6 +27,7 @@ namespace Mailclient
         public GmailStore _store;
         public AccountService accountService;
         public MailService mailService;
+        public Account acc;
         public Compose()
         {
             InitializeComponent();
@@ -36,6 +36,7 @@ namespace Mailclient
             _store = new GmailStore();
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
+            acc = new Account(App.CurrentAccountID);    
         }
         public void SetAuthenticatedStore(GmailStore authenticatedStore)
         {
@@ -90,7 +91,7 @@ namespace Mailclient
             {
                 // 1.1. Thiết lập Người gửi (From)
                 model.From = accountService.GetCurrentUserEmail();
-
+                model.AccountName = acc.Username;
                 // 1.2. Thiết lập Người nhận (To), tách chuỗi bằng dấu phẩy
                 // .Split(',') tạo mảng string[], .ToList() chuyển thành List<string>
                 model.To = To.Text.Split(","); // Loại bỏ khoảng trắng thừa
@@ -101,16 +102,7 @@ namespace Mailclient
                 {
                     MessageBox.Show("Vui lòng nhập ít nhất một địa chỉ người nhận (To).", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
-                }
-
-                // 1.3. Thiết lập Cc và Bcc (nếu có trường văn bản tương ứng trên UI)
-                //model.Cc = Cc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                //                   .Select(s => s.Trim())
-                //                   .ToList();
-
-                //model.Bcc = Bcc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                //                    .Select(s => s.Trim())
-                //                    .ToList();
+                }             
 
                 // 1.4. Thiết lập Chủ đề và Nội dung
                 model.Subject = Subject.Text;

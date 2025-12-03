@@ -137,7 +137,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Database\Database.csproj" />
-    <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\Parsing\Parsing.csproj" />
   </ItemGroup>
 

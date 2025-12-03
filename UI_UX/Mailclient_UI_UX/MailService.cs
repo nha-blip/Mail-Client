@@ -8,9 +8,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Google.Apis.Auth.OAuth2;
-using MailClient.Core.Models; // Vẫn giữ namespace này nếu cần cho MailModel/EmailParser
 using System.Threading;
-using System.Security.Authentication; // Giả sử class Email nằm trong namespace này hoặc được tham chiếu
+using System.Security.Authentication; 
 
 namespace MailClient.Core.Services
 {
@@ -35,7 +34,7 @@ namespace MailClient.Core.Services
 
             // Set sender
             // Sử dụng thuộc tính From (địa chỉ email) và FromUser (tên hiển thị)
-            message.From.Add(new MailboxAddress(mailModel.FromUser, mailModel.From));
+            message.From.Add(new MailboxAddress(mailModel.From, mailModel.AccountName));
 
             // Set receipients: To là một mảng string[]
             // Cần kiểm tra null trước khi dùng .Select()
