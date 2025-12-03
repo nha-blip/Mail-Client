@@ -33,7 +33,7 @@ namespace Mailclient
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
-        private ListAccount account;
+        private MailClient.ListAccount account;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
@@ -45,6 +45,9 @@ namespace Mailclient
             gmailStore = new GmailStore();
             InitializeComponent();
             InitializeWebView();
+            account = new MailClient.ListAccount();
+            Account a = new Account(App.CurrentAccountID);
+            account.AddAccount(a);
             list = new MailClient.ListEmail(App.CurrentAccountID);
             inboxbt.Background = colorSelected;
             var filter = list.listemail.Where(email => email.FolderName == "Inbox");

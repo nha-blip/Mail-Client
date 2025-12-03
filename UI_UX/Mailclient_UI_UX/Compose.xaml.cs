@@ -33,6 +33,7 @@ namespace Mailclient
             InitializeComponent();
 
             // Cần phải khởi tạo _store ở đây. Lưu ý: Store này CHƯA ĐĂNG NHẬP.
+            acc = new Account(App.CurrentAccountID);
             _store = new GmailStore();
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
@@ -83,19 +84,20 @@ namespace Mailclient
             }
 
             // SỬ DỤNG INSTANCE ĐÃ CÓ VÀ ĐÃ ĐĂNG NHẬP
-            AccountService accountService = new AccountService(_store);
-            MailService mailservice = new MailService(accountService);
             Email model = new Email();
             // 1. Thu thập và thiết lập dữ liệu cơ bản
             try
             {
                 // 1.1. Thiết lập Người gửi (From)
                 model.From = accountService.GetCurrentUserEmail();
+<<<<<<< HEAD
                 model.AccountName = acc.Username;
+=======
+>>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
                 // 1.2. Thiết lập Người nhận (To), tách chuỗi bằng dấu phẩy
                 // .Split(',') tạo mảng string[], .ToList() chuyển thành List<string>
                 model.To = To.Text.Split(","); // Loại bỏ khoảng trắng thừa
-                                   
+                model.AccountName = acc.Username;                   
 
                 // Kiểm tra xem có người nhận nào không
                 if (!model.To.Any())
