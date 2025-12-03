@@ -90,10 +90,7 @@ namespace Mailclient
             {
                 // 1.1. Thiết lập Người gửi (From)
                 model.From = accountService.GetCurrentUserEmail();
-<<<<<<< HEAD
                 model.AccountName = acc.Username;
-=======
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
                 // 1.2. Thiết lập Người nhận (To), tách chuỗi bằng dấu phẩy
                 // .Split(',') tạo mảng string[], .ToList() chuyển thành List<string>
                 model.To = To.Text.Split(","); // Loại bỏ khoảng trắng thừa

@@ -34,11 +34,8 @@ namespace MailClient.Core.Services
 
             // Set sender
             // Sử dụng thuộc tính From (địa chỉ email) và FromUser (tên hiển thị)
-<<<<<<< HEAD
-            message.From.Add(new MailboxAddress(mailModel.From, mailModel.AccountName));
-=======
+
             message.From.Add(new MailboxAddress(mailModel.AccountName, mailModel.From));
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
 
             // Set receipients: To là một mảng string[]
             // Cần kiểm tra null trước khi dùng .Select()

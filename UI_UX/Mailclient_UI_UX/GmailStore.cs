@@ -17,8 +17,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-<<<<<<< HEAD
-=======
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
@@ -28,8 +26,7 @@ using Google.Apis.Util.Store;
 using Mailclient;
 using MailClient.Core.Services;
 using Microsoft.Data.SqlClient;
-using MimeKit; // Cần thư viện này
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
+using MimeKit;
 
 namespace MailClient
 {
@@ -116,10 +113,7 @@ namespace MailClient
                 return DateTime.Now;
             }
         }
-<<<<<<< HEAD
 
-=======
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
         public int GetFolderIDByFolderName(string folderName)
         {
             string query = @"Select FolderID
@@ -130,18 +124,12 @@ namespace MailClient
                 new SqlParameter("@folderName",folderName),
                 new SqlParameter("@AccountID",App.CurrentAccountID)
             };
-<<<<<<< HEAD
-            DatabaseHelper db = new DatabaseHelper();
-            DataTable dt = db.ExecuteQuery(query, parameters);
-            return Convert.ToInt32(dt.Rows[0][0]);
-        }
 
-=======
             DatabaseHelper db=new DatabaseHelper();
             DataTable dt=db.ExecuteQuery(query,parameters);
             return Convert.ToInt32(dt.Rows[0][0]);
         }
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
+
         public async Task SyncEmailsToDatabase(int localAccountID)
         {
             if (Service == null) return;
@@ -181,10 +169,7 @@ namespace MailClient
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
-<<<<<<< HEAD
-                            emailToSave.FolderID = GetFolderIDByFolderName("Inbox"); 
-=======
->>>>>>> fef9c6c665a7d492eab58f70ab6cbec283bb80f0
+
                             emailToSave.FolderName = "Inbox";
                             emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
                             emailToSave.AccountName = UserEmail;
