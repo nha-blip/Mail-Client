@@ -17,6 +17,7 @@ namespace MailClient
             listemail = new List<Email>();
             db = new DatabaseHelper();
             // 1. Sửa câu truy vấn: Dùng @AccID làm tham số
+
             string query = @"SELECT * FROM Email E
                              JOIN Folder F ON F.FolderID = E.FolderID
                              JOIN Account A ON A.AccountID=E.AccountID

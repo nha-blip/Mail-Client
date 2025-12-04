@@ -24,20 +24,22 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
+
         public List<string> AttachmentPaths { get; set; } = new List<string>();
         public string SenderName
         {
             get
             {
-
-                int index = From.IndexOf('<');
-
-                if (index > 0)
+                if (DateSent.Date == DateTime.Today)
                 {
-                    return From.Substring(0, index).Trim().Trim('"');
+                    // Nếu là hôm nay → chỉ hiển thị giờ:phút
+                    return DateSent.ToString("HH:mm");
                 }
-
-                return From;
+                else
+                {
+                    // Nếu không phải hôm nay → hiển thị dd/MM/yyyy
+                    return DateSent.ToString("dd/MM/yyyy");
+                }
             }
         }
         // Tạo email
@@ -153,6 +155,7 @@ namespace MailClient
         }
         // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
         public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
+
         public void UpdateFolderEmail(string foldername)
         {
             // Lấy ID của folder Trash

@@ -1,10 +1,9 @@
-
-
 using MailClient;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq; 
@@ -33,21 +32,20 @@ namespace Mailclient
 
         // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
-        private MailClient.ListAccount account;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         private GmailStore gmailStore;
-        private MailClient.ListAccount listAcc;
+        public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
         public MainWindow()
         {
             gmailStore = new GmailStore();
             InitializeComponent();
             InitializeWebView();
-            account = new MailClient.ListAccount();
+            listAcc = new MailClient.ListAccount();
             Account a = new Account(App.CurrentAccountID);
-            account.AddAccount(a);
+            listAcc.AddAccount(a);
             list = new MailClient.ListEmail(App.CurrentAccountID);
             inboxbt.Background = colorSelected;
             var filter = list.listemail.Where(email => email.FolderName == "Inbox");
@@ -55,13 +53,12 @@ namespace Mailclient
             SyncAndReload();
             StartEmailSync();
         }
-        private async void SyncAndReload()
+        public async void SyncAndReload()
         {
             // Kiểm tra xem có đang đăng nhập Google không
             if (App.CurrentGmailStore != null && App.CurrentGmailStore.Service != null)
             {
                 // 1. Tải thư từ Google -> Lưu vào SQL
-                // (Hàm này nằm trong file GmailStore.cs mình gửi bài trước)
                 await App.CurrentGmailStore.SyncAllFoldersToDatabase(App.CurrentAccountID);
 
                 // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu

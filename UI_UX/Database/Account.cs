@@ -55,10 +55,25 @@ namespace MailClient
             };
             DataTable dt = db.ExecuteQuery(query, parameters);
 
+
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
             }
+            query = @"INSERT INTO Folder (AccountID, FolderName)
+                        VALUES
+                            (@AccID, 'Inbox'),
+                            (@AccID, 'Sent'),
+                            (@AccID, 'Spam'),
+                            (@AccID, 'Trash'),
+                            (@AccID, 'Draft');
+                        ";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@AccID",AccountID)
+            };
+            db.ExecuteNonQuery(query, folder);
+
         }
         public int CheckAccount(string email, string password)
         {
