@@ -1,4 +1,4 @@
-﻿using MailClient; // Namespace chứa GmailStore và DatabaseHelper
+﻿using MailClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,9 +17,6 @@ using System.Windows.Shapes;
 
 namespace Mailclient
 {
-    /// <summary>
-    /// Interaction logic for Logingg.xaml
-    /// </summary>
     public partial class Logingg : Window
     {
         public Logingg()
@@ -27,94 +24,69 @@ namespace Mailclient
             InitializeComponent();
         }
 
-        // --- CÁC HÀM XỬ LÝ GIAO DIỆN CỬA SỔ ---
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ButtonState == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
-        }
+        // --- CÁC HÀM XỬ LÝ GIAO DIỆN CỬA SỔ GIỮ NGUYÊN ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
+        private void Minimize_Click(object sender, RoutedEventArgs e) { this.WindowState = WindowState.Minimized; }
+        private void Close_Click(object sender, RoutedEventArgs e) { this.Close(); }
 
-        private void Minimize_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        // --- HÀM XỬ LÝ ĐĂNG NHẬP GOOGLE ---
-        // (Đảm bảo bên XAML nút bấm của bạn có sự kiện Click="openACC")
+        // --- HÀM XỬ LÝ ĐĂNG NHẬP (ĐÃ SỬA) ---
         private async void openACC(object sender, RoutedEventArgs e)
         {
-            string tokenPath = "token_store";
-            if (Directory.Exists(tokenPath))
-            {
-                Directory.Delete(tokenPath, true); // Xóa folder token
-            }
-            else if (File.Exists(tokenPath))
-            {
-                File.Delete(tokenPath); // Xóa file token
-            }
-
-            // 1. Khóa nút để tránh người dùng bấm liên tục
-            // (Giả sử nút của bạn tên là "login", nếu tên khác thì sửa lại nhé)
             if (sender is Button btn) btn.IsEnabled = false;
-
             try
             {
-                // 2. Khởi tạo GmailStore (Class mới chúng ta vừa tạo)
+                // 1. Tạo Account tạm. 
+                // Lưu ý: Nếu Account không có constructor rỗng, hãy truyền chuỗi rỗng
+                Account tempAccount = new Account("", "");
+
+                // 2. Tạo Store nối với Account tạm
+                var myStore = new AccountTokenStore(tempAccount);
+
                 var googleHelper = new MailClient.GmailStore();
 
-                // 3. Gọi hàm đăng nhập (Hàm này sẽ mở trình duyệt web)
-                bool success = await googleHelper.LoginAsync();
+                // 3. Login với Store tùy biến
+                // Token sẽ tự động chui vào tempAccount.TokenJson
+                bool success = await googleHelper.LoginAsync("user", myStore);
 
-                // 4. Kiểm tra kết quả
                 if (success)
                 {
+                    string realEmail = googleHelper.UserEmail;
+                    string realName = googleHelper.Username ?? realEmail; // Lấy tên hoặc dùng email làm tên
 
-                    // 5. KẾT NỐI DATABASE
-                    // Gọi hàm để kiểm tra xem Email này đã có trong DB chưa, nếu chưa thì tạo mới
-                    //Account acc = new Account(googleHelper.UserEmail, googleHelper.UserEmail);
-                    DatabaseHelper dp = new DatabaseHelper();
-                    int accID = dp.LoginOrRegisterGoogle(googleHelper.UserEmail, googleHelper.Username);
+                    // 4. LƯU VÀO DATABASE
+                    // Tạo đối tượng Account thực tế với thông tin vừa lấy được
+                    Account realAccount = new Account(realEmail, realName);
 
-                    // 6. LƯU THÔNG TIN VÀO BIẾN TOÀN CỤC (Để MainWindow dùng)
-                    App.CurrentAccountID = accID;       // Lưu ID để biết đang tải thư của ai
-                    App.CurrentGmailStore = googleHelper; // Lưu kết nối để tí nữa tải thư không cần login lại
+                    // Gọi hàm xử lý logic DB (đã viết trong class Account ở câu trả lời trước)
+                    // Hàm này sẽ tự Insert hoặc Update token và trả về ID
+                    int accID = realAccount.LoginOrRegisterGoogle(tempAccount.TokenJson);
 
-                    MailClient.Account newAccount = new MailClient.Account(accID);
-                    newAccount.Email = googleHelper.UserEmail;
-                    newAccount.Username = googleHelper.UserEmail;
+                    // 5. Cài đặt biến toàn cục
+                    App.CurrentAccountID = accID;
+                    App.CurrentGmailStore = googleHelper;
 
+                    // 6. Chuyển màn hình
                     MainWindow newMain = new MainWindow();
-                    newMain.Show(); // Hiện lên trước để app không bị tắt (quan trọng)
+                    newMain.Show();
 
-                    // 2. Tìm và đóng cái MainWindow cũ (nếu đang có)
-                    // Lưu ý: Không dùng Application.Current.MainWindow vì nó có thể trỏ nhầm
+                    // Đóng các cửa sổ cũ
                     foreach (Window window in Application.Current.Windows)
                     {
-                        // Tìm cửa sổ là kiểu MainWindow và KHÔNG PHẢI là cái vừa tạo
                         if (window is MainWindow && window != newMain)
                         {
                             window.Close();
-                            break; // Tìm thấy và đóng rồi thì dừng tìm
+                            break; // Chỉ đóng cửa sổ Main cũ
                         }
                     }
-
-                    this.Close();
+                    this.Close(); // Đóng cửa sổ Login
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi đăng nhập: {ex.Message}\n\n{ex.InnerException?.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Lỗi đăng nhập: {ex.Message}");
             }
             finally
             {
-                // Mở lại nút dù thành công hay thất bại
                 if (sender is Button btnfinal) btnfinal.IsEnabled = true;
             }
         }
