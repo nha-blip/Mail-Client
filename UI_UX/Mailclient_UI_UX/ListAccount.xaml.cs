@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using MailClient;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -42,25 +43,54 @@ namespace Mailclient
         }
 
         // Thêm hàm xử lý khi click vào 1 dòng trong ListView (Thay cho MouseDown cũ)
-        private void AccountListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void AccountListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            MessageBox.Show("thay doi tai khoan");
             var listView = sender as ListView;
             var selectedAcc = listView.SelectedItem as MailClient.Account;
 
             if (selectedAcc != null)
             {
-                MessageBox.Show($"Bạn đã chọn ID: {selectedAcc.AccountID} - Email: {selectedAcc.Email}");
-                App.CurrentAccountID = selectedAcc.AccountID;
-                var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
-
-                // 2. Kiểm tra xem có lấy được không (để tránh lỗi null)
-                if (mainWindow != null)
+                try
                 {
-                    // 3. Gọi hàm public của nó
-                    mainWindow.SyncAndReload();
+                    // --- BƯỚC 1: LẤY FULL THÔNG TIN ACCOUNT (KÈM TOKEN) TỪ DB ---
+                    Account fullAccount = new Account(selectedAcc.AccountID);
+
+                    // --- BƯỚC 2: KHỞI TẠO STORE CẦU NỐI ---
+                    // Để đưa TokenJson từ fullAccount vào Google API
+                    var myStore = new AccountTokenStore(fullAccount);
+
+                    // Đảm bảo biến toàn cục không null
+                    if (App.CurrentGmailStore == null)
+                        App.CurrentGmailStore = new GmailStore();
+
+                    // --- BƯỚC 3: LOGIN LẠI (QUAN TRỌNG NHẤT) ---
+                    // Vì fullAccount.TokenJson đã có dữ liệu từ DB, 
+                    // hàm này sẽ chạy ngầm (Silent Login) và KHÔNG mở trình duyệt.
+                    bool success = await App.CurrentGmailStore.LoginAsync("user", myStore);
+
+                    if (success)
+                    {
+                        // Cập nhật biến toàn cục sau khi Login thành công
+                        App.CurrentAccountID = fullAccount.AccountID;
+
+                        // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
+                        var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
+                        if (mainWindow != null)
+                        {
+                            mainWindow.SyncAndReload();
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi chuyển tài khoản: {ex.Message}");
                 }
 
-                // Reset lại lựa chọn để lần sau click lại vẫn nhận
                 listView.SelectedItem = null;
             }
         }

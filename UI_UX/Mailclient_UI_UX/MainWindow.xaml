@@ -222,9 +222,13 @@
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="20">
-
-                            <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentPresenter Content="{TemplateBinding Tag}"
+                                    Margin="5,0"/>
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                    Margin="5,0"/>
+                                
+                            </StackPanel>
                         </Border>
 
                         <ControlTemplate.Triggers>
@@ -824,14 +828,14 @@
                                 <Button x:Name="Reponse"
                                         Focusable="False"
                                         Height="40"
-                                        Width="100"
+                                        Width="300"
                                         Grid.Row="2"
                                         Margin="200,0,0,0"
                                         Style="{StaticResource ReplyButtonStyle}"
                                         HorizontalAlignment="Left"
                                         Content="Reponse">
                                     <Button.Tag>
-                                        <Image Source="/reply.png" 
+                                        <Image Source="/image/back.png" 
                                                VerticalAlignment="Top"
                                                Height="30"
                                                RenderOptions.BitmapScalingMode="HighQuality"/>

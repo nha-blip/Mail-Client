@@ -47,6 +47,8 @@ create table Attachment(
 	Constraint Attachment_PK Primary key (ID),
 	Constraint Attachment_FK foreign key (EmailID) references Email(ID) on delete cascade
 )
+Alter Table Account
+Add TokenJson nvarchar(Max)
 Select * from Account
 Delete from Account
 select * from Folder

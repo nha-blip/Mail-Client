@@ -103,6 +103,7 @@
 		<None Remove="image\logo_uit.png" />
 		<None Remove="image\multiple-emails.png" />
 		<None Remove="image\pencil.png" />
+		<None Remove="image\reply.png" />
 		<None Remove="image\search.png" />
 		<None Remove="image\send.png" />
 		<None Remove="image\sent.png" />
@@ -120,9 +121,6 @@
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="image\reply.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -130,6 +128,9 @@
 		<Resource Include="image\back.png" />
 		<Resource Include="image\information.png" />
 		<Resource Include="image\left-arrow.png" />
+		<Resource Include="image\reply.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="image\sent.png" />
 		<Resource Include="image\setting.png" />
 		<Resource Include="image\spam.png" />
