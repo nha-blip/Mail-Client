@@ -1,22 +1,16 @@
 ﻿using MailClient;
 using MailClient.Core.Services;
 using Microsoft.Win32;
-using Org.BouncyCastle.Utilities.Collections;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel; 
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Mailclient
 {
@@ -30,17 +24,22 @@ namespace Mailclient
         public AccountService accountService;
         public MailService mailService;
         public Account acc;
-        private List<string> _attachmentFiles;
+
+        // Dùng ObservableCollection để Binding dữ liệu lên ListBox
+        private ObservableCollection<AttachmentItem> _attachmentList;
+
         public Compose()
         {
             InitializeComponent();
 
-            // Cần phải khởi tạo _store ở đây. Lưu ý: Store này CHƯA ĐĂNG NHẬP.
             _store = new GmailStore();
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
-            acc = new Account(App.CurrentAccountID); 
-            _attachmentFiles = new List<string>();
+            acc = new Account(App.CurrentAccountID);
+
+            // Khởi tạo danh sách và gán nguồn dữ liệu cho ListBox
+            _attachmentList = new ObservableCollection<AttachmentItem>();
+            lbAttachments.ItemsSource = _attachmentList;
 
             InitializeEditor();
         }
@@ -48,9 +47,7 @@ namespace Mailclient
         private async void InitializeEditor()
         {
             await EditorWebView.EnsureCoreWebView2Async();
-
-            // Mã HTML cơ bản cho phép chỉnh sửa (contenteditable)
-            // Kèm theo hàm Javascript 'insertImageAtCursor' để C# gọi xuống
+            // HTML Editor giữ nguyên như cũ
             string htmlEditor = @"
                 <html>
                 <head>
@@ -74,23 +71,19 @@ namespace Mailclient
 
         public void SetAuthenticatedStore(GmailStore authenticatedStore)
         {
-            // Cập nhật trường _store bằng đối tượng đã được đăng nhập
             _store = authenticatedStore ?? throw new ArgumentNullException(nameof(authenticatedStore));
-
-            // Khởi tạo lại các service với store mới
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
-
         }
 
         private void closecompose(object sender, RoutedEventArgs e)
         {
-            this.Visibility = Visibility.Collapsed; 
+            this.Visibility = Visibility.Collapsed;
         }
 
         private void Minimize(object sender, RoutedEventArgs e)
         {
-            isminimize=true;
+            isminimize = true;
             this.Height = 40;
             this.Width = 200;
         }
@@ -104,27 +97,46 @@ namespace Mailclient
 
         private void opfile(object sender, RoutedEventArgs e)
         {
-            // 1. Khởi tạo hộp thoại chọn file
             OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            // 2. Cho phép chọn nhiều file cùng lúc
             openFileDialog.Multiselect = true;
-
-            // 3. Đặt tiêu đề cho hộp thoại
             openFileDialog.Title = "Chọn tệp đính kèm";
 
             if (openFileDialog.ShowDialog() == true)
             {
                 foreach (string file in openFileDialog.FileNames)
                 {
-                    _attachmentFiles.Add(file);
+                    // Kiểm tra nếu file chưa có trong danh sách thì mới thêm
+                    if (!_attachmentList.Any(x => x.FilePath == file))
+                    {
+                        var fileInfo = new FileInfo(file);
 
-                    // Thêm tên file vào ListBox giao diện
-                    //lbAttachments.Items.Add(System.IO.Path.GetFileName(file));
+                        // Tạo đối tượng AttachmentItem để hiển thị
+                        var item = new AttachmentItem
+                        {
+                            FilePath = file,
+                            FileName = fileInfo.Name,
+                            FileSize = FormatBytes(fileInfo.Length) // Tính dung lượng (KB/MB)
+                        };
+
+                        _attachmentList.Add(item);
+                    }
                 }
             }
         }
-        // Đảm bảo hàm được đánh dấu là async
+
+        // Hàm này được gọi từ sự kiện Click="RemoveAttachment_Click" trong XAML
+        private void RemoveAttachment_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var itemToRemove = button?.Tag as AttachmentItem; // Lấy đối tượng file từ Tag của nút
+
+            if (itemToRemove != null)
+            {
+                _attachmentList.Remove(itemToRemove); // Xóa khỏi danh sách -> Giao diện tự cập nhật
+            }
+        }
+
+        // --- 3. SỬA HÀM GỬI ---
         private async void Send_Click(object sender, RoutedEventArgs e)
         {
             if (_store.Service == null)
@@ -135,11 +147,7 @@ namespace Mailclient
 
             try
             {
-                // Lấy nội dung HTML từ WebView
-                // Hàm ExecuteScriptAsync trả về chuỗi JSON (ví dụ: "\"<div>nội dung</div>\"")
                 string rawJsonHtml = await EditorWebView.ExecuteScriptAsync("document.body.innerHTML");
-
-                // Cần Deserialize để bỏ dấu ngoặc kép bao quanh
                 string cleanHtml = JsonSerializer.Deserialize<string>(rawJsonHtml);
 
                 Email model = new Email();
@@ -150,28 +158,47 @@ namespace Mailclient
                 if (!model.To.Any()) { MessageBox.Show("Chưa nhập người nhận."); return; }
 
                 model.Subject = Subject.Text;
-
-                // Gán trực tiếp HTML lấy từ WebView vào BodyText
                 model.BodyText = cleanHtml;
-
                 model.DateSent = DateTime.Now;
 
-                // Gán danh sách file đính kèm
-                model.AttachmentPaths = new List<string>(_attachmentFiles);
+                // Lấy danh sách đường dẫn file từ ObservableCollection
+                model.AttachmentPaths = _attachmentList.Select(x => x.FilePath).ToList();
 
                 await mailService.SendEmailAsync(model);
 
                 MessageBox.Show("Email đã gửi thành công!");
 
                 // Reset form
-                To.Text = ""; Subject.Text = "";
-                _attachmentFiles.Clear(); lbAttachments.Items.Clear();
-                EditorWebView.Reload(); // Làm mới trình soạn thảo
+                To.Text = "";
+                Subject.Text = "";
+                _attachmentList.Clear(); // Xóa sạch danh sách file
+                EditorWebView.Reload();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi gửi email: {ex.Message}");
             }
         }
+
+        // Chuyển đổi Bytes sang KB, MB...
+        private string FormatBytes(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = (decimal)bytes;
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number = number / 1024;
+                counter++;
+            }
+            return $"({number:n0} {suffixes[counter]})";
+        }
+    }
+
+    public class AttachmentItem
+    {
+        public string FilePath { get; set; }
+        public string FileName { get; set; }
+        public string FileSize { get; set; }
     }
 }

@@ -9,7 +9,8 @@ using MailKit.Security;
 using MimeKit;
 using Google.Apis.Auth.OAuth2;
 using System.Threading;
-using System.Security.Authentication; // Giả sử class Email nằm trong namespace này hoặc được tham chiếu
+using System.Security.Authentication;
+using System.IO; 
 
 namespace MailClient.Core.Services
 {
@@ -27,7 +28,6 @@ namespace MailClient.Core.Services
             _accountService = accountService ?? throw new ArgumentException(nameof(accountService));
         }
 
-        // ******** CẬP NHẬT: DÙNG CLASS EMAIL ********
         private MimeMessage CreateMimeMessage(Email mailModel)
         {
             var message = new MimeMessage();
@@ -45,7 +45,7 @@ namespace MailClient.Core.Services
             }
 
             // Set subject
-            message.Subject = mailModel.Subject;
+            message.Subject = mailModel.Subject ?? "(No Subject)";
 
             // Set body contents (Plain Text)
             var bodyBuilder = new BodyBuilder();
@@ -55,8 +55,26 @@ namespace MailClient.Core.Services
                 bodyBuilder.TextBody = mailModel.BodyText;
             }
 
-            // Handle attachments (Nếu Email class có chứa thông tin Attachment)
-            // Hiện tại không có thông tin Attachment trong class Email bạn cung cấp.
+            if (mailModel.AttachmentPaths != null && mailModel.AttachmentPaths.Count > 0)
+            {
+                foreach (string filePath in mailModel.AttachmentPaths)
+                {
+                    // Kiểm tra file có thực sự tồn tại trên ổ cứng không
+                    if (File.Exists(filePath))
+                    {
+                        try
+                        {
+                            // Hàm này sẽ đọc file và mã hóa nó vào email
+                            bodyBuilder.Attachments.Add(filePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Nếu file bị lỗi (ví dụ đang mở bởi app khác), bỏ qua hoặc log lỗi
+                            Console.WriteLine($"Lỗi đính kèm file {filePath}: {ex.Message}");
+                        }
+                    }
+                }
+            }
 
             // Set the complete body to MimeMessage
             message.Body = bodyBuilder.ToMessageBody();
