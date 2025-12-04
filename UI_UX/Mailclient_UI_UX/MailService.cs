@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Google.Apis.Auth.OAuth2;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using Google.Apis.Auth.OAuth2;
-using System.Threading;
-using System.Security.Authentication;
+using System;
+using System.Collections.Generic;
 using System.IO; 
+using System.Linq;
+using System.Security.Authentication;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using MimeKit.Utils;
 
 namespace MailClient.Core.Services
 {
@@ -49,11 +51,16 @@ namespace MailClient.Core.Services
 
             // Set body contents (Plain Text)
             var bodyBuilder = new BodyBuilder();
-            if (!String.IsNullOrEmpty(mailModel.BodyText))
-            {
-                // Dùng BodyText làm nội dung TextBody
-                bodyBuilder.TextBody = mailModel.BodyText;
-            }
+
+            // Lấy nội dung HTML thô
+            string rawHtml = mailModel.BodyText ?? "";
+
+            // Xử lý tách ảnh Base64 -> CID (Gọi hàm vừa viết)
+            // Hàm này sẽ tự động thêm ảnh vào bodyBuilder.LinkedResources
+            string processedHtml = ProcessInlineImages(rawHtml, bodyBuilder);
+
+            // Gán HTML đã xử lý (lúc này src="cid:..." chứ không còn là base64 nữa)
+            bodyBuilder.HtmlBody = processedHtml;
 
             if (mailModel.AttachmentPaths != null && mailModel.AttachmentPaths.Count > 0)
             {
@@ -86,7 +93,6 @@ namespace MailClient.Core.Services
             return message;
         }
 
-        // ******** CẬP NHẬT: DÙNG CLASS EMAIL ********
         public async Task SendEmailAsync(Email mailModel, CancellationToken cancellationToken = default)
         {
             // Check sign-in status and retreive required OAuth data
@@ -109,9 +115,6 @@ namespace MailClient.Core.Services
                     await client.ConnectAsync(SmtpHost, SmtpPort, SecureSocketOptions.SslOnConnect, cancellationToken);
                     client.SslProtocols = SslProtocols.Tls12;
 
-                    // ******** SỬA LỖI: BỎ MẬT KHẨU ỨNG DỤNG VÀ DÙNG XOAUTH2 ********
-                    // BỎ DÒNG NÀY: client.Authenticate("nhavotan2k6@gmail.com", "omhzionramrvglwu");
-
                     // Authenticate using XOAUTH2
                     var oauth2 = new MailKit.Security.SaslMechanismOAuth2(emailAddress, accessToken);
                     await client.AuthenticateAsync(oauth2, cancellationToken);
@@ -121,7 +124,6 @@ namespace MailClient.Core.Services
                 }
                 catch (Exception ex)
                 {
-                    // Lỗi 535 5.7.8 (BadCredentials) thường xảy ra ở đây
                     throw new Exception($"Failed to send email using XOAUTH2 for account {emailAddress}: {ex.Message}", ex);
                 }
                 finally
@@ -134,7 +136,7 @@ namespace MailClient.Core.Services
             }
         }
 
-        // ******** CẬP NHẬT: DÙNG XOAUTH2 CHO IMAP ********
+        // DÙNG XOAUTH2 CHO IMAP 
         public async Task<List<MimeMessage>> FetchMessageAsync(CancellationToken cancellationToken = default)
         {
             if (!_accountService.IsSignedIn())
@@ -189,6 +191,76 @@ namespace MailClient.Core.Services
 
                 return messages;
             }
+        }
+
+        private string ProcessInlineImages(string htmlContent, BodyBuilder bodyBuilder)
+        {
+            if (string.IsNullOrEmpty(htmlContent)) return string.Empty;
+
+            // Regex để tìm thẻ <img src="data:image/...">
+            var regex = new Regex(@"<img[^>]+src=[""']data:image/(?<type>[a-zA-Z]+);base64,(?<data>[^""']+)[""'][^>]*>", RegexOptions.IgnoreCase);
+
+            // Thay thế từng ảnh tìm được
+            var newHtml = regex.Replace(htmlContent, match =>
+            {
+                try
+                {
+                    string type = match.Groups["type"].Value; // ví dụ: png, jpeg
+                    string base64Data = match.Groups["data"].Value;
+
+                    // 1. Chuyển Base64 thành byte[]
+                    byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+                    // 2. Tạo LinkedResource (Ảnh nhúng)
+                    var imageStream = new MemoryStream(imageBytes);
+                    string imageName = $"image_{Guid.NewGuid()}.{type}";
+
+                    // Thêm vào danh sách LinkedResources của BodyBuilder
+                    // Lưu ý: ContentType phải đúng (image/png, image/jpeg...)
+                    var linkedResource = bodyBuilder.LinkedResources.Add(imageName, imageBytes, MimeKit.ContentType.Parse($"image/{type}"));
+
+                    // 3. Tạo Content-ID (CID)
+                    linkedResource.ContentId = MimeUtils.GenerateMessageId();
+
+                    // 4. Trả về thẻ img mới với src="cid:..."
+                    // Giữ lại các thuộc tính khác của thẻ img (nếu có) bằng cách thay thế mỗi src
+                    string originalTag = match.Value;
+                    string newSrc = $"cid:{linkedResource.ContentId}";
+
+                    // Thay thế đoạn data:image... bằng cid:...
+                    return originalTag.Replace(match.Groups[0].Value, originalTag.Replace(match.Groups["data"].Value, "").Replace($"data:image/{type};base64,", newSrc));
+                }
+                catch (Exception)
+                {
+                    // Nếu lỗi convert ảnh thì giữ nguyên (hoặc bỏ qua)
+                    return match.Value;
+                }
+            });
+
+            // Cách replace trên hơi phức tạp, để đơn giản và an toàn nhất, ta dùng cách thay thế chuỗi src trực tiếp:
+            // Chạy lại vòng lặp để thay thế chính xác đường dẫn src
+            var matches = regex.Matches(htmlContent);
+            string finalHtml = htmlContent;
+
+            foreach (Match m in matches)
+            {
+                string type = m.Groups["type"].Value;
+                string base64Data = m.Groups["data"].Value;
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+                var linkedResource = bodyBuilder.LinkedResources.Add($"image.{type}", imageBytes, MimeKit.ContentType.Parse($"image/{type}"));
+                linkedResource.ContentId = MimeUtils.GenerateMessageId();
+
+                linkedResource.ContentDisposition = new MimeKit.ContentDisposition(MimeKit.ContentDisposition.Inline);
+
+                // Tìm chuỗi "data:image/..." cũ và thay bằng "cid:..."
+                string oldSrc = $"data:image/{type};base64,{base64Data}";
+                string newSrc = $"cid:{linkedResource.ContentId}";
+
+                finalHtml = finalHtml.Replace(oldSrc, newSrc);
+            }
+
+            return finalHtml;
         }
     }
 }
