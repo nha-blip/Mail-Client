@@ -113,11 +113,15 @@
 		<None Remove="image\trash.png" />
 		<None Remove="image\trashmail.png" />
 		<None Remove="image\uit.png" />
+		<None Remove="reply.png" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="image\reply.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
@@ -230,6 +234,7 @@
 		<Resource Include="image\drafts.png" />
 		<Resource Include="image\pencil.png" />
 		<Resource Include="image\trashmail.png" />
+		<Resource Include="reply.png" />
 	</ItemGroup>
 
 </Project>

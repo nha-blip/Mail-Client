@@ -51,7 +51,7 @@ namespace MailClient
                 string jsonPath = @"mailclient.json";
                 if (!File.Exists(jsonPath))
                 {
-                    jsonPath = @"D:\Lập trình trực quan\Mail-Client\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
+                    jsonPath = @"D:\NHA\IT008_Lập trình trực quan\MailClient\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
                 using (var stream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))
