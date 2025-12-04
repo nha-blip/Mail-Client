@@ -6,8 +6,8 @@
              xmlns:local="clr-namespace:Mailclient"
              mc:Ignorable="d" 
               ClipToBounds="True"
-             Height="410"
-             Width="310">
+             Height="500"
+             Width="380">
 
     <Border CornerRadius="10"
             Background="White"
@@ -40,8 +40,9 @@
             </Border>
             <ListView x:Name="AccountListView" 
               Grid.Row="1"
-              ItemsSource="{Binding UiAccount}"
+              ItemsSource="{Binding listacc}"
               Background="Transparent"
+              SelectionChanged="AccountListView_SelectionChanged"
               BorderThickness="0"
               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
               HorizontalContentAlignment="Stretch">
@@ -97,7 +98,7 @@
                                        FontWeight="Bold" 
                                        FontSize="14" 
                                        Foreground="#333"/>
-                                    <TextBlock Text="{Binding EmailAddress}" 
+                                    <TextBlock Text="{Binding Email}" 
                                        FontSize="12" 
                                        Foreground="Gray" 
                                        TextTrimming="CharacterEllipsis"/>

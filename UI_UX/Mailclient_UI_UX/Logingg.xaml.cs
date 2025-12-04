@@ -1,6 +1,7 @@
 ﻿using MailClient; // Namespace chứa GmailStore và DatabaseHelper
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
@@ -49,6 +50,15 @@ namespace Mailclient
         // (Đảm bảo bên XAML nút bấm của bạn có sự kiện Click="openACC")
         private async void openACC(object sender, RoutedEventArgs e)
         {
+            string tokenPath = "token_store";
+            if (Directory.Exists(tokenPath))
+            {
+                Directory.Delete(tokenPath, true); // Xóa folder token
+            }
+            else if (File.Exists(tokenPath))
+            {
+                File.Delete(tokenPath); // Xóa file token
+            }
             // 1. Khóa nút để tránh người dùng bấm liên tục
             // (Giả sử nút của bạn tên là "login", nếu tên khác thì sửa lại nhé)
             if (sender is Button btn) btn.IsEnabled = false;
@@ -64,8 +74,6 @@ namespace Mailclient
                 // 4. Kiểm tra kết quả
                 if (success)
                 {
-                    // Hiện thông báo chào mừng (Tùy chọn)
-                    //MessageBox.Show($"Đăng nhập thành công!\nXin chào: {googleHelper.UserEmail}");
 
                     // 5. KẾT NỐI DATABASE
                     // Gọi hàm để kiểm tra xem Email này đã có trong DB chưa, nếu chưa thì tạo mới
@@ -80,32 +88,22 @@ namespace Mailclient
                     MailClient.Account newAccount = new MailClient.Account(accID);
                     newAccount.Email = googleHelper.UserEmail;
                     newAccount.Username = googleHelper.UserEmail;
-                    var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
 
-                    if (mainWindow != null)
+                    MainWindow newMain = new MainWindow();
+                    newMain.Show(); // Hiện lên trước để app không bị tắt (quan trọng)
+
+                    // 2. Tìm và đóng cái MainWindow cũ (nếu đang có)
+                    // Lưu ý: Không dùng Application.Current.MainWindow vì nó có thể trỏ nhầm
+                    foreach (Window window in Application.Current.Windows)
                     {
-                        // TRƯỜNG HỢP 1: Đã có cửa sổ chính (Ví dụ: Đang ở Main bấm nút "Thêm tài khoản")
-                        // => Chỉ cần cập nhật thêm vào danh sách
-                        mainWindow.ListAccountControl.AddNewAccountToUI(newAccount);
-
-                        // Mở popup cho user thấy
-                        mainWindow.AccountPopup.IsOpen = true;
-
-                        // Đưa cửa sổ chính lên trên cùng
-                        mainWindow.Activate();
+                        // Tìm cửa sổ là kiểu MainWindow và KHÔNG PHẢI là cái vừa tạo
+                        if (window is MainWindow && window != newMain)
+                        {
+                            window.Close();
+                            break; // Tìm thấy và đóng rồi thì dừng tìm
+                        }
                     }
-                    else
-                    {
-                        // TRƯỜNG HỢP 2: Chưa có cửa sổ chính (Ví dụ: Mới mở App lên là form Login luôn)
-                        // => Phải TẠO MỚI cửa sổ chính
-                        MainWindow newMain = new MainWindow();
 
-                        // Quan trọng: Phải hiện lên trước thì các Control bên trong mới được tạo
-                        newMain.Show();
-
-                        // Sau khi Show, gán dữ liệu tài khoản vào danh sách
-                        newMain.ListAccountControl.AddNewAccountToUI(newAccount);
-                    }
                     this.Close();
                 }
             }
