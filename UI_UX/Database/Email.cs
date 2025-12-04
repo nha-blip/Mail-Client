@@ -18,15 +18,15 @@ namespace MailClient
         public string Subject { get; set; }
         public string From { get; set; }
         public string[] To { get; set; }
-
+        public string FromUser { get; set; }
         public DateTime DateSent { get; set; }
         public DateTime DateReceived { get; set; }
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
-        public bool IsChecked { get; set; }
-        public string FromUser { get; set; }
-        public string DateDisplay
+
+        public List<string> AttachmentPaths { get; set; } = new List<string>();
+        public string SenderName
         {
             get
             {
@@ -87,6 +87,7 @@ namespace MailClient
             }
             a.Dispose();
         }
+
         public void AddEmail() // Thêm thư vào database
         {
             string toString = string.Join(",", To.Select(e => e.Trim()));
@@ -130,6 +131,7 @@ namespace MailClient
             };
             db.ExecuteNonQuery(query, Updateparameters);
         }
+
         public void MarkAsRead() // Đánh dấu đã đọc
         {
             string query = @"Update Email set IsRead=1 where ID=@EmailID";
@@ -153,5 +155,49 @@ namespace MailClient
         }
         // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
         public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
+
+        public void UpdateFolderEmail(string foldername)
+        {
+            // Lấy ID của folder Trash
+            string query = @"Select FolderID from Folder where FolderName=@FolderName and AccountID = @AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@FolderName",foldername),
+                new SqlParameter("@AccountID",AccountID)
+            };
+            DataTable dt = db.ExecuteQuery(query, parameters);
+            int newfolderID = Convert.ToInt32(dt.Rows[0][0]);
+
+            //Giảm TotalMail của Source
+            query = @"UPDATE Folder 
+                        SET TotalMail = TotalMail - 1 
+                        WHERE FolderID = @SourceFolderID";
+            SqlParameter[] source = new SqlParameter[]
+            {
+                new SqlParameter("@SourceFolderID",FolderID)
+            };
+            db.ExecuteNonQuery(query, source);
+            FolderID = newfolderID;
+
+            // Chuyển folderID mail hiện tại sang Trash
+            query = @"Update Email Set FolderID=@FolderID where ID=@ID";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@FolderID",newfolderID),
+                new SqlParameter("@ID",emailID)
+            };
+            db.ExecuteNonQuery(query, folder);
+
+            // Tăng TotalMail của Trash
+            query = @"UPDATE Folder 
+                        SET TotalMail = TotalMail + 1 
+                        WHERE FolderID = @SourceFolderID";
+            SqlParameter[] trash = new SqlParameter[]
+            {
+                new SqlParameter("@SourceFolderID",FolderID)
+            };
+            db.ExecuteNonQuery(query, trash);
+
+        }
     }
 }

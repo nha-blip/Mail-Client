@@ -8,7 +8,6 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Google.Apis.Auth.OAuth2;
-using MailClient.Core.Models; // Vẫn giữ namespace này nếu cần cho MailModel/EmailParser
 using System.Threading;
 using System.Security.Authentication; // Giả sử class Email nằm trong namespace này hoặc được tham chiếu
 
@@ -28,7 +27,7 @@ namespace MailClient.Core.Services
             _accountService = accountService ?? throw new ArgumentException(nameof(accountService));
         }
 
-        // ********** CẬP NHẬT: DÙNG CLASS EMAIL **********
+        // ******** CẬP NHẬT: DÙNG CLASS EMAIL ********
         private MimeMessage CreateMimeMessage(Email mailModel)
         {
             var message = new MimeMessage();
@@ -69,7 +68,7 @@ namespace MailClient.Core.Services
             return message;
         }
 
-        // ********** CẬP NHẬT: DÙNG CLASS EMAIL **********
+        // ******** CẬP NHẬT: DÙNG CLASS EMAIL ********
         public async Task SendEmailAsync(Email mailModel, CancellationToken cancellationToken = default)
         {
             // Check sign-in status and retreive required OAuth data
@@ -92,7 +91,7 @@ namespace MailClient.Core.Services
                     await client.ConnectAsync(SmtpHost, SmtpPort, SecureSocketOptions.SslOnConnect, cancellationToken);
                     client.SslProtocols = SslProtocols.Tls12;
 
-                    // ********** SỬA LỖI: BỎ MẬT KHẨU ỨNG DỤNG VÀ DÙNG XOAUTH2 **********
+                    // ******** SỬA LỖI: BỎ MẬT KHẨU ỨNG DỤNG VÀ DÙNG XOAUTH2 ********
                     // BỎ DÒNG NÀY: client.Authenticate("nhavotan2k6@gmail.com", "omhzionramrvglwu");
 
                     // Authenticate using XOAUTH2
@@ -117,7 +116,7 @@ namespace MailClient.Core.Services
             }
         }
 
-        // ********** CẬP NHẬT: DÙNG XOAUTH2 CHO IMAP **********
+        // ******** CẬP NHẬT: DÙNG XOAUTH2 CHO IMAP ********
         public async Task<List<MimeMessage>> FetchMessageAsync(CancellationToken cancellationToken = default)
         {
             if (!_accountService.IsSignedIn())

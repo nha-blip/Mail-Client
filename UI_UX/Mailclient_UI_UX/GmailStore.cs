@@ -1,4 +1,14 @@
-﻿using System;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Gmail.v1;
+using Google.Apis.Gmail.v1.Data;
+using Google.Apis.PeopleService.v1;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using Mailclient;
+using MailClient.Core.Services;
+using Microsoft.Data.SqlClient;
+using MimeKit; 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -17,7 +27,7 @@ using Google.Apis.Util.Store;
 using Mailclient;
 using MailClient.Core.Services;
 using Microsoft.Data.SqlClient;
-using MimeKit; // Cần thư viện này
+using MimeKit;
 
 namespace MailClient
 {
@@ -31,7 +41,7 @@ namespace MailClient
             "https://mail.google.com/",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/userinfo.email",
-                GmailService.Scope.MailGoogleCom,
+            GmailService.Scope.MailGoogleCom,
         };
         public async Task<bool> LoginAsync()
         {
@@ -41,8 +51,7 @@ namespace MailClient
                 string jsonPath = @"mailclient.json";
                 if (!File.Exists(jsonPath))
                 {
-                    // Đường dẫn dự phòng (Hardcode để debug)
-                    jsonPath = @"D:\drive-download-20251202T014458Z-1-001\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
+                    jsonPath = @"D:\Lập trình trực quan\Mail-Client\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
                 }
 
                 using (var stream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))
@@ -86,7 +95,6 @@ namespace MailClient
                 return false;
             }
         }
-       
 
         public int GetFolderIDByFolderName(string folderName)
         {
@@ -98,6 +106,7 @@ namespace MailClient
                 new SqlParameter("@folderName",folderName),
                 new SqlParameter("@AccountID",App.CurrentAccountID)
             };
+
             DatabaseHelper db=new DatabaseHelper();
             DataTable dt=db.ExecuteQuery(query,parameters);
             return Convert.ToInt32(dt.Rows[0][0]);
@@ -162,7 +171,9 @@ namespace MailClient
                             MailClient.Email emailToSave = await parser.ParseAsync(mimeMessage);
                             // Điền thông tin còn thiếu
                             emailToSave.AccountID = localAccountID;
+
                             emailToSave.FolderName = ConvertToSentenceCase(foldername);
+
                             emailToSave.FolderID=GetFolderIDByFolderName(emailToSave.FolderName);
                             emailToSave.AccountName = UserEmail;
 
@@ -179,7 +190,7 @@ namespace MailClient
                                     attach.AddAttachment(); // Lúc này attach.ID được tạo ra (ví dụ: 101)
 
                                     // B. Lưu file vật lý vào thư mục Cache
-                                    // Tên file: {ID}_{TênGốc} để tránh trùng lặp (ví dụ: 101_bailam.pdf)
+                                    // Tên file: {TênGốc} để tránh trùng lặp (ví dụ: 101_bailam.pdf)
                                     string saveFileName = $"{attach.Name}";
                                     string fullPath = Path.Combine(cacheFolder, saveFileName);
 

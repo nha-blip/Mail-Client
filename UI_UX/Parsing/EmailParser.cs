@@ -32,6 +32,8 @@ namespace Mailclient
                 dbEmail.DateReceived = DateTime.Now;
                 dbEmail.IsRead = false;
 
+                //System.Diagnostics.Debug.WriteLine(rawMessage.From.ToString() + "\n");
+
                 // 2. Map Body
                 var visitor = new HtmlPreviewVisitor();
                 rawMessage.Accept(visitor);

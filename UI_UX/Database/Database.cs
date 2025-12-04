@@ -53,7 +53,6 @@ namespace MailClient
 
         public int LoginOrRegisterGoogle(string email, string displayName)
         {
-            // Sửa 'EmailAddress' thành 'Email' (hoặc tên đúng trong DB của bạn)
             string checkQuery = "SELECT AccountID FROM Account WHERE Email = @Email";
 
             SqlParameter[] checkParams = { new SqlParameter("@Email", email) };
@@ -72,9 +71,10 @@ namespace MailClient
                                SELECT SCOPE_IDENTITY();";
 
                 SqlParameter[] insertParams = {
-            new SqlParameter("@Email", email),
-            new SqlParameter("@Name", displayName)
-        };
+
+                    new SqlParameter("@Email", email),
+                    new SqlParameter("@Name", displayName)
+                };
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
                 string query = @"INSERT INTO Folder (AccountID, FolderName)
                         VALUES

@@ -1,7 +1,12 @@
-﻿using System;
+﻿using MailClient;
+using MailClient.Core.Services;
+using Microsoft.Win32;
+using Org.BouncyCastle.Utilities.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,10 +17,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using MailClient;
-using MailClient.Core.Models;
-using MailClient.Core.Services;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Mailclient
 {
@@ -29,16 +30,48 @@ namespace Mailclient
         public AccountService accountService;
         public MailService mailService;
         public Account acc;
+        private List<string> _attachmentFiles;
         public Compose()
         {
             InitializeComponent();
 
             // Cần phải khởi tạo _store ở đây. Lưu ý: Store này CHƯA ĐĂNG NHẬP.
-            acc = new Account(App.CurrentAccountID);
             _store = new GmailStore();
             accountService = new AccountService(_store);
             mailService = new MailService(accountService);
+            acc = new Account(App.CurrentAccountID); 
+            _attachmentFiles = new List<string>();
+
+            InitializeEditor();
         }
+
+        private async void InitializeEditor()
+        {
+            await EditorWebView.EnsureCoreWebView2Async();
+
+            // Mã HTML cơ bản cho phép chỉnh sửa (contenteditable)
+            // Kèm theo hàm Javascript 'insertImageAtCursor' để C# gọi xuống
+            string htmlEditor = @"
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Arial', sans-serif; font-size: 14px; margin: 10px; outline: none; }
+                        img { max-width: 100%; height: auto; margin: 5px 0; }
+                    </style>
+                    <script>
+                        function insertImageAtCursor(base64Data) {
+                            document.execCommand('insertImage', false, base64Data);
+                        }
+                    </script>
+                </head>
+                <body contenteditable='true'>
+                    <p><br></p>
+                </body>
+                </html>";
+
+            EditorWebView.NavigateToString(htmlEditor);
+        }
+
         public void SetAuthenticatedStore(GmailStore authenticatedStore)
         {
             // Cập nhật trường _store bằng đối tượng đã được đăng nhập
@@ -71,75 +104,73 @@ namespace Mailclient
 
         private void opfile(object sender, RoutedEventArgs e)
         {
+            // 1. Khởi tạo hộp thoại chọn file
+            OpenFileDialog openFileDialog = new OpenFileDialog();
 
+            // 2. Cho phép chọn nhiều file cùng lúc
+            openFileDialog.Multiselect = true;
+
+            // 3. Đặt tiêu đề cho hộp thoại
+            openFileDialog.Title = "Chọn tệp đính kèm";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string file in openFileDialog.FileNames)
+                {
+                    _attachmentFiles.Add(file);
+
+                    // Thêm tên file vào ListBox giao diện
+                    //lbAttachments.Items.Add(System.IO.Path.GetFileName(file));
+                }
+            }
         }
         // Đảm bảo hàm được đánh dấu là async
         private async void Send_Click(object sender, RoutedEventArgs e)
         {
-            // Kiểm tra xem đã triển khai AccountService hay chưa
             if (_store.Service == null)
             {
-                MessageBox.Show("Phiên làm việc đã kết thúc hoặc chưa đăng nhập. Vui lòng đăng nhập lại.", "Lỗi Xác thực", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Vui lòng đăng nhập lại.", "Lỗi Xác thực");
                 return;
             }
 
-            // SỬ DỤNG INSTANCE ĐÃ CÓ VÀ ĐÃ ĐĂNG NHẬP
-            Email model = new Email();
-            // 1. Thu thập và thiết lập dữ liệu cơ bản
             try
             {
-                // 1.1. Thiết lập Người gửi (From)
+                // Lấy nội dung HTML từ WebView
+                // Hàm ExecuteScriptAsync trả về chuỗi JSON (ví dụ: "\"<div>nội dung</div>\"")
+                string rawJsonHtml = await EditorWebView.ExecuteScriptAsync("document.body.innerHTML");
+
+                // Cần Deserialize để bỏ dấu ngoặc kép bao quanh
+                string cleanHtml = JsonSerializer.Deserialize<string>(rawJsonHtml);
+
+                Email model = new Email();
                 model.From = accountService.GetCurrentUserEmail();
-                // 1.2. Thiết lập Người nhận (To), tách chuỗi bằng dấu phẩy
-                // .Split(',') tạo mảng string[], .ToList() chuyển thành List<string>
-                model.To = To.Text.Split(","); // Loại bỏ khoảng trắng thừa
-                model.AccountName = acc.Username;                   
+                model.AccountName = acc.Username;
+                model.To = To.Text.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Kiểm tra xem có người nhận nào không
-                if (!model.To.Any())
-                {
-                    MessageBox.Show("Vui lòng nhập ít nhất một địa chỉ người nhận (To).", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                if (!model.To.Any()) { MessageBox.Show("Chưa nhập người nhận."); return; }
 
-                // 1.3. Thiết lập Cc và Bcc (nếu có trường văn bản tương ứng trên UI)
-                //model.Cc = Cc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                //                   .Select(s => s.Trim())
-                //                   .ToList();
-
-                //model.Bcc = Bcc.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                //                    .Select(s => s.Trim())
-                //                    .ToList();
-
-                // 1.4. Thiết lập Chủ đề và Nội dung
                 model.Subject = Subject.Text;
-                model.BodyText = Body.Text; // Giả sử Body.Text chứa nội dung HTML
 
-                // 1.5. Thiết lập Ngày gửi
+                // Gán trực tiếp HTML lấy từ WebView vào BodyText
+                model.BodyText = cleanHtml;
+
                 model.DateSent = DateTime.Now;
 
-                // 1.6. Thiết lập Tệp đính kèm (Giả sử bạn có List<string> chứa đường dẫn file)
-                // Nếu bạn có một danh sách riêng cho đường dẫn file (ví dụ: model.Attachments đã được thêm vào trước đó)
-                // model.Attachments = AttachmentsList; 
+                // Gán danh sách file đính kèm
+                model.AttachmentPaths = new List<string>(_attachmentFiles);
 
-                // 2. Gửi Email
-                // Bắt đầu thao tác gửi email bất đồng bộ
                 await mailService.SendEmailAsync(model);
 
-                // 3. Xử lý thành công
-                MessageBox.Show("Email đã được gửi thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Email đã gửi thành công!");
 
-                // Bạn có thể thêm code để xóa nội dung form tại đây (ClearForm())
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Xử lý lỗi nếu người dùng chưa đăng nhập (từ MailService)
-                MessageBox.Show($"Lỗi xác thực: {ex.Message}\nVui lòng đăng nhập lại.", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Reset form
+                To.Text = ""; Subject.Text = "";
+                _attachmentFiles.Clear(); lbAttachments.Items.Clear();
+                EditorWebView.Reload(); // Làm mới trình soạn thảo
             }
             catch (Exception ex)
             {
-                // Xử lý các lỗi khác (lỗi kết nối, lỗi server SMTP, v.v.)
-                MessageBox.Show($"Đã xảy ra lỗi trong quá trình gửi email: {ex.Message}", "Lỗi Gửi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Lỗi gửi email: {ex.Message}");
             }
         }
     }

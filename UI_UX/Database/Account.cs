@@ -14,6 +14,7 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
+
         public Account(string email, string username)
         {
             Email = email;
@@ -47,11 +48,14 @@ namespace MailClient
             (@Email, 'GoogleAuth', @AccountName);
             SELECT SCOPE_IDENTITY();
             End";
+
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Email",Email),
                 new SqlParameter("@AccountName",Username)
             };
             DataTable dt = db.ExecuteQuery(query, parameters);
+
+
             if (dt.Rows.Count > 0)
             {
                 this.AccountID = Convert.ToInt32(dt.Rows[0][0]);
@@ -69,6 +73,7 @@ namespace MailClient
                 new SqlParameter("@AccID",AccountID)
             };
             db.ExecuteNonQuery(query, folder);
+
         }
         public int CheckAccount(string email, string password)
         {

@@ -17,12 +17,11 @@ namespace MailClient
             listemail = new List<Email>();
             db = new DatabaseHelper();
             // 1. Sửa câu truy vấn: Dùng @AccID làm tham số
-            string query = @"
-                              SELECT e.*, f.FolderName
-                              FROM Email e
-                              LEFT JOIN Folder f ON e.FolderID = f.FolderID
-                              WHERE e.AccountID = @AccID
-                              ORDER BY e.DateSent DESC";
+
+            string query = @"SELECT * FROM Email E
+                             JOIN Folder F ON F.FolderID = E.FolderID
+                             JOIN Account A ON A.AccountID=E.AccountID
+                             WHERE E.AccountID = @AccID ORDER BY E.DateSent DESC";
 
             // 2. Tạo tham số và truyền giá trị thật từ App.CurrentAccountID vào
             SqlParameter[] parameters = new SqlParameter[]
@@ -32,7 +31,6 @@ namespace MailClient
 
             // 3. Gọi hàm ExecuteQuery kèm theo parameters
             DataTable dt = db.ExecuteQuery(query, parameters);
-
             foreach (DataRow row in dt.Rows)
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
@@ -59,12 +57,12 @@ namespace MailClient
         {
             string query = @"Delete From Email where IsFlag=1";
             db.ExecuteNonQuery(query);
-            foreach(Email e in listemail)
+            foreach (Email e in listemail)
             {
                 if (e.IsFlag)
                 {
                     listemail.Remove(e);
-                    
+
                     query = @"Update Folder set TotalMail=TotalMail-1 where FolderID=@FolderID and AccountID=@AccountID";
                     SqlParameter[] Update = new SqlParameter[]
                     {
