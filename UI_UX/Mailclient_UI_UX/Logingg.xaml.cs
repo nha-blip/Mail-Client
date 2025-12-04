@@ -1,6 +1,7 @@
 ﻿using MailClient; // Namespace chứa GmailStore và DatabaseHelper
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
@@ -49,6 +50,16 @@ namespace Mailclient
         // (Đảm bảo bên XAML nút bấm của bạn có sự kiện Click="openACC")
         private async void openACC(object sender, RoutedEventArgs e)
         {
+            string tokenPath = "token_store";
+            if (Directory.Exists(tokenPath))
+            {
+                Directory.Delete(tokenPath, true); // Xóa folder token
+            }
+            else if (File.Exists(tokenPath))
+            {
+                File.Delete(tokenPath); // Xóa file token
+            }
+
             // 1. Khóa nút để tránh người dùng bấm liên tục
             // (Giả sử nút của bạn tên là "login", nếu tên khác thì sửa lại nhé)
             if (sender is Button btn) btn.IsEnabled = false;

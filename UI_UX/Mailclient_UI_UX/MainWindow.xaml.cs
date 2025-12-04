@@ -420,7 +420,21 @@ namespace Mailclient
                 var parser = new EmailParser();
                 // Dùng biến _currentReadingEmail để tạo HTML
                 string htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
-                contentEmail.NavigateToString(htmlDisplay);
+                try
+                {
+                    // 1. Tạo đường dẫn file tạm trong thư mục Temp của máy tính
+                    string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
+
+                    // 2. Lưu chuỗi HTML vào file đó
+                    System.IO.File.WriteAllText(tempPath, htmlDisplay);
+
+                    // 3. Điều hướng WebView tới file vừa tạo
+                    contentEmail.CoreWebView2.Navigate(tempPath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi hiển thị email: " + ex.Message);
+                }
             }
         }
 

@@ -131,6 +131,20 @@ namespace MailClient
                     new SqlParameter("@Name", displayName)
                 };
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
+
+                string query = @"INSERT INTO Folder (AccountID, FolderName)
+                        VALUES
+                            (@AccID, 'Inbox'),
+                            (@AccID, 'Sent'),
+                            (@AccID, 'Spam'),
+                            (@AccID, 'Trash'),
+                            (@AccID, 'Draft');
+                        ";
+                SqlParameter[] folder = new SqlParameter[]
+                {
+                new SqlParameter("@AccID",Convert.ToInt32(dtNew.Rows[0][0]))
+                };
+                ExecuteNonQuery(query, folder);
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }
         }
