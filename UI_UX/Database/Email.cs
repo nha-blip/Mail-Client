@@ -10,7 +10,7 @@ namespace MailClient
     public class Email
     {
         private DatabaseHelper db;
-        public int emailID { get; set; }      
+        public int emailID { get; set; }
         public int AccountID { get; set; }
         public int FolderID { get; set; }
         public string FolderName { get; set; }
@@ -24,38 +24,68 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
-        public string SenderName
+        public bool IsChecked { get; set; }
+        public string FromUser { get; set; }
+        public string DateDisplay
         {
             get
             {
-
-                int index = From.IndexOf('<');
-
-                if (index > 0)
+                if (DateSent.Date == DateTime.Today)
                 {
-                    return From.Substring(0, index).Trim().Trim('"');
+                    // Nếu là hôm nay → chỉ hiển thị giờ:phút
+                    return DateSent.ToString("HH:mm");
                 }
-
-                return From;
+                else
+                {
+                    // Nếu không phải hôm nay → hiển thị dd/MM/yyyy
+                    return DateSent.ToString("dd/MM/yyyy");
+                }
             }
         }
         // Tạo email
-        public Email(int accountID,int FolderID,string FolderName,string AccountName,string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead,int ID=0)
-        {            
+        public Email()
+        {
             this.db = new DatabaseHelper();
-            this.AccountID = accountID;
-            this.FolderName = FolderName;
+            this.To = new string[] { }; // Khởi tạo mảng rỗng để tránh lỗi null
+        }
+        public Email(string folderName, string fromuser, string accountName, string subject, string from, string[] to, DateTime dateSent, DateTime dateReceived, string bodyText, bool isRead, int ID = 0)
+        {
+            this.db = new DatabaseHelper();
+            this.FolderName = folderName;
             this.Subject = subject;
             this.From = from;
             this.To = to;
+            this.FromUser = fromuser;
             this.DateSent = dateSent;
             this.DateReceived = dateReceived;
             this.BodyText = bodyText;
             this.IsRead = isRead;
             this.emailID = ID;
             this.IsFlag = false;
-            this.FolderID= FolderID;
-            this.AccountName = SenderName;
+            this.FolderID = FolderID;
+            this.AccountName = accountName;
+            string query = @"Select FolderID from Folder where FolderName=@FolderName";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@FolderName",folderName)
+            };
+            DataTable f = db.ExecuteQuery(query, folder);
+            if (f.Rows.Count > 0)
+            {
+                this.FolderID = Convert.ToInt32(f.Rows[0][0]);
+            }
+            f.Dispose();
+            query = @"Select AccountID from Account where AccountName=@AccountName";
+            SqlParameter[] account = new SqlParameter[]
+            {
+                new SqlParameter("@AccountName",accountName)
+            };
+            DataTable a = db.ExecuteQuery(query, account);
+            if (a.Rows.Count > 0)
+            {
+                this.AccountID = Convert.ToInt32(a.Rows[0][0]);
+            }
+            a.Dispose();
         }
         public void AddEmail() // Thêm thư vào database
         {
@@ -69,25 +99,25 @@ namespace MailClient
             };
             DataTable data = db.ExecuteQuery(checkQuery, checkParams);
             if (data.Rows.Count > 0 && Convert.ToInt32(data.Rows[0][0]) > 0) return;
-            
 
-            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead, AccountName)
-                            Values(@AccountID,@FolderID, @SubjectEmail, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @AccountName);
+
+            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail,FromUser, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
+                            Values(@AccountID,@FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead);
                             SELECT SCOPE_IDENTITY();";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@AccountID",AccountID),
                 new SqlParameter("@FolderID",FolderID),
                 new SqlParameter("@SubjectEmail",Subject),
+                new SqlParameter("@FromUser",FromUser),
                 new SqlParameter("@FromAdd",From),
                 new SqlParameter("@ToAdd",toString),
                 new SqlParameter("@DateSent",DateSent),
                 new SqlParameter("@DateReceived",DateReceived),
                 new SqlParameter("@BodyText",BodyText),
-                new SqlParameter("@IsRead",IsRead),
-                new SqlParameter("@AccountName",AccountName)
+                new SqlParameter("@IsRead",IsRead)
             };
-            
-            DataTable dt=db.ExecuteQuery(query, parameters);
+
+            DataTable dt = db.ExecuteQuery(query, parameters);
             if (dt.Rows.Count > 0)
             {
                 this.emailID = Convert.ToInt32(dt.Rows[0][0]);
@@ -107,7 +137,7 @@ namespace MailClient
             {
                 new SqlParameter("@EmailID",emailID)
             };
-            db.ExecuteNonQuery(query,parameters);
+            db.ExecuteNonQuery(query, parameters);
             IsRead = true;
         }
         public void MarkAsFlag() // Đánh dấu chọn
@@ -118,8 +148,10 @@ namespace MailClient
                 new SqlParameter("@IsFlag",IsFlag),
                 new SqlParameter("@EmailId",emailID)
             };
-            
+
             db.ExecuteNonQuery(query, parameters);
         }
+        // Thuộc tính này không lưu vào bảng Email, chỉ dùng để vận chuyển dữ liệu từ Parser
+        public List<Attachment> TempAttachments { get; set; } = new List<Attachment>();
     }
 }

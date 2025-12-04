@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Text;
-using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 
 namespace MailClient
 {
@@ -13,6 +14,7 @@ namespace MailClient
     {
         private DatabaseHelper db;
         public List<Account> listAccount;
+
         public int soluong;
         public ListAccount()
         {

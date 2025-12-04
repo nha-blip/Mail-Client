@@ -8,6 +8,7 @@ using System.Text.RegularExpressions; // Quan trọng để dùng Regex
 using System.Threading.Tasks;
 using MimeKit;
 
+
 namespace Mailclient
 {
     public class EmailParser

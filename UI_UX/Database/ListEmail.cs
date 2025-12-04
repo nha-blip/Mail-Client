@@ -22,7 +22,7 @@ namespace MailClient
                               FROM Email e
                               LEFT JOIN Folder f ON e.FolderID = f.FolderID
                               WHERE e.AccountID = @AccID
-                              ORDER BY e.DateReceived DESC";
+                              ORDER BY e.DateSent DESC";
 
             // 2. Tạo tham số và truyền giá trị thật từ App.CurrentAccountID vào
             SqlParameter[] parameters = new SqlParameter[]
@@ -36,13 +36,11 @@ namespace MailClient
             foreach (DataRow row in dt.Rows)
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
-
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
-                
+
                 Email e = new Email(
-                    Convert.ToInt32(row["AccountID"]),
-                    Convert.ToInt32(row["FolderID"]),
                     Convert.ToString(row["FolderName"]) ?? "",
+                    Convert.ToString(row["FromUser"]) ?? "",
                     Convert.ToString(row["AccountName"]) ?? "",
                     Convert.ToString(row["SubjectEmail"]) ?? "",
                     Convert.ToString(row["FromAdd"]) ?? "",
@@ -53,6 +51,7 @@ namespace MailClient
                     Convert.ToBoolean(row["IsRead"] ?? false),
                     Convert.ToInt32(row["ID"])
                 );
+
                 listemail.Add(e);
             }
         }
