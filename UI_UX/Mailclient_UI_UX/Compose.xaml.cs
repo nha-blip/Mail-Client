@@ -52,6 +52,11 @@ namespace Mailclient
                 <html>
                 <head>
                     <style>
+                        ::-webkit-scrollbar { width: 8px; height: 8px; }
+                        ::-webkit-scrollbar-track { background: transparent; }
+                        ::-webkit-scrollbar-thumb { background-color: #c1c1c1; border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+                        ::-webkit-scrollbar-thumb:hover { background-color: #a8a8a8; }
+
                         body { font-family: 'Arial', sans-serif; font-size: 14px; margin: 10px; outline: none; }
                         img { max-width: 100%; height: auto; margin: 5px 0; }
                     </style>
@@ -100,6 +105,7 @@ namespace Mailclient
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
             openFileDialog.Title = "Chọn tệp đính kèm";
+            openFileDialog.Filter = "All Files|*.*";
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -136,7 +142,42 @@ namespace Mailclient
             }
         }
 
-        // --- 3. SỬA HÀM GỬI ---
+        private void InsertImage_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = true;
+            openFileDialog.Title = "Chọn hình ảnh để chèn";
+            // Chỉ lọc các file ảnh
+            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.webp";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string file in openFileDialog.FileNames)
+                {
+                    // Gọi hàm chèn ảnh (Inline)
+                    InsertImageToEditor(file);
+                }
+            }
+        }
+
+        private async void InsertImageToEditor(string filePath)
+        {
+            try
+            {
+                byte[] imageBytes = System.IO.File.ReadAllBytes(filePath);
+                string base64String = Convert.ToBase64String(imageBytes);
+                string extension = System.IO.Path.GetExtension(filePath).Replace(".", "");
+                string imgSrc = $"data:image/{extension};base64,{base64String}";
+
+                await EditorWebView.ExecuteScriptAsync($"insertImageAtCursor('{imgSrc}')");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi chèn ảnh: " + ex.Message);
+            }
+        }
+
+        // SỬA HÀM GỬI 
         private async void Send_Click(object sender, RoutedEventArgs e)
         {
             if (_store.Service == null)

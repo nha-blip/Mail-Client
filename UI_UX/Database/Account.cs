@@ -14,6 +14,7 @@ namespace MailClient
         public string Email { get; set; }
         public string Password { get; set; }
         public string Username { get; set; }
+        public string TokenJson { get; set; }
 
         // --- [MỚI] Thêm thuộc tính lưu chuỗi JSON Token ---
         public string TokenJson { get; set; }
@@ -25,7 +26,11 @@ namespace MailClient
             db = new DatabaseHelper();
         }
 
+<<<<<<< HEAD
         // --- [SỬA] Constructor nạp cả Token từ DB lên ---
+=======
+        // Constructor nạp cả Token từ DB lên 
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
         public Account(int id)
         {
             AccountID = id;
@@ -41,12 +46,20 @@ namespace MailClient
                 Username = Convert.ToString(dt.Rows[0]["AccountName"]) ?? "";
                 Email = Convert.ToString(dt.Rows[0]["Email"]) ?? "";
 
+<<<<<<< HEAD
                 // [MỚI] Lấy chuỗi Token từ DB đổ vào biến
+=======
+                // Lấy chuỗi Token từ DB đổ vào biến
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
                 TokenJson = Convert.ToString(dt.Rows[0]["TokenJson"]) ?? "";
             }
         }
 
+<<<<<<< HEAD
         // --- [SỬA] Hàm thêm mới có lưu Token ---
+=======
+        // Hàm thêm mới có lưu Token 
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
         public void AddAccount()
         {
             // Logic cũ của bạn: Nếu chưa có thì Insert, nếu có rồi thì thôi.
@@ -90,7 +103,11 @@ namespace MailClient
             db.ExecuteNonQuery(query, folder);
         }
 
+<<<<<<< HEAD
         // --- [MỚI] Hàm cập nhật riêng Token (Dùng khi Google Refresh Token) ---
+=======
+        // Hàm cập nhật riêng Token (Dùng khi Google Refresh Token)
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
         public void UpdateToken(string newTokenJson)
         {
             this.TokenJson = newTokenJson;
@@ -105,7 +122,11 @@ namespace MailClient
             }
         }
 
+<<<<<<< HEAD
         // --- [SỬA] Hàm Login/Register nhận thêm Token mới nhất ---
+=======
+        // Hàm Login/Register nhận thêm Token mới nhất
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
         // Khi đăng nhập xong, ta có token mới, ta cần truyền vào đây để lưu/update
         public int LoginOrRegisterGoogle(string tokenJsonFromGoogle)
         {
@@ -135,7 +156,10 @@ namespace MailClient
             }
         }
 
+<<<<<<< HEAD
         // ... Các hàm DeleteAccount, CheckAccount giữ nguyên ...
+=======
+>>>>>>> 89def9711dbbf6499b2e60e3c2080e782c62a1b8
         public int CheckAccount(string email, string password)
         {
             string query = @"SELECT * FROM Account WHERE Email=@email AND EncryptedPassword=@password";

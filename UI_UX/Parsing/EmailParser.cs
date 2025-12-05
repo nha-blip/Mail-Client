@@ -118,7 +118,6 @@ namespace Mailclient
                 attachmentsHtml.Append("</div></div>");
             }
 
-            // *** GỌI HÀM LỌC NỘI DUNG TẠI ĐÂY ***
             string cleanBodyContent = ExtractBodyContent(email.BodyText); // Sử dụng BodyText
 
             string template = $@"
@@ -138,7 +137,7 @@ namespace Mailclient
             ::-webkit-scrollbar-thumb {{
                 background-color: #c1c1c1;
                 border-radius: 6px;
-                border: 2px solid #fff; /* Viền trắng để tách biệt */
+                border: 2px solid #fff; 
             }}
             ::-webkit-scrollbar-thumb:hover {{
                 background-color: #a8a8a8;

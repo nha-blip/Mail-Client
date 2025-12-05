@@ -116,14 +116,14 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="To" 
-                       TextAlignment="Center"
-                       Width="50"
+                       TextAlignment="Right"
+                       Width="22"
                        FontSize="14"
-                           Margin="5"
+                       Margin="5"
                        Background="White"/>
 
                     <TextBox x:Name="To"
-                        Grid.Column="1" 
+                         Grid.Column="1" 
                          BorderThickness="0"
                          FontSize="14"
                          Margin="5"
@@ -141,7 +141,7 @@
 
                     <TextBlock Grid.Column="0" Text="Subject" 
                            TextAlignment="Center"
-                           Width="50"
+                           Width="60"
                            Margin="5"
                            FontSize="14"
                             Background="White"/>
@@ -215,19 +215,30 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="90"/>
                         <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="70"/>
                     </Grid.ColumnDefinitions>
                     <Button Content="Send" 
                             Grid.Column="0"
-                        Width="80" 
+                            Width="80" 
                             Click="Send_Click"
-                        Style="{StaticResource PrimaryButton}"
-                        HorizontalAlignment="Left"/>
+                            Style="{StaticResource PrimaryButton}"
+                            HorizontalAlignment="Left"/>
                     <Button x:Name="attachment"
                             Grid.Column="1"
                             Style="{StaticResource PrimaryButton}"
                             Content="&#xE16C;"
                             Click="opfile"
                             FontSize="18"
+                            FontFamily="Segoe MDL2 Assets"/>
+                    <Button x:Name="btnInsertImage" 
+                            Grid.Column="2"
+                            Style="{StaticResource PrimaryButton}"
+                            Width="50"
+                            ToolTip="Chèn ảnh vào nội dung"
+                            Content="&#xE8B9;"  
+                            Click="InsertImage_Click"
+                            FontSize="17"
+                            Margin="0,0,5,0"
                             FontFamily="Segoe MDL2 Assets"/>
                 </Grid>
             </Border>
