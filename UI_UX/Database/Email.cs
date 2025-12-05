@@ -26,7 +26,7 @@ namespace MailClient
         public bool IsFlag { get; set; }
 
         public List<string> AttachmentPaths { get; set; } = new List<string>();
-        public string SenderName
+        public string DateDisplay
         {
             get
             {

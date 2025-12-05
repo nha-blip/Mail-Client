@@ -224,9 +224,11 @@
                         CornerRadius="20">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <ContentPresenter Content="{TemplateBinding Tag}"
-                                    Margin="5,0"/>
+                                    Margin="5,0"
+                                    VerticalAlignment="Center"/>
                                 <ContentPresenter Content="{TemplateBinding Content}"
-                                    Margin="5,0"/>
+                                    Margin="5,0"
+                                    VerticalAlignment="Center"/>
                                 
                             </StackPanel>
                         </Border>
@@ -828,12 +830,13 @@
                                 <Button x:Name="Reponse"
                                         Focusable="False"
                                         Height="40"
-                                        Width="300"
+                                        Width="150"
                                         Grid.Row="2"
                                         Margin="200,0,0,0"
                                         Style="{StaticResource ReplyButtonStyle}"
                                         HorizontalAlignment="Left"
-                                        Content="Reponse">
+                                        Content="Reponse"
+                                        Click="opReponse">
                                     <Button.Tag>
                                         <Image Source="/image/back.png" 
                                                VerticalAlignment="Top"

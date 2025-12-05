@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Data;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client;
 
 namespace MailClient
 {
@@ -11,22 +13,33 @@ namespace MailClient
     {
         private DatabaseHelper db;
         public int soluong;
-        public List<Email> listemail;
+        public ObservableCollection<Email>  listemail;
+        private DateTime _latestDateSent;
         public ListEmail(int accountID)
         {
-            listemail = new List<Email>();
+            listemail = new ObservableCollection<Email>();
             db = new DatabaseHelper();
-            // 1. Sửa câu truy vấn: Dùng @AccID làm tham số
-
+            _latestDateSent = new DateTime(1753, 1, 1);
+            LoadEmail(accountID);
+            
+        }
+        public void Refresh(int accountID)
+        {
+            LoadEmail(accountID);
+        }
+        public void LoadEmail(int accountID)
+        {
             string query = @"SELECT * FROM Email E
                              JOIN Folder F ON F.FolderID = E.FolderID
                              JOIN Account A ON A.AccountID=E.AccountID
-                             WHERE E.AccountID = @AccID ORDER BY E.DateSent DESC";
+                             WHERE E.AccountID = @AccID AND E.DateSent > @LastDate 
+                             ORDER BY E.DateSent DESC";
 
-            // 2. Tạo tham số và truyền giá trị thật từ App.CurrentAccountID vào
+            
             SqlParameter[] parameters = new SqlParameter[]
             {
-                new SqlParameter("@AccID", accountID)
+                new SqlParameter("@AccID", accountID),
+                new SqlParameter("@LastDate", _latestDateSent)
             };
 
             // 3. Gọi hàm ExecuteQuery kèm theo parameters
@@ -35,6 +48,12 @@ namespace MailClient
             {
                 string toField = Convert.ToString(row["ToAdd"]) ?? "";
                 string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
+
+                DateTime currentSentDate = Convert.ToDateTime(row["DateSent"]);
+                if (currentSentDate > _latestDateSent)
+                {
+                    _latestDateSent = currentSentDate;
+                }
 
                 Email e = new Email(
                     Convert.ToString(row["FolderName"]) ?? "",

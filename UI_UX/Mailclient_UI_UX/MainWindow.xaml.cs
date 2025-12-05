@@ -62,7 +62,7 @@ namespace Mailclient
                 await App.CurrentGmailStore.SyncAllFoldersToDatabase(App.CurrentAccountID);
 
                 // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu
-                list = new MailClient.ListEmail(App.CurrentAccountID);
+                list.Refresh(App.CurrentAccountID);
 
                 // 3. Cập nhật lại giao diện (đang đứng ở Inbox thì load lại Inbox)
                 if (currentFolder == "Inbox")
@@ -435,7 +435,11 @@ namespace Mailclient
             }
         }
 
-
+        private void opReponse(object sender, RoutedEventArgs e)
+        {
+            composecontent.SetAuthenticatedStore(App.CurrentGmailStore);
+            composecontent.Visibility = Visibility.Visible;
+        }
         private void returnMain(object sender, RoutedEventArgs e)
         {
             CloseEmailView();
@@ -580,6 +584,7 @@ namespace Mailclient
                 }
             }
         }
+        
     }
 
 } // <-- KẾT THÚC CLASS MAINWINDOW
