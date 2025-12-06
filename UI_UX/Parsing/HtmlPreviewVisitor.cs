@@ -192,7 +192,7 @@ namespace Mailclient
                     // Viết các thuộc tính khác (alt, style,...) như cũ
                     output.Write(attribute.Name);
                     output.Write("=\"");
-                    HtmlUtils.HtmlAttributeEncode(output, attribute.Value);
+                    HtmlUtils.HtmlAttributeEncode(output, attribute.Value ?? string.Empty);
                     output.Write("\"");
                 }
             }
