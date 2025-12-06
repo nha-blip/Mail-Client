@@ -19,11 +19,13 @@ namespace MailClient.Core.Services
     {
         private UserCredential _credential;
         public UserCredential Credential => _credential;
+        public string Jsonpath = @"D:\NHA\IT008_Lập trình trực quan\MailClient\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
 
         // Event fires when a token refresh successfully occurs
         // Can be used to ensure the connection remain active or update its status
         public EventHandler TokenRefreshed;
-        private String? _cachedEmail = String.Empty;
+        public String? _userEmail { get; private set; } = String.Empty;
+        public String? _userName { get; private set; } = String.Empty;
 
         // Get Email Info
         private async Task<String> FetchPrimaryEmailAsync(CancellationToken cancellationToken)
@@ -36,7 +38,7 @@ namespace MailClient.Core.Services
                 var peopleService = new PeopleServiceService(new BaseClientService.Initializer()
                 {
                     HttpClientInitializer = _credential,
-                    ApplicationName = "MailClient"
+                    ApplicationName = "WPF Mail Client"
                 });
 
                 var request = peopleService.People.Get("people/me");
@@ -48,11 +50,11 @@ namespace MailClient.Core.Services
 
                 if (!String.IsNullOrEmpty(primaryEmail))
                 {
-                    Console.WriteLine($"[DEBUG] Successfully fetched email: {primaryEmail}");
+                    System.Console.WriteLine($"[DEBUG] Successfully fetched email: {primaryEmail}");
                     return primaryEmail;
                 }
 
-                Console.WriteLine("[DEBUG] People API returned profile but contained no email addresses.");
+                System.Console.WriteLine("[DEBUG] People API returned profile but contained no email addresses.");
                 return String.Empty;
             }
             catch (Exception ex)
@@ -62,12 +64,47 @@ namespace MailClient.Core.Services
             }
         }
 
-        // Sign in
-        public async Task SignInAsync(String credentialPath, String tokenPath)
+        private async Task<String> FetchFullNameAsync(CancellationToken cancellationToken)
         {
-            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            try
             {
-                String credPath = tokenPath;
+                if (_credential == null)
+                    return String.Empty;
+
+                var peopleService = new PeopleServiceService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = _credential,
+                    ApplicationName = "WPF Mail Client"
+                });
+
+                var request = peopleService.People.Get("people/me");
+                request.PersonFields = "names";
+
+                var profile = await request.ExecuteAsync(cancellationToken);
+
+                var fullName = profile.Names?.FirstOrDefault()?.DisplayName;
+
+                if (!String.IsNullOrEmpty(fullName))
+                {
+                    System.Console.WriteLine($"[DEBUG] Successfully fetched full name: {fullName}");
+                    return fullName;
+                }
+
+                System.Console.WriteLine("[DEBUG] People API returned profile but contained no name.");
+                return String.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[ERROR] FetchFullNameAsync failed: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        // Sign in
+        public async Task SignInAsync(IDataStore customStore)
+        {
+            using (var stream = new FileStream(Jsonpath, FileMode.Open, FileAccess.Read))
+            {
                 String[] Scopes = { "https://mail.google.com", "profile", "email" };
 
                 _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -75,16 +112,13 @@ namespace MailClient.Core.Services
                     Scopes,
                     "user",
                     CancellationToken.None,
-                    new FileDataStore(credPath, true));
+                    customStore);
             }
 
             if (IsSignedIn())
             {
-                String email = await FetchPrimaryEmailAsync(CancellationToken.None);
-                if (!String.IsNullOrEmpty(email))
-                {
-                    SetCurrentEmail(email);
-                }
+                _userEmail = await FetchPrimaryEmailAsync(CancellationToken.None);
+                _userName = await FetchFullNameAsync(CancellationToken.None);
             }
         }
 
@@ -92,18 +126,6 @@ namespace MailClient.Core.Services
         public bool IsSignedIn()
         {
             return _credential != null && !String.IsNullOrEmpty(_credential.Token.RefreshToken);
-        }
-
-        // Set cachedEmail <IMPORTANT FOR LATTER OPERATIONS>
-        private void SetCurrentEmail(String email)
-        {
-            _cachedEmail = email;
-        }
-
-        // Get email
-        public String GetCurrentUserEmail()
-        {
-            return !String.IsNullOrEmpty(_cachedEmail) ? _cachedEmail : _credential?.UserId; // ? => check if _credential is null before accessing UserId
         }
 
         // Ensures the access token is valid (refreshing if neccessary) and returns it
@@ -133,19 +155,20 @@ namespace MailClient.Core.Services
         }
 
         // Log out
-        public async Task LogoutAsync(String tokenPath)
+        public async Task LogoutAsync()
         {
             try
             {
                 // This is the correct way to clean up the token store file
-                if (Directory.Exists(tokenPath))
+                if (Directory.Exists("token_store"))
                 {
-                    Directory.Delete(tokenPath, true);
+                    Directory.Delete("token_store", true);
                 }
 
                 // Clear the in-memory credential
                 _credential = null;
-                _cachedEmail = String.Empty;
+                _userEmail = String.Empty;
+                _userName = String.Empty;
             }
             catch (Exception e)
             {

@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using MailClient.Core.Services;
 
 namespace Mailclient
 {
@@ -11,9 +12,8 @@ namespace Mailclient
     {
         // Lưu ID tài khoản đang đăng nhập
         public static int CurrentAccountID;
-
-        // Lưu đối tượng Google để dùng lại (đỡ phải login lại)
-        public static MailClient.GmailStore CurrentGmailStore;
+        public static AccountService currentAccountService;
+        public static MailService currentMailService;
     }
 
 }

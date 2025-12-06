@@ -20,9 +20,6 @@ namespace Mailclient
     public partial class Compose : UserControl
     {
         bool isminimize = false;
-        public GmailStore _store;
-        public AccountService accountService;
-        public MailService mailService;
         public Account acc;
 
         // Dùng ObservableCollection để Binding dữ liệu lên ListBox
@@ -31,10 +28,6 @@ namespace Mailclient
         public Compose()
         {
             InitializeComponent();
-
-            _store = new GmailStore();
-            accountService = new AccountService(_store);
-            mailService = new MailService(accountService);
             acc = new Account(App.CurrentAccountID);
 
             // Khởi tạo danh sách và gán nguồn dữ liệu cho ListBox
@@ -72,13 +65,6 @@ namespace Mailclient
                 </html>";
 
             EditorWebView.NavigateToString(htmlEditor);
-        }
-
-        public void SetAuthenticatedStore(GmailStore authenticatedStore)
-        {
-            _store = authenticatedStore ?? throw new ArgumentNullException(nameof(authenticatedStore));
-            accountService = new AccountService(_store);
-            mailService = new MailService(accountService);
         }
 
         private void closecompose(object sender, RoutedEventArgs e)
@@ -180,7 +166,7 @@ namespace Mailclient
         // SỬA HÀM GỬI 
         private async void Send_Click(object sender, RoutedEventArgs e)
         {
-            if (_store.Service == null)
+            if (!App.currentAccountService.IsSignedIn())
             {
                 MessageBox.Show("Vui lòng đăng nhập lại.", "Lỗi Xác thực");
                 return;
@@ -192,7 +178,7 @@ namespace Mailclient
                 string cleanHtml = JsonSerializer.Deserialize<string>(rawJsonHtml);
 
                 Email model = new Email();
-                model.From = accountService.GetCurrentUserEmail();
+                model.From = App.currentAccountService._userEmail;
                 model.AccountName = acc.Username;
                 model.To = To.Text.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -205,7 +191,7 @@ namespace Mailclient
                 // Lấy danh sách đường dẫn file từ ObservableCollection
                 model.AttachmentPaths = _attachmentList.Select(x => x.FilePath).ToList();
 
-                await mailService.SendEmailAsync(model);
+                await App.currentMailService.SendEmailAsync(model);
 
                 MessageBox.Show("Email đã gửi thành công!");
 

@@ -22,6 +22,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using MailClient.Core.Services;
 namespace Mailclient
 {
     /// <summary>
@@ -35,12 +36,12 @@ namespace Mailclient
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
-        private GmailStore gmailStore;
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
+        private MailService mailService;
         public MainWindow()
         {
-            gmailStore = new GmailStore();
+            mailService = App.currentMailService;
             InitializeComponent();
             InitializeWebView();
             listAcc = new MailClient.ListAccount();
@@ -56,10 +57,10 @@ namespace Mailclient
         public async void SyncAndReload()
         {
             // Kiểm tra xem có đang đăng nhập Google không
-            if (App.CurrentGmailStore != null && App.CurrentGmailStore.Service != null)
+            if (App.currentAccountService.IsSignedIn())
             {
                 // 1. Tải thư từ Google -> Lưu vào SQL
-                await App.CurrentGmailStore.SyncAllFoldersToDatabase(App.CurrentAccountID);
+                await mailService.SyncEmailsToDatabase(App.CurrentAccountID,"Inbox");
 
                 // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu
                 list.Refresh(App.CurrentAccountID);
@@ -113,7 +114,6 @@ namespace Mailclient
 
         private void opcompose(object sender, RoutedEventArgs e)
         {
-            composecontent.SetAuthenticatedStore(App.CurrentGmailStore);
             composecontent.Visibility = Visibility.Visible;
         }
 
@@ -435,11 +435,6 @@ namespace Mailclient
             }
         }
 
-        private void opReponse(object sender, RoutedEventArgs e)
-        {
-            composecontent.SetAuthenticatedStore(App.CurrentGmailStore);
-            composecontent.Visibility = Visibility.Visible;
-        }
         private void returnMain(object sender, RoutedEventArgs e)
         {
             CloseEmailView();

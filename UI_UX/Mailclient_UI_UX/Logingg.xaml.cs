@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using MailClient.Core.Services;
 
 namespace Mailclient
 {
@@ -42,16 +43,17 @@ namespace Mailclient
                 // 2. Tạo Store nối với Account tạm
                 var myStore = new AccountTokenStore(tempAccount);
 
-                var googleHelper = new MailClient.GmailStore();
+                var account = new AccountService();
 
                 // 3. Login với Store tùy biến
                 // Token sẽ tự động chui vào tempAccount.TokenJson
-                bool success = await googleHelper.LoginAsync("user", myStore);
+                await account.SignInAsync(myStore);
+                bool success = account.IsSignedIn();
 
                 if (success)
                 {
-                    string realEmail = googleHelper.UserEmail;
-                    string realName = googleHelper.Username ?? realEmail; // Lấy tên hoặc dùng email làm tên
+                    string? realEmail = account._userEmail;
+                    string? realName = account._userName; // Lấy tên hoặc dùng email làm tên
 
                     // 4. LƯU VÀO DATABASE
                     // Tạo đối tượng Account thực tế với thông tin vừa lấy được
@@ -63,7 +65,8 @@ namespace Mailclient
 
                     // 5. Cài đặt biến toàn cục
                     App.CurrentAccountID = accID;
-                    App.CurrentGmailStore = googleHelper;
+                    App.currentAccountService = account;
+                    App.currentMailService = new MailService(account);
 
                     // 6. Chuyển màn hình
                     MainWindow newMain = new MainWindow();

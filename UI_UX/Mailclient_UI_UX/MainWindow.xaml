@@ -826,7 +826,7 @@
                                 </Button>
                                 <wv2:WebView2 x:Name="contentEmail"
                                               Grid.Row="1"
-                                              Grid.Column="1"/>
+                                              Panel.ZIndex="0"/>
                                 <Button x:Name="Reponse"
                                         Focusable="False"
                                         Height="40"
@@ -835,8 +835,7 @@
                                         Margin="200,0,0,0"
                                         Style="{StaticResource ReplyButtonStyle}"
                                         HorizontalAlignment="Left"
-                                        Content="Reponse"
-                                        Click="opReponse">
+                                        Content="Reponse">
                                     <Button.Tag>
                                         <Image Source="/image/back.png" 
                                                VerticalAlignment="Top"

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using MailClient.Core.Services;
 
 namespace Mailclient
 {
@@ -61,13 +62,13 @@ namespace Mailclient
                     var myStore = new AccountTokenStore(fullAccount);
 
                     // Đảm bảo biến toàn cục không null
-                    if (App.CurrentGmailStore == null)
-                        App.CurrentGmailStore = new GmailStore();
+                    if (App.currentAccountService == null)
+                        App.currentAccountService=new AccountService();
 
                     // --- BƯỚC 3: LOGIN LẠI (QUAN TRỌNG NHẤT) ---
                     // Vì fullAccount.TokenJson đã có dữ liệu từ DB, 
                     // hàm này sẽ chạy ngầm (Silent Login) và KHÔNG mở trình duyệt.
-                    bool success = await App.CurrentGmailStore.LoginAsync("user", myStore);
+                    bool success = App.currentAccountService.IsSignedIn();
 
                     if (success)
                     {
