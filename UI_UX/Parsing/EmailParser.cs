@@ -79,7 +79,7 @@ namespace Mailclient
         public string GenerateDisplayHtml(MailClient.Email email, string customAvatarUrl = null)
         {
             // 1. Chuẩn bị dữ liệu
-            string senderName = GetSenderName(email.From);
+            string senderName = email.FromUser;
             string senderEmail = GetSenderEmail(email.From);
             string dateString = email.DateSent.ToString("HH:mm, dd/MM/yyyy");
             string initials = GetInitials(senderName);
@@ -128,20 +128,20 @@ namespace Mailclient
                 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
                 <style> 
                     ::-webkit-scrollbar {{
-                width: 10px;
-                height: 10px;
-            }}
-            ::-webkit-scrollbar-track {{
-                background: transparent;
-            }}
-            ::-webkit-scrollbar-thumb {{
-                background-color: #c1c1c1;
-                border-radius: 6px;
-                border: 2px solid #fff; 
-            }}
-            ::-webkit-scrollbar-thumb:hover {{
-                background-color: #a8a8a8;
-            }}
+                        width: 10px;
+                        height: 10px;
+                    }}
+                    ::-webkit-scrollbar-track {{
+                        background: transparent;
+                    }}
+                    ::-webkit-scrollbar-thumb {{
+                        background-color: #c1c1c1;
+                        border-radius: 6px;
+                        border: 2px solid #fff; 
+                    }}
+                    ::-webkit-scrollbar-thumb:hover {{
+                        background-color: #a8a8a8;
+                    }}
 
                     body {{
                         font-family: 'Google Sans', Roboto, Helvetica, Arial, sans-serif;
