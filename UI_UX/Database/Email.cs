@@ -24,6 +24,7 @@ namespace MailClient
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
+        public long UID { get; set; }
 
         public List<string> AttachmentPaths { get; set; } = new List<string>();
         public string DateDisplay
@@ -91,38 +92,41 @@ namespace MailClient
         public void AddEmail() // Thêm thư vào database
         {
             string toString = string.Join(",", To.Select(e => e.Trim()));
-            string checkQuery = @"SELECT COUNT(*) FROM Email 
-                          WHERE BodyText=@BodyText";
 
-            SqlParameter[] checkParams = new SqlParameter[]
-            {
-                new SqlParameter("@BodyText",BodyText)
-            };
-            DataTable data = db.ExecuteQuery(checkQuery, checkParams);
-            if (data.Rows.Count > 0 && Convert.ToInt32(data.Rows[0][0]) > 0) return;
+            string checkUidQuery = "SELECT COUNT(*) FROM Email WHERE UID=@UID AND FolderID=@FolderID AND AccountID=@AccountID";
+            SqlParameter[] p = {
+                    new SqlParameter("@UID", UID),
+                    new SqlParameter("@FolderID", FolderID),
+                    new SqlParameter("@AccountID", AccountID)
+                };
+            DataTable dt = db.ExecuteQuery(checkUidQuery, p);
+            if (dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0][0]) > 0) return;
 
 
-            string query = @"Insert into Email(AccountID,FolderID, SubjectEmail,FromUser, FromAdd, ToAdd,DateSent, DateReceived, BodyText, IsRead)
-                            Values(@AccountID,@FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead);
-                            SELECT SCOPE_IDENTITY();";
+            string query = @"Insert into Email(AccountID, FolderID, SubjectEmail, FromUser, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, UID)
+                             Values(@AccountID, @FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @UID);
+                             SELECT SCOPE_IDENTITY();";
+
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@AccountID",AccountID),
-                new SqlParameter("@FolderID",FolderID),
-                new SqlParameter("@SubjectEmail",Subject),
-                new SqlParameter("@FromUser",FromUser),
-                new SqlParameter("@FromAdd",From),
-                new SqlParameter("@ToAdd",toString),
-                new SqlParameter("@DateSent",DateSent),
-                new SqlParameter("@DateReceived",DateReceived),
-                new SqlParameter("@BodyText",BodyText),
-                new SqlParameter("@IsRead",IsRead)
+                new SqlParameter("@AccountID", AccountID),
+                new SqlParameter("@FolderID", FolderID),
+                new SqlParameter("@SubjectEmail", Subject ?? ""),
+                new SqlParameter("@FromUser", FromUser ?? ""),
+                new SqlParameter("@FromAdd", From ?? ""),
+                new SqlParameter("@ToAdd", toString ?? ""),
+                new SqlParameter("@DateSent", DateSent),
+                new SqlParameter("@DateReceived", DateReceived),
+                new SqlParameter("@BodyText", BodyText ?? ""),
+                new SqlParameter("@IsRead", IsRead),
+                new SqlParameter("@UID", UID) 
             };
 
-            DataTable dt = db.ExecuteQuery(query, parameters);
-            if (dt.Rows.Count > 0)
+            DataTable res = db.ExecuteQuery(query, parameters);
+            if (res.Rows.Count > 0 && res.Rows[0][0] != DBNull.Value)
             {
-                this.emailID = Convert.ToInt32(dt.Rows[0][0]);
+                this.emailID = Convert.ToInt32(res.Rows[0][0]);
             }
+
             query = @"UPDATE Folder SET TotalMail=TotalMail+1 Where FolderID=@FolderID AND AccountID=@AccountID";
             SqlParameter[] Updateparameters = new SqlParameter[]
             {

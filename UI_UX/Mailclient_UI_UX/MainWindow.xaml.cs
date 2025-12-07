@@ -30,8 +30,6 @@ namespace Mailclient
     /// </summary>
     public partial class MainWindow : Window
     {
-
-        // 1. ĐỔI TÊN: Đây là danh sách "gốc" (master list)
         private MailClient.ListEmail list;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
@@ -39,66 +37,104 @@ namespace Mailclient
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
         private MailService mailService;
+
+        private bool isSyncing = false;
+
         public MainWindow()
         {
-            mailService = App.currentMailService;
             InitializeComponent();
+            mailService = App.currentMailService;
             InitializeWebView();
+
             listAcc = new MailClient.ListAccount();
-            Account a = new Account(App.CurrentAccountID);
-            listAcc.AddAccount(a);
+            listAcc.AddAccount(new Account(App.CurrentAccountID));
             list = new MailClient.ListEmail(App.CurrentAccountID);
-            inboxbt.Background = colorSelected;
-            var filter = list.listemail.Where(email => email.FolderName == "Inbox");
-            MyEmailList.ItemsSource = filter;
-            SyncAndReload();
+
+            UpdateUI_CurrentFolder();
             StartEmailSync();
+            SyncAndReload();
         }
-        public async void SyncAndReload()
+
+        private void UpdateUI_CurrentFolder()
         {
+            if (list == null || list.listemail == null) return;
+
+            System.Collections.IEnumerable filtered = null;
+            // Lọc và hiển thị danh sách
+            if (currentFolder == "AllMail")
+            {
+                // Nếu là All Mail: Lấy tất cả trừ Thùng rác
+                filtered = list.listemail
+                                   .Where(email => email.FolderName != "Trash" && email.FolderName != "Spam")
+                                   .OrderByDescending(e => e.DateSent) // Sắp xếp mới nhất
+                                   .ToList();
+            }
+            else
+            {
+                // Logic chung cho: Inbox, Sent, Draft, Trash, Spam...
+                filtered = list.listemail
+                                   .Where(email => email.FolderName == currentFolder)
+                                   .OrderByDescending(e => e.DateSent)
+                                   .ToList();
+            }
+            MyEmailList.ItemsSource = filtered;
+
+            // Đổi màu nút bấm 
+            resetcolor();
+        }
+
+        public async Task SyncAndReload()
+        {
+            if (isSyncing) return;
+
+            isSyncing = true;
             // Kiểm tra xem có đang đăng nhập Google không
             if (App.currentAccountService.IsSignedIn())
             {
-                // 1. Tải thư từ Google -> Lưu vào SQL
-                await mailService.SyncEmailsToDatabase(App.CurrentAccountID,"Inbox");
-
-                // 2. QUAN TRỌNG: Đọc lại Database để lấy dữ liệu mới vừa lưu
-                list.Refresh(App.CurrentAccountID);
-
-                // 3. Cập nhật lại giao diện (đang đứng ở Inbox thì load lại Inbox)
-                if (currentFolder == "Inbox")
+                try
                 {
-                    inboxbt.Background = colorSelected;
-                   
-                    MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
-                }
-                else if (currentFolder == "AllMail")
-                {
-                    // Nếu đang ở All Mail thì load lại All Mail
-                    MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName != "Trash").ToList();
-                }
+                    // Tải TẤT CẢ thư mục từ Google -> Lưu vào SQL
+                    await mailService.SyncAllFoldersToDatabase(App.CurrentAccountID);
 
-                //(Tùy chọn) Hiện thông báo nhỏ để biết đã xong
-                //MessageBox.Show("Đã cập nhật thư mới từ Gmail!");
+                    // Đọc lại Database lên RAM để lấy dữ liệu mới nhất
+                    list.Refresh(App.CurrentAccountID);
+
+                    // Cập nhật lại giao diện (đang đứng ở folder nào thì refresh folder đó)
+                    UpdateUI_CurrentFolder();
+                }
+                catch (Exception ex)
+                {
+                    // Có thể log lỗi vào file hoặc console thay vì hiện MessageBox liên tục gây phiền
+                    Console.WriteLine("Lỗi Sync: " + ex.Message);
+                }
+                finally
+                {
+                    // Mở khóa để lần sau sync tiếp
+                    isSyncing = false;
+                    // this.Title = "MailClient";
+                }
             }
         }
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(5); 
+            syncTimer.Interval = TimeSpan.FromSeconds(30); 
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
-        private void syncTimer_Tick(object sender, EventArgs e)
+
+        private async void syncTimer_Tick(object sender, EventArgs e)
         {
-            SyncAndReload();
+            await SyncAndReload();
         }
+
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Cho phép kéo cửa sổ
             this.DragMove();
 
         }
+
         private void OPLogin(object sender, RoutedEventArgs e)
         {
             // Đảo ngược trạng thái: Đang đóng thì mở, đang mở thì đóng
@@ -117,25 +153,39 @@ namespace Mailclient
             composecontent.Visibility = Visibility.Visible;
         }
 
-        // 4. SỬA LẠI HÀM TÌM KIẾM
+        // HÀM TÌM KIẾM
         private void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             string searchText = SearchBar.Text.ToLower();
 
             if (string.IsNullOrEmpty(searchText))
             {
-                // Hiển thị lại danh sách "gốc"
-                MyEmailList.ItemsSource = list.listemail;
+                // Nếu xóa text tìm kiếm, load lại theo folder hiện tại
+                UpdateUI_CurrentFolder();
             }
             else
             {
-                // Lọc từ danh sách "gốc" (list.listemail)
-                var filteredEmails = list.listemail.Where(email =>
+                // Lấy danh sách nguồn dựa trên Folder hiện tại
+                IEnumerable<MailClient.Email> sourceList;
 
-                    // SỬA LỖI CS8602: Thêm kiểm tra "!= null"
-                    (email.Subject != null && email.Subject.ToLower().Contains(searchText)) || (email.AccountName != null && email.AccountName.ToLower().Contains(searchText))).ToList();
+                if (currentFolder == "AllMail")
+                {
+                    // Nếu đang ở All Mail: Lấy tất cả trừ Trash và Spam
+                    sourceList = list.listemail.Where(email => email.FolderName != "Trash" && email.FolderName != "Spam");
+                }
+                else
+                {
+                    // Các trường hợp khác (Inbox, Sent, Draft...): Lấy đúng theo tên folder
+                    sourceList = list.listemail.Where(email => email.FolderName == currentFolder);
+                }
 
-                // Hiển thị danh sách đã lọc
+                // Tìm kiếm text trong danh sách nguồn đó
+                var filteredEmails = sourceList.Where(email =>
+                    (email.Subject != null && email.Subject.ToLower().Contains(searchText)) ||
+                    (email.AccountName != null && email.AccountName.ToLower().Contains(searchText)) ||
+                    (email.From != null && email.From.ToLower().Contains(searchText)) // Nên tìm thêm cả người gửi
+                ).OrderByDescending(e => e.DateSent).ToList();
+
                 MyEmailList.ItemsSource = filteredEmails;
             }
         }
@@ -143,14 +193,10 @@ namespace Mailclient
         private void inbox(object sender, RoutedEventArgs e)
         {
             currentFolder = "Inbox";
-            resetcolor();
-            inboxbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
+
         private void resetcolor()
         {
             inboxbt.Background = Brushes.Transparent;
@@ -159,65 +205,48 @@ namespace Mailclient
             spambt.Background = Brushes.Transparent;
             allmailbt.Background = Brushes.Transparent;
             trashmailbt.Background = Brushes.Transparent;
+
+            switch (currentFolder)
+            {
+                case "Inbox": inboxbt.Background = colorSelected; break;
+                case "Sent": sentbt.Background = colorSelected; break;
+                case "Draft": draftsbt.Background = colorSelected; break; 
+                case "Spam": spambt.Background = colorSelected; break;
+                case "AllMail": allmailbt.Background = colorSelected; break;
+                case "Trash": trashmailbt.Background = colorSelected; break;
+            }
         }
         private void sent(object sender, RoutedEventArgs e)
         {
             currentFolder = "Sent";
-            resetcolor();
-            sentbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderName == "Sent").ToList();
-
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
 
         private void spam(object sender, RoutedEventArgs e)
         {
             currentFolder = "Spam";
-            resetcolor();
-            spambt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderName == "Spam").ToList();
-
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
 
         private void drafts(object sender, RoutedEventArgs e)
         {
             currentFolder = "Draft";
-            resetcolor();
-            draftsbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderName == "Draft").ToList();
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
 
         private void allmail(object sender, RoutedEventArgs e)
         {
             currentFolder = "AllMail";
-            resetcolor();
-            allmailbt.Background = colorSelected;
-            // Hiển thị danh sách đã lọc
-            var filteredEmails = list.listemail.Where(email => email.FolderName != "Trash").ToList();
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
         private void trash(object sender, RoutedEventArgs e)
         {
             currentFolder = "Trash";
-            resetcolor();
-            trashmailbt.Background = colorSelected;
-            var filteredEmails = list.listemail.Where(email => email.FolderName == "Trash").ToList();
-            // Hiển thị danh sách đã lọc
-            MyEmailList.ItemsSource = filteredEmails;
-
+            UpdateUI_CurrentFolder();
             CloseEmailView();
         }
         protected override void OnSourceInitialized(EventArgs e)
@@ -351,50 +380,22 @@ namespace Mailclient
 
                 if (emailToDelete != null)
                 {
-                    // 1. Đánh dấu thư là rác
+                    // Đánh dấu thư là rác
                     emailToDelete.UpdateFolderEmail("Trash");
                     emailToDelete.FolderName = "Trash";
 
-                    // 2. Cập nhật lại giao diện dựa trên MÀN HÌNH ĐANG MỞ
-                    switch (currentFolder)
-                    {
-                        case "Inbox":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
-                            break;
-
-                        case "Sent":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Sent").ToList();
-                            break;
-
-                        case "Spam":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Spam").ToList();
-                            break;
-
-                        case "Drafts":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Draft").ToList();
-                            break;
-
-                        case "AllMail":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName != "Trash").ToList();
-                            break;
-
-                        case "Trash":
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Trash").ToList();
-                            break;
-
-                        default:
-                            MyEmailList.ItemsSource = list.listemail.Where(email => email.FolderName == "Inbox").ToList();
-                            break;
-                    }
+                    // Cập nhật lại giao diện dựa trên MÀN HÌNH ĐANG MỞ
+                    UpdateUI_CurrentFolder();
 
                     // 3. Đóng khung đọc mail đi (để tránh lỗi hiển thị thư vừa xóa)
                     CloseEmailView();
                 }
             }
         }
+
         private async void content(object sender, SelectionChangedEventArgs e)
         {
-            // 1. Kiểm tra an toàn
+            // Kiểm tra an toàn
             if (MyEmailList.SelectedIndex == -1 || MyEmailList.SelectedItem == null) return;
 
             var selectedEmail = MyEmailList.SelectedItem as MailClient.Email;
@@ -407,7 +408,7 @@ namespace Mailclient
                 await contentEmail.EnsureCoreWebView2Async();
             }
 
-            // 2. Lấy đối tượng Email từ giao diện
+            // Lấy đối tượng Email từ giao diện
             if (_currentReadingEmail != null)
             {
                 // Lấy danh sách file đính kèm cho biến _currentReadingEmail
@@ -419,13 +420,13 @@ namespace Mailclient
                 string htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
                 try
                 {
-                    // 1. Tạo đường dẫn file tạm trong thư mục Temp của máy tính
+                    // Tạo đường dẫn file tạm trong thư mục Temp của máy tính
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
 
-                    // 2. Lưu chuỗi HTML vào file đó
+                    // Lưu chuỗi HTML vào file đó
                     System.IO.File.WriteAllText(tempPath, htmlDisplay);
 
-                    // 3. Điều hướng WebView tới file vừa tạo
+                    // Điều hướng WebView tới file vừa tạo
                     contentEmail.CoreWebView2.Navigate(tempPath);
                 }
                 catch (Exception ex)
@@ -444,9 +445,9 @@ namespace Mailclient
         {
             CloseEmailView();
         }
+
         private void CloseEmailView()
         {
-
             // Ẩn giao diện đọc mail
             mailcontent.Visibility = Visibility.Collapsed;
 
@@ -581,6 +582,4 @@ namespace Mailclient
         }
         
     }
-
-} // <-- KẾT THÚC CLASS MAINWINDOW
-
+} 

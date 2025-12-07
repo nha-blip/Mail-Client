@@ -1,7 +1,9 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Mailclient;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
+using MailKit.Search;
 using MailKit.Security;
 using Microsoft.Data.SqlClient;
 using MimeKit;
@@ -39,7 +41,7 @@ namespace MailClient.Core.Services
             var message = new MimeMessage();
 
             // Set sender
-            message.From.Add(new MailboxAddress(mailModel.From, mailModel.From));
+            message.From.Add(new MailboxAddress(mailModel.AccountName, mailModel.From));
 
             // Set receipient
             foreach (string receipient in mailModel.To)
@@ -130,68 +132,8 @@ namespace MailClient.Core.Services
                     }
                 }
             }
-        }
+        }    
 
-        public async Task<List<MimeMessage>> FetchMessageAsync(CancellationToken cancellationToken = default)
-        {
-            if (!_accountService.IsSignedIn())
-            {
-                throw new InvalidOperationException("User is not signed in. Cannot fetch email.");
-            }
-
-            List<MimeMessage> messages = new List<MimeMessage>();
-
-            String emailAddress = _accountService._userEmail;
-            var accessToken = await _accountService.GetAccessTokenAsync(cancellationToken);
-
-            using (var client = new ImapClient())
-            {
-                try
-                {
-                    // 1. Connect using implicit SSL
-                    await client.ConnectAsync(ImapHost, ImapPort, SecureSocketOptions.SslOnConnect, cancellationToken);
-
-                    // 2. Authenticate using XOAUTH2
-                    var oauth2 = new MailKit.Security.SaslMechanismOAuth2(emailAddress, accessToken);
-                    await client.AuthenticateAsync(oauth2, cancellationToken);
-
-                    // 3. Open the inbox folder
-                    var inbox = client.Inbox;
-                    await inbox.OpenAsync(MailKit.FolderAccess.ReadOnly, cancellationToken);
-
-                    // 4. Fetch the messages
-                    int count = inbox.Count - fetched;
-                    int start = Math.Max(0, count - 10);
-
-                    // Fetch full MimeMessages
-                    for (int i = start; i < count; i++)
-                    {
-                        // Fetch the MimeMessage content
-                        var mimeMessage = await inbox.GetMessageAsync(i, cancellationToken);
-
-                        System.Console.WriteLine($"[IMAP] Fetched message {i + 1}/{count}: '{mimeMessage.Subject}");
-
-                        // Add the raw MailKit object to the list
-                        messages.Add(mimeMessage);
-                        fetched++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to fetch emails via IMAP for account {emailAddress}: {ex.Message}");
-                }
-                finally
-                {
-                    if (client.IsConnected)
-                    {
-                        await client.DisconnectAsync(true, cancellationToken);
-                    }
-                }
-
-                return messages;
-            }
-
-        }
         public int GetFolderIDByFolderName(string folderName, int accountID)
         {
             string query = @"Select FolderID From Folder Where FolderName=@folderName And AccountID=@AccountID";
@@ -208,85 +150,13 @@ namespace MailClient.Core.Services
                 return Convert.ToInt32(dt.Rows[0][0]);
             return 0;
         }
+
         public static string ConvertToSentenceCase(string input)
         {
             if (string.IsNullOrEmpty(input)) return input;
             string lowerCase = input.ToLower();
             TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
             return lowerCase.Substring(0, 1).ToUpper() + lowerCase.Substring(1);
-        }
-        public async Task SyncAllFoldersToDatabase(int localAccountID)
-        {
-            // Lưu ý: Folder trên Gmail thường viết hoa (INBOX, SENT, TRASH...)
-            string[] foldersToSync = { "INBOX", "SENT", "DRAFT", "TRASH", "SPAM" };
-
-            foreach (var folderName in foldersToSync)
-            {
-                // Gọi hàm sync từng folder
-                // Lưu ý: Cần đảm bảo tên folder này khớp với tên Label trên Gmail
-                await SyncEmailsToDatabase(localAccountID, folderName);
-            }
-        }
-
-        public async Task SyncEmailsToDatabase(int localAccountID, string foldername)
-        {
-            if (!_accountService.IsSignedIn()) return;
-            List<MimeMessage> message = await FetchMessageAsync();
-            if (message != null)
-            {
-                var parser = new EmailParser();
-                // Tạo thư mục cache
-                string cacheFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
-                if (!Directory.Exists(cacheFolder))
-                {
-                    Directory.CreateDirectory(cacheFolder);
-                }
-                foreach (var msgItem in message)
-                {
-                    try
-                    {
-                        // Parse email (Dùng parser của bạn)
-                        Email emailToSave = await parser.ParseAsync(msgItem);
-
-                        // Điền thông tin bổ sung
-                        emailToSave.AccountID = localAccountID;
-                        emailToSave.FolderName = ConvertToSentenceCase(foldername);
-                        emailToSave.FolderID = GetFolderIDByFolderName(emailToSave.FolderName, localAccountID);
-                        emailToSave.AccountName = _accountService._userName;
-
-                        // Lưu Email vào DB
-                        emailToSave.AddEmail();
-
-                        // LƯU ATTACHMENT
-                        if (emailToSave.emailID > 0 && emailToSave.TempAttachments != null && emailToSave.TempAttachments.Count > 0)
-                        {
-                            foreach (var attach in emailToSave.TempAttachments)
-                            {
-                                // A. Lưu thông tin vào DB
-                                attach.EmailID = emailToSave.emailID;
-                                attach.AddAttachment();
-
-                                // B. Lưu file vật lý
-                                // Nên thêm ID vào tên file để tránh trùng lặp: {ID}_{Name}
-                                string saveFileName = $"{attach.Name}";
-                                string fullPath = Path.Combine(cacheFolder, saveFileName);
-
-                                if (attach.OriginalMimePart != null)
-                                {
-                                    using (var fileStream = File.Create(fullPath))
-                                    {
-                                        await attach.OriginalMimePart.Content.DecodeToAsync(fileStream);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception innerEx)
-                    {
-                        Console.WriteLine($"Lỗi sync email: {innerEx.Message}");
-                    }
-                }
-            }
         }
 
         private string ProcessInlineImages(string htmlContent, BodyBuilder bodyBuilder)
@@ -357,6 +227,186 @@ namespace MailClient.Core.Services
             }
 
             return finalHtml;
+        }
+
+        /// <summary>
+        /// Đồng bộ TẤT CẢ các thư mục từ Gmail về Database
+        /// </summary>
+        public async Task SyncAllFoldersToDatabase(int localAccountID, CancellationToken token = default)
+        {
+            if (!_accountService.IsSignedIn()) return;
+
+            var accessToken = await _accountService.GetAccessTokenAsync(token);
+
+            // Tạo kết nối MỘT LẦN dùng chung cho tất cả folder
+            using (var client = new ImapClient())
+            {
+                try
+                {
+                    await client.ConnectAsync(ImapHost, ImapPort, SecureSocketOptions.SslOnConnect, token);
+                    await client.AuthenticateAsync(new SaslMechanismOAuth2(_accountService._userEmail, accessToken), token);
+
+                    // Lấy danh sách tất cả folder trên server
+                    var personalNamespace = client.PersonalNamespaces[0];
+                    var allFolders = await client.GetFoldersAsync(personalNamespace, StatusItems.None, true, token);
+
+                    foreach (var folder in allFolders)
+                    {
+                        // Bỏ qua folder gốc [Gmail] hoặc các folder không chọn được
+                        if ((folder.Attributes & FolderAttributes.NoSelect) != 0) continue;
+                        if (folder.Name == "[Gmail]") continue;
+
+                        // Gọi hàm xử lý nội bộ, tái sử dụng client
+                        await SyncFolderInternal(client, folder, localAccountID, token);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Error] SyncAllFolders: {ex.Message}");
+                }
+                finally
+                {
+                    if (client.IsConnected) await client.DisconnectAsync(true, token);
+                }
+            }
+        }
+
+        // Thực hiện tải mail từ 1 folder IMAP xuống DB
+        private async Task SyncFolderInternal(ImapClient client, IMailFolder folder, int localAccountID, CancellationToken token = default)
+        {
+            try
+            {
+                await folder.OpenAsync(FolderAccess.ReadOnly, token);
+
+                string cleanName = NormalizeFolderName(folder);
+                int dbFolderId = GetFolderIDByFolderName(ConvertToSentenceCase(cleanName), localAccountID);
+                if (dbFolderId == 0) return;
+
+                UniqueId lastKnownUid = GetLastSyncedUid(dbFolderId, localAccountID);
+
+                IList<UniqueId> uidsToFetch;
+
+                if (lastKnownUid == UniqueId.MinValue)
+                {
+                    // Trường hợp 1: Lần đầu tiên chạy (DB chưa có gì)
+                    // Lấy 20 mail mới nhất để khởi tạo
+                    int total = folder.Count;
+                    int fetchCount = 20;
+                    int start = Math.Max(0, total - fetchCount);
+                    var summaries = await folder.FetchAsync(start, -1, MessageSummaryItems.UniqueId, token);
+                    uidsToFetch = summaries.Select(x => x.UniqueId).ToList();
+                }
+                else
+                {
+                    // Trường hợp 2: Đã có dữ liệu trong DB
+                    // Lấy danh sách TOÀN BỘ UID hiện có trên Server
+                    var allUidsOnServer = await folder.SearchAsync(SearchQuery.All, token);
+
+                    // 2. Dùng C# để lọc: Chỉ giữ lại những UID lớn hơn UID trong Database của bạn
+                    // (uid.Id là số nguyên, so sánh trực tiếp được)
+                    uidsToFetch = allUidsOnServer
+                                    .Where(uid => uid.Id > lastKnownUid.Id)
+                                    .OrderBy(uid => uid.Id) // Sắp xếp từ nhỏ đến lớn cho gọn
+                                    .ToList();
+                }
+
+                if (uidsToFetch.Count == 0) return; // Không có gì mới
+
+                var parser = new EmailParser();
+                string cacheFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+                if (!Directory.Exists(cacheFolder)) Directory.CreateDirectory(cacheFolder);
+
+                // Duyệt qua các email
+                foreach (var uid in uidsToFetch)
+                {
+                    try
+                    {
+                        // Lấy Summary trước để check trùng (tùy chọn) hoặc lấy full message
+                        var mimeMessage = await folder.GetMessageAsync(uid, token);
+
+                        // Parse Email
+                        Email emailToSave = await parser.ParseAsync(mimeMessage);
+
+                        // Gán thông tin Metadata
+                        emailToSave.AccountID = localAccountID;
+
+                        emailToSave.AccountID = localAccountID;
+                        emailToSave.FolderID = dbFolderId;
+                        emailToSave.FolderName = ConvertToSentenceCase(cleanName);
+                        emailToSave.AccountName = _accountService._userName;
+                        emailToSave.UID = uid.Id;
+
+                        // Lưu vào DB
+                        emailToSave.AddEmail();
+
+                        // Lưu Attachments
+                        if (emailToSave.emailID > 0 && emailToSave.TempAttachments != null)
+                        {
+                            foreach (var attach in emailToSave.TempAttachments)
+                            {
+                                attach.EmailID = emailToSave.emailID;
+                                attach.AddAttachment(); // Lưu DB
+
+                                // Lưu File vật lý
+                                string saveFileName = $"{attach.Name}";
+                                string fullPath = Path.Combine(cacheFolder, saveFileName);
+
+                                if (attach.OriginalMimePart != null && !File.Exists(fullPath))
+                                {
+                                    using (var fileStream = File.Create(fullPath))
+                                    {
+                                        await attach.OriginalMimePart.Content.DecodeToAsync(fileStream, token);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception innerEx)
+                    {
+                        Console.WriteLine($"Err saving mail {uid}: {innerEx.Message}");
+                    }
+                }
+
+                // Đóng folder (quan trọng nếu muốn chuyển folder khác trên cùng 1 connection)
+                await folder.CloseAsync(false, token);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Err syncing folder {folder.Name}: {ex.Message}");
+            }
+        }
+
+        public UniqueId GetLastSyncedUid(int folderID, int accountID)
+        {
+            string query = @"Select MAX(UID) From Email Where FolderID=@FolderID And AccountID=@AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@FolderID", folderID),
+                new SqlParameter("@AccountID", accountID)
+            };
+
+            DatabaseHelper db = new DatabaseHelper();
+            DataTable dt = db.ExecuteQuery(query, parameters);
+
+            if (dt.Rows.Count > 0 && dt.Rows[0][0] != DBNull.Value)
+            {
+                long uidVal = Convert.ToInt64(dt.Rows[0][0]);
+                // Chỉ trả về nếu > 0
+                if (uidVal > 0) return new UniqueId((uint)uidVal);
+            }
+
+            // Nếu chưa có mail nào (hoặc null), trả về MinValue (tương đương 0)
+            return UniqueId.MinValue;
+        }
+
+        // Hàm helper để chuẩn hóa tên folder
+        private string NormalizeFolderName(IMailFolder folder)
+        {
+            if (folder.Attributes.HasFlag(FolderAttributes.Sent) || folder.Name.EndsWith("Sent Mail")) return "Sent";
+            if (folder.Attributes.HasFlag(FolderAttributes.Drafts)) return "Draft";
+            if (folder.Attributes.HasFlag(FolderAttributes.Trash)) return "Trash";
+            if (folder.Attributes.HasFlag(FolderAttributes.Junk)) return "Spam";
+            return folder.Name.Replace("[Gmail]/", "");
         }
     }
 }
