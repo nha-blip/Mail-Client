@@ -141,14 +141,15 @@ namespace Mailclient
             // Đảo ngược trạng thái: Đang đóng thì mở, đang mở thì đóng
             AccountPopup.IsOpen = !AccountPopup.IsOpen;
 
-            // Nếu mở ra thì có thể load dữ liệu (Tùy chọn)
-            if (AccountPopup.IsOpen)
-            {
-                // ListAccountControl.LoadDataFromSQL(); // Nếu cần refresh
-            }
-
         }
-
+        public void CloseAccountPopup()
+        {
+            // Đặt IsOpen = false để đóng Popup
+            if (AccountPopup != null)
+            {
+                AccountPopup.IsOpen = false;
+            }
+        }
         private void opcompose(object sender, RoutedEventArgs e)
         {
             composecontent.Visibility = Visibility.Visible;
@@ -559,6 +560,30 @@ namespace Mailclient
                 }
             }
         }
-        
+        private void BlockClick_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Bắt sự kiện click để người dùng không bấm xuyên qua vào nội dung bên dưới
+            e.Handled = true;
+        }
+
+        // HÀM 1: Hiện Loading (Cho phép truyền nội dung tùy ý)
+        public void ShowLoading(string message = "Đang xử lý...")
+        {
+            if (AppLoadingOverlay != null)
+            {
+                txtLoadingMessage.Text = message;
+                AppLoadingOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        // HÀM 2: Ẩn Loading
+        public void HideLoading()
+        {
+            if (AppLoadingOverlay != null)
+            {
+                AppLoadingOverlay.Visibility = Visibility.Collapsed;
+            }
+        }
+
     }
 } 
