@@ -12,6 +12,7 @@ using MailKit.Net.Imap;
 using MailKit.Security;
 using System.Runtime.CompilerServices;
 using Google.Apis.Services;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MailClient.Core.Services
 {
@@ -19,7 +20,8 @@ namespace MailClient.Core.Services
     {
         private UserCredential _credential;
         public UserCredential Credential => _credential;
-        public string Jsonpath = @"D:\Lập trình trực quan\Mail-Client\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
+        public string Jsonpath = @"googlesv\mailclient.json";
+        private string _currentTokenPath = String.Empty;
 
         // Event fires when a token refresh successfully occurs
         // Can be used to ensure the connection remain active or update its status
@@ -101,8 +103,10 @@ namespace MailClient.Core.Services
         }
 
         // Sign in
-        public async Task SignInAsync(IDataStore customStore)
+        public async Task SignInAsync(IDataStore customStore, string tokenPath)
         {
+            _currentTokenPath = tokenPath;
+
             using (var stream = new FileStream(Jsonpath, FileMode.Open, FileAccess.Read))
             {
                 String[] Scopes = { "https://mail.google.com", "profile", "email" };
@@ -160,9 +164,9 @@ namespace MailClient.Core.Services
             try
             {
                 // This is the correct way to clean up the token store file
-                if (Directory.Exists("token_store"))
+                if (!String.IsNullOrEmpty(_currentTokenPath) && Directory.Exists(_currentTokenPath))
                 {
-                    Directory.Delete("token_store", true);
+                    Directory.Delete(_currentTokenPath, true);
                 }
 
                 // Clear the in-memory credential
