@@ -62,8 +62,9 @@ namespace Mailclient
                     var myStore = new AccountTokenStore(fullAccount);
 
                     // Đảm bảo biến toàn cục không null
-                    if (App.currentAccountService == null)
-                        App.currentAccountService=new AccountService();
+                    App.currentAccountService=new AccountService();
+                    await App.currentAccountService.LoadCredentialAsync(fullAccount.TokenJson);
+                    App.currentMailService = new MailService(App.currentAccountService);
 
                     // --- BƯỚC 3: LOGIN LẠI (QUAN TRỌNG NHẤT) ---
                     // Vì fullAccount.TokenJson đã có dữ liệu từ DB, 
@@ -77,10 +78,11 @@ namespace Mailclient
 
                         // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
                         var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
-                        if (mainWindow != null)
-                        {
-                            mainWindow.SyncAndReload();
-                        }
+                        mainWindow.list.listemail.Clear();
+                        mainWindow.list.soluong = 0;
+                        mainWindow.list._latestDateSent = new DateTime(1789, 1, 1);
+                        await mainWindow.SyncAndReload();
+                        MessageBox.Show("đã đồng bộ");
                     }
                     else
                     {
@@ -91,8 +93,6 @@ namespace Mailclient
                 {
                     MessageBox.Show($"Lỗi chuyển tài khoản: {ex.Message}");
                 }
-
-                listView.SelectedItem = null;
             }
         }
     }

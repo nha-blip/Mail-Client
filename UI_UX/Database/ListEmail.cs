@@ -14,7 +14,7 @@ namespace MailClient
         private DatabaseHelper db;
         public int soluong;
         public ObservableCollection<Email>  listemail;
-        private DateTime _latestDateSent;
+        public DateTime _latestDateSent;
         public ListEmail(int accountID)
         {
             listemail = new ObservableCollection<Email>();

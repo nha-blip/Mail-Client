@@ -31,7 +31,7 @@ namespace Mailclient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MailClient.ListEmail list;
+        public MailClient.ListEmail list;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
         private DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
