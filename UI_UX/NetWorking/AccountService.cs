@@ -22,7 +22,7 @@ namespace MailClient.Core.Services
     {
         private UserCredential _credential;
         public UserCredential Credential => _credential;
-        public string Jsonpath = @"googlesv\mailclient.json";
+        public string Jsonpath = @"D:\mailclient\UI_UX\Mailclient_UI_UX\googlesv\mailclient.json";
 
         // Event fires when a token refresh successfully occurs
         // Can be used to ensure the connection remain active or update its status
