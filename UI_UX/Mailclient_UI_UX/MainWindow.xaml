@@ -806,7 +806,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="30"/>
                                     <RowDefinition Height="*"/>
-                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="50"/>
                                 </Grid.RowDefinitions>
                                 <Button x:Name="return" 
                                         Grid.Row="0"
@@ -827,22 +827,53 @@
                                 <wv2:WebView2 x:Name="contentEmail"
                                               Grid.Row="1"
                                               Panel.ZIndex="0"/>
-                                <Button x:Name="Reponse"
+                                <Border Grid.Row="2"
+                                        BorderThickness="0"
+                                        CornerRadius="0,0,10,10"
+                                        >
+                                    <Border.Effect>
+                                        <DropShadowEffect Direction="270" 
+                                                          ShadowDepth="4" 
+                                                          Color="#B0B0B0" 
+                                                          Opacity="0.4" 
+                                                          BlurRadius="15" />
+                                    </Border.Effect>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="btnReponse"
+                                        Visibility="Visible"
                                         Focusable="False"
                                         Height="40"
-                                        Width="150"
-                                        Grid.Row="2"
-                                        Margin="200,0,0,0"
+                                        Width="120"
+                                        Margin="80,0,0,0"
                                         Style="{StaticResource ReplyButtonStyle}"
                                         HorizontalAlignment="Left"
-                                        Content="Reponse">
-                                    <Button.Tag>
-                                        <Image Source="/image/back.png" 
+                                        Content="Reply">
+                                            <Button.Tag>
+                                                <Image Source="/image/back.png" 
                                                VerticalAlignment="Top"
-                                               Height="30"
+                                               Height="27"
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
-                                    </Button.Tag>
-                                </Button>
+                                            </Button.Tag>
+                                        </Button>
+                                        <Button x:Name="btnForward"
+                                        Visibility="Visible"
+                                        Focusable="False"
+                                        Height="40"
+                                        Width="120"
+                                        Margin="10,0,0,0"
+                                        Style="{StaticResource ReplyButtonStyle}"
+                                        HorizontalAlignment="Left"
+                                        Content="Forward">
+                                            <Button.Tag>
+                                                <Image Source="/image/back.png" 
+                                               VerticalAlignment="Top"
+                                               Height="27"
+                                               FlowDirection="RightToLeft"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Button.Tag>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
                             </Grid>
                         </Border>
                         <local:Compose x:Name="composecontent"

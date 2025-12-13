@@ -1,4 +1,5 @@
 using MailClient;
+using MailClient.Core.Services;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
@@ -22,7 +23,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using MailClient.Core.Services;
+using static Google.Apis.Requests.BatchRequest;
 namespace Mailclient
 {
     /// <summary>
@@ -254,60 +255,46 @@ namespace Mailclient
             base.OnSourceInitialized(e);
             EnableBlur();
         }
-
-        // =============================================================
-        // ĐOẠN CODE DƯỚI ĐÂY LÀ ĐỂ GỌI WINDOWS API LÀM MỜ NỀN
-        // =============================================================
         private void EnableBlur()
         {
             var windowHelper = new WindowInteropHelper(this);
-            var accent = new AccentPolicy();
-            accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = unchecked((int)0x66000000);
+
+            // Cấu hình độ mờ và màu sắc (0x66000000 là màu đen độ trong suốt 40%)
+            var accent = new AccentPolicy
+            {
+                AccentState = 4, // 4 là ENABLE_ACRYLICBLURBEHIND
+                GradientColor = unchecked((int)0x66000000)
+            };
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
 
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = accentStructSize;
-            data.Data = accentPtr;
+            var data = new WindowCompositionAttributeData
+            {
+                Attribute = 19, // 19 là WCA_ACCENT_POLICY
+                SizeOfData = accentStructSize,
+                Data = accentPtr
+            };
 
             SetWindowCompositionAttribute(windowHelper.Handle, ref data);
             Marshal.FreeHGlobal(accentPtr);
         }
-
         [DllImport("user32.dll")]
         internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct WindowCompositionAttributeData
         {
-            public WindowCompositionAttribute Attribute;
+            public int Attribute;   
             public IntPtr Data;
             public int SizeOfData;
-        }
-
-        internal enum WindowCompositionAttribute
-        {
-            WCA_ACCENT_POLICY = 19
-        }
-
-        internal enum AccentState
-        {
-            ACCENT_DISABLED = 0,
-            ACCENT_ENABLE_GRADIENT = 1,
-            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-            ACCENT_ENABLE_BLURBEHIND = 3,
-            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-            ACCENT_INVALID_STATE = 5
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct AccentPolicy
         {
-            public AccentState AccentState;
+            public int AccentState;  
             public int AccentFlags;
             public int GradientColor;
             public int AnimationId;
@@ -461,16 +448,9 @@ namespace Mailclient
         private async void ContentEmail_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string message = e.TryGetWebMessageAsString();
-
             if (!string.IsNullOrEmpty(message) && message.StartsWith("DOWNLOAD:"))
             {
                 string fileNameToDownload = message.Substring("DOWNLOAD:".Length);
-
-                if (_currentReadingEmail == null || _currentReadingEmail.TempAttachments == null)
-                {
-                    MessageBox.Show("Dữ liệu email đã bị mất, vui lòng mở lại thư.", "Lỗi");
-                    return;
-                }
 
                 // Tìm file trong danh sách attachment của email này
                 var attachment = _currentReadingEmail.TempAttachments.FirstOrDefault(a => a.Name == fileNameToDownload);
@@ -528,7 +508,6 @@ namespace Mailclient
             // 3. [THÊM MỚI] Sự kiện click link mở tab mới (target="_blank")
             contentEmail.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
         }
-
         private void ContentEmail_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
         {
             // Kiểm tra xem đường dẫn có phải là Link Web không (http hoặc https)
