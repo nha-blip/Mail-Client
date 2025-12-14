@@ -579,6 +579,8 @@
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Name="SelectAll"
                                       HorizontalAlignment="Left"
+                                      Checked="selectall"
+                                          
                                       VerticalAlignment="Center"
                                       Margin="21,0,0,0"/>
                                 <TextBlock Text="All" Foreground="White" HorizontalAlignment="Right"
@@ -587,14 +589,15 @@
                                        FontSize="15"
                                        FontFamily="/Font/#Poppins"/>
                                 <Button Content="&#xE74D;" 
-                                    Margin="10,0,0,0"
-                                    x:Name="DeleteButton"
-                                    FontFamily="Segoe MDL2 Assets" 
-                                    FontSize="13" 
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Width="50"
-                                    Background="Transparent"/>
+                                        Margin="10,0,0,0"
+                                        x:Name="DeleteButton"
+                                        FontFamily="Segoe MDL2 Assets" 
+                                        FontSize="13" 
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Width="50"
+                                        Click="deleteselect"
+                                        Background="Transparent"/>
                             </StackPanel>
                         </Grid>
 
@@ -778,7 +781,9 @@
                                                     <ColumnDefinition Width="80"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <CheckBox x:Name="Checkbox1" Grid.Column="0"/>
+                                                <CheckBox x:Name="Checkbox1" 
+                                                          Grid.Column="0"
+                                                          IsChecked="{Binding IsFlag}"/>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                                     <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
@@ -821,6 +826,10 @@
                                                                       Opacity="0.3"/>
                                                     </Setter.Value>
                                                 </Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsFlag}" Value="True">
+                                                <Setter TargetName="bgemail" Property="Background" Value="#E6F2FF"/>
+                                                <Setter TargetName="bgemail" Property="BorderBrush" Value="#0078D4"/>
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
                                     </DataTemplate>

@@ -38,12 +38,10 @@ namespace Mailclient
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
         private MailService mailService;
-<<<<<<< HEAD
         private bool isFirstLoad = true;
-=======
+
         private List<MailClient.Email> _currentConversation;
 
->>>>>>> aa5589af62c3a5c3e6880f2d5413cc6b2759470f
         private bool isSyncing = false;
 
         public MainWindow()
@@ -699,5 +697,17 @@ namespace Mailclient
             }
         }
 
+        private void selectall(object sender, RoutedEventArgs e)
+        {
+            foreach (var email in list.listemail)
+            {
+                email.IsFlag = true;
+            }
+        }
+
+        private void deleteselect(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 } 
