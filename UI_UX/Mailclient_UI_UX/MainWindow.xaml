@@ -923,7 +923,6 @@
                    StaysOpen="False"
                    AllowsTransparency="True"
                    PopupAnimation="Fade">
-
                     <local:ListAccount x:Name="ListAccountControl" 
                                    />
                 </Popup>

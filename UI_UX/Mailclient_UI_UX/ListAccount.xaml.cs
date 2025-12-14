@@ -89,7 +89,7 @@ namespace Mailclient
 
                             mainWindow.ShowLoading("Đang tải dữ liệu...");
                             await mainWindow.SyncAndReload();
-                            
+                            await Task.Delay(1000);
                             mainWindow.HideLoading();
                         }
                     }
@@ -101,6 +101,7 @@ namespace Mailclient
                 }
                 catch (Exception ex)
                 {
+
                     if (mainWindow != null) mainWindow.HideLoading(); 
                     MessageBox.Show($"Lỗi chuyển tài khoản: {ex.Message}");
                 }
