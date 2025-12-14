@@ -72,12 +72,9 @@ namespace Mailclient
                     MainWindow newMain = new MainWindow();
                     Application.Current.MainWindow = newMain;
                     newMain.Show();
-<<<<<<< HEAD
                     newMain.Activate();
-=======
                     Application.Current.MainWindow = newMain;
 
->>>>>>> aa5589af62c3a5c3e6880f2d5413cc6b2759470f
                     // Đóng các cửa sổ cũ
                     foreach (Window window in Application.Current.Windows)
                     {
