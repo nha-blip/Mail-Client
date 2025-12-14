@@ -38,8 +38,12 @@ namespace Mailclient
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
         private MailService mailService;
+<<<<<<< HEAD
+        private bool isFirstLoad = true;
+=======
         private List<MailClient.Email> _currentConversation;
 
+>>>>>>> aa5589af62c3a5c3e6880f2d5413cc6b2759470f
         private bool isSyncing = false;
 
         public MainWindow()
@@ -99,6 +103,11 @@ namespace Mailclient
             if (isSyncing) return;
 
             isSyncing = true;
+
+            if (isFirstLoad)
+            {
+                ShowLoading("Đang tải dữ liệu lần đầu...");
+            }
             // Kiểm tra xem có đang đăng nhập Google không
             if (App.currentAccountService.IsSignedIn())
             {
@@ -123,13 +132,18 @@ namespace Mailclient
                     // Mở khóa để lần sau sync tiếp
                     isSyncing = false;
                     // this.Title = "MailClient";
+                    if (isFirstLoad)
+                    {
+                        HideLoading();
+                        isFirstLoad = false;
+                    }
                 }
             }
         }
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(30); 
+            syncTimer.Interval = TimeSpan.FromSeconds(5); 
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
