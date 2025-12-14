@@ -80,7 +80,6 @@ namespace Mailclient
                         App.CurrentAccountID = fullAccount.AccountID;
 
                         // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
-
                         if (mainWindow != null)
                         {
                             mainWindow.list.listemail.Clear();

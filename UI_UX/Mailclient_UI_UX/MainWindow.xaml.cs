@@ -38,7 +38,12 @@ namespace Mailclient
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
         private MailService mailService;
+<<<<<<< HEAD
         private bool isFirstLoad = true;
+=======
+        private List<MailClient.Email> _currentConversation;
+
+>>>>>>> aa5589af62c3a5c3e6880f2d5413cc6b2759470f
         private bool isSyncing = false;
 
         public MainWindow()
@@ -60,25 +65,34 @@ namespace Mailclient
         {
             if (list == null || list.listemail == null) return;
 
-            System.Collections.IEnumerable filtered = null;
+            IEnumerable<MailClient.Email> sourceList;
             // Lọc và hiển thị danh sách
             if (currentFolder == "AllMail")
             {
-                // Nếu là All Mail: Lấy tất cả trừ Thùng rác
-                filtered = list.listemail
-                                   .Where(email => email.FolderName != "Trash" && email.FolderName != "Spam")
-                                   .OrderByDescending(e => e.DateSent) // Sắp xếp mới nhất
-                                   .ToList();
+                sourceList = list.listemail
+                                .Where(email => email.FolderName != "Trash" && email.FolderName != "Spam" && email.AccountID == App.CurrentAccountID);
             }
             else
             {
-                // Logic chung cho: Inbox, Sent, Draft, Trash, Spam...
-                filtered = list.listemail
-                                   .Where(email => email.FolderName == currentFolder)
-                                   .OrderByDescending(e => e.DateSent)
-                                   .ToList();
+                sourceList = list.listemail
+                                .Where(email => email.FolderName == currentFolder && email.AccountID == App.CurrentAccountID);
             }
-            MyEmailList.ItemsSource = filtered;
+            // GOM NHÓM THEO THREAD ID
+            var groupedList = sourceList
+                .GroupBy(email =>
+                {
+                    return email.ThreadId;
+                })
+                .Select(group =>
+                {
+                    // Lấy lá thư MỚI NHẤT trong nhóm để hiển thị
+                    return group.OrderByDescending(e => e.DateSent).FirstOrDefault();
+                })
+                .OrderByDescending(e => e.DateSent)
+                .ToList();
+
+            MyEmailList.ItemsSource = groupedList;
+            //MessageBox.Show(groupedList.Count);
 
             // Đổi màu nút bấm 
             resetcolor();
@@ -192,13 +206,19 @@ namespace Mailclient
                 }
 
                 // Tìm kiếm text trong danh sách nguồn đó
-                var filteredEmails = sourceList.Where(email =>
+                var searchResults = sourceList.Where(email =>
                     (email.Subject != null && email.Subject.ToLower().Contains(searchText)) ||
                     (email.AccountName != null && email.AccountName.ToLower().Contains(searchText)) ||
-                    (email.From != null && email.From.ToLower().Contains(searchText)) // Nên tìm thêm cả người gửi
-                ).OrderByDescending(e => e.DateSent).ToList();
+                    (email.From != null && email.From.ToLower().Contains(searchText))
+                );
 
-                MyEmailList.ItemsSource = filteredEmails;
+                var groupedResults = searchResults
+                    .GroupBy(email => email.ThreadId != 0 ? email.ThreadId : email.UID)
+                    .Select(group => group.OrderByDescending(e => e.DateSent).FirstOrDefault())
+                    .OrderByDescending(e => e.DateSent)
+                    .ToList();
+
+                MyEmailList.ItemsSource = groupedResults;
             }
         }
 
@@ -409,22 +429,39 @@ namespace Mailclient
             // Lấy đối tượng Email từ giao diện
             if (_currentReadingEmail != null)
             {
-                // Lấy danh sách file đính kèm cho biến _currentReadingEmail
-                List<MailClient.Attachment> attachments = MailClient.Attachment.GetListAttachments(_currentReadingEmail.emailID);
-                _currentReadingEmail.TempAttachments = attachments;
-
-                var parser = new EmailParser();
-                // Dùng biến _currentReadingEmail để tạo HTML
-                string htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
                 try
                 {
-                    // Tạo đường dẫn file tạm trong thư mục Temp của máy tính
+                    string htmlDisplay = "";
+
+                    // HIỂN THỊ CONVERSATION 
+                    if (_currentReadingEmail.ThreadId != 0)
+                    {
+                        // Lấy toàn bộ hội thoại
+                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId);
+
+                        // Load Attachment cho TẤT CẢ email trong hội thoại (để hiển thị link tải)
+                        foreach (var email in _currentConversation)
+                        {
+                            email.TempAttachments = MailClient.Attachment.GetListAttachments(email.emailID);
+                        }
+
+                        // Tạo HTML gộp
+                        htmlDisplay = GenerateConversationHtml(_currentConversation);
+                    }
+                    else
+                    {
+                        // Fallback: Nếu không có ThreadId, hiển thị lẻ như cũ
+                        _currentConversation = new List<MailClient.Email> { _currentReadingEmail };
+
+                        // Load attach cho email lẻ
+                        _currentReadingEmail.TempAttachments = MailClient.Attachment.GetListAttachments(_currentReadingEmail.emailID);
+
+                        var parser = new EmailParser();
+                        htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
+                    }
+
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
-
-                    // Lưu chuỗi HTML vào file đó
                     System.IO.File.WriteAllText(tempPath, htmlDisplay);
-
-                    // Điều hướng WebView tới file vừa tạo
                     contentEmail.CoreWebView2.Navigate(tempPath);
                 }
                 catch (Exception ex)
@@ -432,6 +469,57 @@ namespace Mailclient
                     MessageBox.Show("Lỗi hiển thị email: " + ex.Message);
                 }
             }
+        }
+
+        private string GenerateConversationHtml(List<MailClient.Email> conversation)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("<html><head><style>");
+            // CSS cơ bản cho đẹp
+            sb.Append("body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background-color: #f3f3f3; margin: 0; }");
+            sb.Append(".email-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }");
+            sb.Append(".header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }");
+            sb.Append(".sender { font-weight: bold; color: #202124; font-size: 14px; }");
+            sb.Append(".date { font-size: 12px; color: #5f6368; }");
+            sb.Append(".content { color: #202124; line-height: 1.5; overflow-wrap: break-word; }");
+            sb.Append(".attachments { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }");
+            sb.Append(".att-link { display: inline-block; margin-right: 15px; color: #1a73e8; text-decoration: none; font-size: 13px; background: #f1f3f4; padding: 5px 10px; border-radius: 16px; }");
+            sb.Append(".att-link:hover { background: #e8eaed; }");
+            sb.Append("</style></head><body>");
+
+            foreach (var email in conversation)
+            {
+                sb.Append("<div class='email-card'>");
+
+                // --- Header ---
+                sb.Append("<div class='header'>");
+                // Hiển thị tên người gửi hoặc email gửi
+                string senderName = !string.IsNullOrEmpty(email.AccountName) ? email.AccountName : email.From;
+                sb.Append($"<div><span class='sender'>{System.Web.HttpUtility.HtmlEncode(senderName)}</span> <span style='color:#5f6368'>&lt;{System.Web.HttpUtility.HtmlEncode(email.From)}&gt;</span></div>");
+                sb.Append($"<span class='date'>{email.DateSent:dd/MM/yyyy HH:mm}</span>");
+                sb.Append("</div>");
+
+                // --- Body ---
+                sb.Append($"<div class='content'>{email.BodyText}</div>");
+
+                // --- Attachments ---
+                // Cần load file đính kèm cho từng thư trong hội thoại
+                if (email.TempAttachments != null && email.TempAttachments.Count > 0)
+                {
+                    sb.Append("<div class='attachments'>");
+                    foreach (var att in email.TempAttachments)
+                    {
+                        // Link download gửi message về C#
+                        sb.Append($"<a href='#' class='att-link' onclick='window.chrome.webview.postMessage(\"DOWNLOAD:{att.Name}\")'>📎 {att.Name}</a>");
+                    }
+                    sb.Append("</div>");
+                }
+
+                sb.Append("</div>"); // End card
+            }
+
+            sb.Append("</body></html>");
+            return sb.ToString();
         }
 
         private void returnMain(object sender, RoutedEventArgs e)
@@ -456,6 +544,7 @@ namespace Mailclient
             // Lấy lại Focus cho Window
             this.Focus();
         }
+
         private async void ContentEmail_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string message = e.TryGetWebMessageAsString();
@@ -463,8 +552,23 @@ namespace Mailclient
             {
                 string fileNameToDownload = message.Substring("DOWNLOAD:".Length);
 
-                // Tìm file trong danh sách attachment của email này
-                var attachment = _currentReadingEmail.TempAttachments.FirstOrDefault(a => a.Name == fileNameToDownload);
+                if (_currentReadingEmail == null || _currentReadingEmail.TempAttachments == null)
+                {
+                    MessageBox.Show("Dữ liệu email đã bị mất, vui lòng mở lại thư.", "Lỗi");
+                    return;
+                }
+
+                // Tìm file trong danh sách attachment của toàn hội thoại này
+                MailClient.Attachment attachment = null;
+
+                foreach (var email in _currentConversation)
+                {
+                    if (email.TempAttachments != null)
+                    {
+                        attachment = email.TempAttachments.FirstOrDefault(a => a.Name == fileNameToDownload);
+                        if (attachment != null) break; // Tìm thấy thì dừng
+                    }
+                }
 
                 if (attachment != null)
                 {

@@ -69,6 +69,16 @@ namespace MailClient
                     Convert.ToInt32(row["ID"])
                 );
 
+                if (dt.Columns.Contains("UID") && row["UID"] != DBNull.Value)
+                {
+                    e.UID = Convert.ToInt64(row["UID"]);
+                }
+
+                if (dt.Columns.Contains("ThreadId") && row["ThreadId"] != DBNull.Value)
+                {
+                    e.ThreadId = Convert.ToInt64(row["ThreadId"]);
+                }
+
                 listemail.Add(e);
             }
         }
@@ -97,13 +107,17 @@ namespace MailClient
             e.AddEmail();
             this.listemail.Add(e);
         }
-        //public void Print()
-        //{
-        //    foreach (Email e in listemail)
-        //    {
-        //        e.PrintE();
-        //    }
-        //}
 
+        public List<Email> GetConversation(long threadId)
+        {
+            if (threadId == 0) return new List<Email>();
+
+            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId ORDER BY DateSent ASC";
+
+            SqlParameter[] param = { new SqlParameter("@ThreadId", threadId) };
+            DatabaseHelper db = new DatabaseHelper();
+
+            return db.ExecuteQueryToList<Email>(query, param);
+        }
     }
 }

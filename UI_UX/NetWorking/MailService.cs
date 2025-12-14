@@ -321,20 +321,31 @@ namespace MailClient.Core.Services
                 {
                     try
                     {
-                        // Lấy Summary trước để check trùng (tùy chọn) hoặc lấy full message
+                        long threadId = 0;
+                        // Chúng ta fetch Summary trước để lấy ThreadId
+                        var items = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.GMailThreadId | MessageSummaryItems.UniqueId, token);
+                        var summary = items.FirstOrDefault();
+
+                        // 2. Lấy giá trị GMThreadId (Kiểu ulong) và ép sang long
+                        if (summary != null && summary.GMailThreadId.HasValue)
+                        {
+                            threadId = (long)summary.GMailThreadId.Value;
+                        }
+
+                        // Lấy nội dung thư đầy đủ
                         var mimeMessage = await folder.GetMessageAsync(uid, token);
 
                         // Parse Email
                         Email emailToSave = await parser.ParseAsync(mimeMessage);
 
                         // Gán thông tin Metadata
-                        emailToSave.AccountID = localAccountID;
 
                         emailToSave.AccountID = localAccountID;
                         emailToSave.FolderID = dbFolderId;
                         emailToSave.FolderName = ConvertToSentenceCase(cleanName);
                         emailToSave.AccountName = _accountService._userName;
                         emailToSave.UID = uid.Id;
+                        emailToSave.ThreadId = threadId;
 
                         // Lưu vào DB
                         emailToSave.AddEmail();
