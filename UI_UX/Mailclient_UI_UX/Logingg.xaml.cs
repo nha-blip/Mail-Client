@@ -71,6 +71,7 @@ namespace Mailclient
                     // 6. Chuyển màn hình
                     MainWindow newMain = new MainWindow();
                     newMain.Show();
+                    Application.Current.MainWindow = newMain;
 
                     // Đóng các cửa sổ cũ
                     foreach (Window window in Application.Current.Windows)

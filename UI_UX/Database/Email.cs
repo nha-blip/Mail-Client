@@ -25,6 +25,7 @@ namespace MailClient
         public bool IsRead { get; set; }
         public bool IsFlag { get; set; }
         public long UID { get; set; }
+        public long ThreadId { get; set; }
 
         public List<string> AttachmentPaths { get; set; } = new List<string>();
         public string DateDisplay
@@ -103,9 +104,9 @@ namespace MailClient
             if (dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0][0]) > 0) return;
 
 
-            string query = @"Insert into Email(AccountID, FolderID, SubjectEmail, FromUser, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, UID)
-                             Values(@AccountID, @FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @UID);
-                             SELECT SCOPE_IDENTITY();";
+            string query = @"Insert into Email(AccountID, FolderID, SubjectEmail, FromUser, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, UID, ThreadId)
+                        Values(@AccountID, @FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @UID, @ThreadId);
+                        SELECT SCOPE_IDENTITY();";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@AccountID", AccountID),
@@ -118,7 +119,8 @@ namespace MailClient
                 new SqlParameter("@DateReceived", DateReceived),
                 new SqlParameter("@BodyText", BodyText ?? ""),
                 new SqlParameter("@IsRead", IsRead),
-                new SqlParameter("@UID", UID) 
+                new SqlParameter("@UID", UID),
+                new SqlParameter("@ThreadId", ThreadId)
             };
 
             DataTable res = db.ExecuteQuery(query, parameters);

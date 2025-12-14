@@ -77,10 +77,11 @@ namespace Mailclient
 
                         // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
                         var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
-                        if (mainWindow != null)
-                        {
-                            mainWindow.SyncAndReload();
-                        }
+                        mainWindow.list.listemail.Clear();
+                        mainWindow.list.soluong = 0;
+                        mainWindow.list._latestDateSent = new DateTime(1789, 1, 1);
+                        await mainWindow.SyncAndReload();
+                        MessageBox.Show(App.CurrentAccountID.ToString());
                     }
                     else
                     {
