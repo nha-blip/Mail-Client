@@ -1,17 +1,20 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Util.Store;
-using Google.Apis.Util;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Json;
 using Google.Apis.PeopleService.v1;
-using MailKit.Net.Smtp;
-using MailKit.Net.Imap;
-using MailKit.Security;
-using System.Runtime.CompilerServices;
 using Google.Apis.Services;
+using Google.Apis.Util;
+using Google.Apis.Util.Store;
+using MailKit.Net.Imap;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace MailClient.Core.Services
 {
@@ -174,6 +177,59 @@ namespace MailClient.Core.Services
             {
                 // Use System.Console as the namespace is not included globally
                 System.Console.WriteLine($"Error during logout cleanup: {e.Message}");
+            }
+        }
+        public async Task<bool> LoadCredentialAsync(string tokenJson)
+        {
+            if (string.IsNullOrEmpty(tokenJson))
+            {
+                return false;
+            }
+
+            try
+            {
+                // 1. Tải Client Secrets từ file cấu hình
+                GoogleClientSecrets clientSecrets;
+                using (var stream = new FileStream(Jsonpath, FileMode.Open, FileAccess.Read))
+                {
+                    clientSecrets = GoogleClientSecrets.FromStream(stream);
+                }
+
+                // 2. CHUYỂN ĐỔI CHUỖI JSON SANG TokenResponse DÙNG HELPER
+                // SỬA LỖI: Dùng NewtonsoftJsonSerializer.Instance.Deserialize<T>() thay vì TokenResponse.FromJson()
+                TokenResponse token = NewtonsoftJsonSerializer.Instance.Deserialize<TokenResponse>(tokenJson);
+
+                // 3. Tạo UserCredential mới
+                // ... (phần còn lại giữ nguyên như câu trả lời trước) ...
+
+                // Cấu hình Flow
+                var flow = new GoogleAuthorizationCodeFlow(
+                    new GoogleAuthorizationCodeFlow.Initializer
+                    {
+                        ClientSecrets = clientSecrets.Secrets,
+                        Scopes = new string[] { "https://mail.google.com", "profile", "email" },
+                        DataStore = null // Hoặc IDataStore tùy chỉnh nếu muốn tự động lưu token mới
+                    });
+
+                // Khởi tạo UserCredential
+                _credential = new UserCredential(flow, "user", token);
+
+                // 4. Kiểm tra và làm mới token
+                bool refreshed = await _credential.RefreshTokenAsync(CancellationToken.None);
+
+                if (IsSignedIn())
+                {
+                    _userEmail = await FetchPrimaryEmailAsync(CancellationToken.None);
+                    _userName = await FetchFullNameAsync(CancellationToken.None);
+                }
+
+                return IsSignedIn();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi tải credential từ JSON: {ex.Message}");
+                // Có thể lỗi do tokenJson không hợp lệ, hoặc refresh token thất bại
+                return false;
             }
         }
     }

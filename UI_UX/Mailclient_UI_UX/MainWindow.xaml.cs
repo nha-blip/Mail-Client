@@ -1,4 +1,5 @@
 using MailClient;
+using MailClient.Core.Services;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
@@ -22,7 +23,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using MailClient.Core.Services;
+using static Google.Apis.Requests.BatchRequest;
 namespace Mailclient
 {
     /// <summary>
@@ -150,14 +151,15 @@ namespace Mailclient
             // Đảo ngược trạng thái: Đang đóng thì mở, đang mở thì đóng
             AccountPopup.IsOpen = !AccountPopup.IsOpen;
 
-            // Nếu mở ra thì có thể load dữ liệu (Tùy chọn)
-            if (AccountPopup.IsOpen)
-            {
-                // ListAccountControl.LoadDataFromSQL(); // Nếu cần refresh
-            }
-
         }
-
+        public void CloseAccountPopup()
+        {
+            // Đặt IsOpen = false để đóng Popup
+            if (AccountPopup != null)
+            {
+                AccountPopup.IsOpen = false;
+            }
+        }
         private void opcompose(object sender, RoutedEventArgs e)
         {
             composecontent.Visibility = Visibility.Visible;
@@ -270,60 +272,46 @@ namespace Mailclient
             base.OnSourceInitialized(e);
             EnableBlur();
         }
-
-        // =============================================================
-        // ĐOẠN CODE DƯỚI ĐÂY LÀ ĐỂ GỌI WINDOWS API LÀM MỜ NỀN
-        // =============================================================
         private void EnableBlur()
         {
             var windowHelper = new WindowInteropHelper(this);
-            var accent = new AccentPolicy();
-            accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = unchecked((int)0x66000000);
+
+            // Cấu hình độ mờ và màu sắc (0x66000000 là màu đen độ trong suốt 40%)
+            var accent = new AccentPolicy
+            {
+                AccentState = 4, // 4 là ENABLE_ACRYLICBLURBEHIND
+                GradientColor = unchecked((int)0x66000000)
+            };
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
 
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = accentStructSize;
-            data.Data = accentPtr;
+            var data = new WindowCompositionAttributeData
+            {
+                Attribute = 19, // 19 là WCA_ACCENT_POLICY
+                SizeOfData = accentStructSize,
+                Data = accentPtr
+            };
 
             SetWindowCompositionAttribute(windowHelper.Handle, ref data);
             Marshal.FreeHGlobal(accentPtr);
         }
-
         [DllImport("user32.dll")]
         internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct WindowCompositionAttributeData
         {
-            public WindowCompositionAttribute Attribute;
+            public int Attribute;   
             public IntPtr Data;
             public int SizeOfData;
-        }
-
-        internal enum WindowCompositionAttribute
-        {
-            WCA_ACCENT_POLICY = 19
-        }
-
-        internal enum AccentState
-        {
-            ACCENT_DISABLED = 0,
-            ACCENT_ENABLE_GRADIENT = 1,
-            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-            ACCENT_ENABLE_BLURBEHIND = 3,
-            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-            ACCENT_INVALID_STATE = 5
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct AccentPolicy
         {
-            public AccentState AccentState;
+            public int AccentState;  
             public int AccentFlags;
             public int GradientColor;
             public int AnimationId;
@@ -546,7 +534,6 @@ namespace Mailclient
         private async void ContentEmail_WebMessageReceived(object sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
         {
             string message = e.TryGetWebMessageAsString();
-
             if (!string.IsNullOrEmpty(message) && message.StartsWith("DOWNLOAD:"))
             {
                 string fileNameToDownload = message.Substring("DOWNLOAD:".Length);
@@ -622,7 +609,6 @@ namespace Mailclient
             // 3. [THÊM MỚI] Sự kiện click link mở tab mới (target="_blank")
             contentEmail.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
         }
-
         private void ContentEmail_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
         {
             // Kiểm tra xem đường dẫn có phải là Link Web không (http hoặc https)
@@ -674,6 +660,30 @@ namespace Mailclient
                 }
             }
         }
-        
+        private void BlockClick_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Bắt sự kiện click để người dùng không bấm xuyên qua vào nội dung bên dưới
+            e.Handled = true;
+        }
+
+        // HÀM 1: Hiện Loading (Cho phép truyền nội dung tùy ý)
+        public void ShowLoading(string message = "Đang xử lý...")
+        {
+            if (AppLoadingOverlay != null)
+            {
+                txtLoadingMessage.Text = message;
+                AppLoadingOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        // HÀM 2: Ẩn Loading
+        public void HideLoading()
+        {
+            if (AppLoadingOverlay != null)
+            {
+                AppLoadingOverlay.Visibility = Visibility.Collapsed;
+            }
+        }
+
     }
 } 

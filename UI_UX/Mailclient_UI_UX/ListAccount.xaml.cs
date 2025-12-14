@@ -46,28 +46,32 @@ namespace Mailclient
         // Thêm hàm xử lý khi click vào 1 dòng trong ListView (Thay cho MouseDown cũ)
         private async void AccountListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            MessageBox.Show("thay doi tai khoan");
             var listView = sender as ListView;
             var selectedAcc = listView.SelectedItem as MailClient.Account;
 
             if (selectedAcc != null)
             {
+                
+                var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
+
                 try
                 {
+                    mainWindow.CloseAccountPopup();
+                    // 1. HIỆN LOADING (Thêm mới)
+                    if (mainWindow != null) mainWindow.ShowLoading("Đang chuyển tài khoản...");
+
                     // --- BƯỚC 1: LẤY FULL THÔNG TIN ACCOUNT (KÈM TOKEN) TỪ DB ---
                     Account fullAccount = new Account(selectedAcc.AccountID);
 
                     // --- BƯỚC 2: KHỞI TẠO STORE CẦU NỐI ---
-                    // Để đưa TokenJson từ fullAccount vào Google API
                     var myStore = new AccountTokenStore(fullAccount);
 
                     // Đảm bảo biến toàn cục không null
-                    if (App.currentAccountService == null)
-                        App.currentAccountService=new AccountService();
+                    App.currentAccountService = new AccountService();
+                    await App.currentAccountService.LoadCredentialAsync(fullAccount.TokenJson);
+                    App.currentMailService = new MailService(App.currentAccountService);
 
                     // --- BƯỚC 3: LOGIN LẠI (QUAN TRỌNG NHẤT) ---
-                    // Vì fullAccount.TokenJson đã có dữ liệu từ DB, 
-                    // hàm này sẽ chạy ngầm (Silent Login) và KHÔNG mở trình duyệt.
                     bool success = App.currentAccountService.IsSignedIn();
 
                     if (success)
@@ -76,24 +80,36 @@ namespace Mailclient
                         App.CurrentAccountID = fullAccount.AccountID;
 
                         // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
-                        var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
-                        mainWindow.list.listemail.Clear();
-                        mainWindow.list.soluong = 0;
-                        mainWindow.list._latestDateSent = new DateTime(1789, 1, 1);
-                        await mainWindow.SyncAndReload();
-                        MessageBox.Show(App.CurrentAccountID.ToString());
+                        if (mainWindow != null)
+                        {
+                            mainWindow.list.listemail.Clear();
+                            mainWindow.list.soluong = 0;
+                            mainWindow.list._latestDateSent = new DateTime(1789, 1, 1);
+
+                            mainWindow.ShowLoading("Đang tải dữ liệu...");
+                            await mainWindow.SyncAndReload();
+                            
+                            mainWindow.HideLoading();
+                        }
                     }
                     else
                     {
+                        mainWindow.HideLoading(); 
                         MessageBox.Show("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
                     }
                 }
                 catch (Exception ex)
                 {
+                    if (mainWindow != null) mainWindow.HideLoading(); 
                     MessageBox.Show($"Lỗi chuyển tài khoản: {ex.Message}");
                 }
+                finally
+                {
+                    if (mainWindow != null) mainWindow.HideLoading();
 
-                listView.SelectedItem = null;
+                    // Reset lựa chọn để lần sau click lại vẫn nhận (Optional)
+                    listView.SelectedIndex = -1;
+                }
             }
         }
     }
