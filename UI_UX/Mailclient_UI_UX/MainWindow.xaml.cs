@@ -417,96 +417,171 @@ namespace Mailclient
             {
                 try
                 {
-                    string htmlDisplay = "";
+                    string finalHtml = "";
+                    string innerContent = "";
 
-                    // HIỂN THỊ CONVERSATION 
                     if (_currentReadingEmail.ThreadId != 0)
                     {
-                        // Lấy toàn bộ hội thoại
-                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId);
+                        // 1. CONVERSATION VIEW
+                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.FolderID);
 
-                        // Load Attachment cho TẤT CẢ email trong hội thoại (để hiển thị link tải)
+                        // Load attach cho từng mail
+                        foreach (var email in _currentConversation)
+                            email.TempAttachments = MailClient.Attachment.GetListAttachments(email.emailID);
+
+                        // Tạo nội dung gộp của nhiều thư (Dùng hàm GeneratePartialHtml của Parser cho từng thư)
+                        var parser = new EmailParser();
+                        StringBuilder sb = new StringBuilder();
+
+                        string clean = System.Text.RegularExpressions.Regex.Replace(_currentReadingEmail.Subject, @"^((Re|Fw|Fwd):\s*)+", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        // Có thể thêm tiêu đề chung của hội thoại
+                        sb.Append($"<h2 style='font-weight:400; font-size:22px; margin-bottom:20px'>{clean.Trim()}</h2>");
+
                         foreach (var email in _currentConversation)
                         {
-                            email.TempAttachments = MailClient.Attachment.GetListAttachments(email.emailID);
+                            // Gọi hàm Partial mới sửa ở Bước 1
+                            sb.Append(parser.GeneratePartialHtml(email));
                         }
-
-                        // Tạo HTML gộp
-                        htmlDisplay = GenerateConversationHtml(_currentConversation);
+                        innerContent = sb.ToString();
                     }
                     else
                     {
-                        // Fallback: Nếu không có ThreadId, hiển thị lẻ như cũ
+                        // 2. SINGLE VIEW (Thư lẻ)
                         _currentConversation = new List<MailClient.Email> { _currentReadingEmail };
-
-                        // Load attach cho email lẻ
                         _currentReadingEmail.TempAttachments = MailClient.Attachment.GetListAttachments(_currentReadingEmail.emailID);
 
                         var parser = new EmailParser();
-                        htmlDisplay = parser.GenerateDisplayHtml(_currentReadingEmail, null);
+                        // Gọi hàm Partial mới sửa ở Bước 1
+                        innerContent = parser.GeneratePartialHtml(_currentReadingEmail);
                     }
 
+                    // 3. BƯỚC GHÉP NỐI: Bọc nội dung vào khung chuẩn
+                    finalHtml = ApplyMasterLayout(innerContent);
+
+                    // 4. Lưu và hiển thị
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
-                    System.IO.File.WriteAllText(tempPath, htmlDisplay);
+                    System.IO.File.WriteAllText(tempPath, finalHtml);
                     contentEmail.CoreWebView2.Navigate(tempPath);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Lỗi hiển thị email: " + ex.Message);
+                    MessageBox.Show("Lỗi hiển thị: " + ex.Message);
                 }
             }
         }
 
-        private string GenerateConversationHtml(List<MailClient.Email> conversation)
+        private string ApplyMasterLayout(string bodyContent)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<html><head><style>");
-            // CSS cơ bản cho đẹp
-            sb.Append("body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background-color: #f3f3f3; margin: 0; }");
-            sb.Append(".email-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }");
-            sb.Append(".header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }");
-            sb.Append(".sender { font-weight: bold; color: #202124; font-size: 14px; }");
-            sb.Append(".date { font-size: 12px; color: #5f6368; }");
-            sb.Append(".content { color: #202124; line-height: 1.5; overflow-wrap: break-word; }");
-            sb.Append(".attachments { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }");
-            sb.Append(".att-link { display: inline-block; margin-right: 15px; color: #1a73e8; text-decoration: none; font-size: 13px; background: #f1f3f4; padding: 5px 10px; border-radius: 16px; }");
-            sb.Append(".att-link:hover { background: #e8eaed; }");
-            sb.Append("</style></head><body>");
+            // Đây là nơi duy nhất bạn chỉnh sửa CSS cho toàn bộ ứng dụng
+            return $@"
+                <!DOCTYPE html>
+            <html lang='vi'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <style> 
+                    ::-webkit-scrollbar {{
+                        width: 10px;
+                        height: 10px;
+                    }}
+                    ::-webkit-scrollbar-track {{
+                        background: transparent;
+                    }}
+                    ::-webkit-scrollbar-thumb {{
+                        background-color: #c1c1c1;
+                        border-radius: 6px;
+                        border: 2px solid #fff; 
+                    }}
+                    ::-webkit-scrollbar-thumb:hover {{
+                        background-color: #a8a8a8;
+                    }}
 
-            foreach (var email in conversation)
-            {
-                sb.Append("<div class='email-card'>");
+                    body {{
+                        font-family: 'Google Sans', Roboto, Helvetica, Arial, sans-serif;
+                        background-color: #ffffff;
+                        margin: 0;
+                        padding: 20px;
+                        color: #202124;
+                        overflow-x: hidden;
+                    }}
+                    
+                    /* CẬP NHẬT CSS CHO EMAIL BODY ĐỂ TRÁNH VỠ KHUNG */
+                    .email-body {{
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #202124;
+                        margin-bottom: 30px;
+                        padding-left: 56px;
+                        
+                        /* QUAN TRỌNG: Ngăn email con tràn ra ngoài hoặc phá vỡ layout */
+                        overflow-wrap: break-word; 
+                        word-wrap: break-word;
+                        max-width: 100%;
+                        overflow-x: auto; /* Nếu có bảng quá rộng, hiện thanh cuộn ngang thay vì vỡ layout */
+                    }}
+                    
+                    /* Reset style cho các thành phần bên trong email con */
+                    .email-body p {{ margin-bottom: 1em; }}
+                    .email-body img {{ max-width: 100%; height: auto; }}
 
-                // --- Header ---
-                sb.Append("<div class='header'>");
-                // Hiển thị tên người gửi hoặc email gửi
-                string senderName = !string.IsNullOrEmpty(email.AccountName) ? email.AccountName : email.From;
-                sb.Append($"<div><span class='sender'>{System.Web.HttpUtility.HtmlEncode(senderName)}</span> <span style='color:#5f6368'>&lt;{System.Web.HttpUtility.HtmlEncode(email.From)}&gt;</span></div>");
-                sb.Append($"<span class='date'>{email.DateSent:dd/MM/yyyy HH:mm}</span>");
-                sb.Append("</div>");
+                    .subject-header {{ margin-bottom: 20px; border-bottom: 1px solid transparent; }}
+                    .subject-text {{ font-size: 22px; font-weight: 400; margin: 0; line-height: 1.5; color: #1f1f1f; }}
+                    .sender-header {{ display: flex; align-items: flex-start; margin-bottom: 20px; }}
+                    .avatar-container {{ width: 40px; height: 40px; margin-right: 16px; flex-shrink: 0; }}
+                    .avatar-img {{ width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }}
+                    .avatar-text {{ width: 100%; height: 100%; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; }}
+                    .sender-info {{ flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }}
+                    .sender-line-1 {{ display: flex; align-items: baseline; flex-wrap: wrap; }}
+                    .sender-name {{ font-weight: 700; font-size: 14px; color: #202124; margin-right: 8px; }}
+                    .sender-email {{ font-size: 12px; color: #5f6368; }}
+                    .to-me {{ font-size: 12px; color: #5f6368; margin-top: 2px; }}
+                    .email-date {{ color: #5f6368; font-size: 12px; margin-left: auto; white-space: nowrap; }}
+                    .attachments-area {{ padding-left: 56px; margin-bottom: 30px; border-top: 1px solid #f1f3f4; padding-top: 15px; }}
+                    .attachments-title {{ font-weight: 500; color: #5f6368; margin-bottom: 12px; font-size: 13px; }}
+                    .attachments-list {{ display: flex; flex-wrap: wrap; gap: 12px; }}
+                    .attachment-card {{ display: inline-flex; width: 180px; border: 1px solid #dadce0; border-radius: 8px; overflow: hidden; background-color: #f5f5f5; cursor: pointer; flex-direction: column; transition: box-shadow 0.2s; }}
+                    .attachment-card:hover {{ box-shadow: 0 1px 3px rgba(0,0,0,0.2); border-color: #c0c2c5; }}
+                    .attachment-preview {{ height: 90px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; color: #888; font-size: 16px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }}
+                    .attachment-footer {{ background-color: white; padding: 10px; border-top: 1px solid #dadce0; }}
+                    .att-name {{ font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #3c4043; margin-bottom: 2px; }}
+                    .att-size {{ font-size: 11px; color: #5f6368; }}
+                    .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; text-align: center; }}
+                    @media (max-width: 600px) {{ .email-body, .attachments-area {{ padding-left: 0; }} .avatar-container {{ display: none; }} }}
+                    
+                    /* Thêm hiệu ứng click để người dùng biết là nút bấm được */
+                    .attachment-card:active {{
+                        transform: scale(0.98);
+                        background-color: #e8eaed;
+                    }}
+                </style>
 
-                // --- Body ---
-                sb.Append($"<div class='content'>{email.BodyText}</div>");
+                <script>
+                    function sendDownloadRequest(fileName) {{
+                        console.log('User clicked download: ' + fileName); // Log để kiểm tra
+        
+                        try {{
+                            if (window.chrome && window.chrome.webview) {{
+                                window.chrome.webview.postMessage('DOWNLOAD:' + fileName);
+                            }} else {{
+                                alert('Lỗi: Không tìm thấy kết nối tới ứng dụng!');
+                            }}
+                        }} catch (e) {{
+                            console.error('Lỗi khi gửi tin nhắn: ' + e);
+                        }}
+                    }}
+                </script>               
 
-                // --- Attachments ---
-                // Cần load file đính kèm cho từng thư trong hội thoại
-                if (email.TempAttachments != null && email.TempAttachments.Count > 0)
-                {
-                    sb.Append("<div class='attachments'>");
-                    foreach (var att in email.TempAttachments)
-                    {
-                        // Link download gửi message về C#
-                        sb.Append($"<a href='#' class='att-link' onclick='window.chrome.webview.postMessage(\"DOWNLOAD:{att.Name}\")'>📎 {att.Name}</a>");
-                    }
-                    sb.Append("</div>");
-                }
-
-                sb.Append("</div>"); // End card
-            }
-
-            sb.Append("</body></html>");
-            return sb.ToString();
+            </head>
+            <body>
+                {bodyContent}
+        
+                <div style='margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; text-align: center;'>
+                    Hiển thị bởi Mail Client
+                </div>
+            </body>
+            </html>";
         }
+
 
         private void returnMain(object sender, RoutedEventArgs e)
         {

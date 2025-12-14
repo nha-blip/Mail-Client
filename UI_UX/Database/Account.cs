@@ -15,6 +15,13 @@ namespace MailClient
         public string Password { get; set; }
         public string Username { get; set; }
         public string TokenJson { get; set; }
+        public char Avatar
+        {
+            get
+            {
+                return Username[0];
+            }
+        }
 
         public Account(string email, string username)
         {

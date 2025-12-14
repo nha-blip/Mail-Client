@@ -108,16 +108,53 @@ namespace MailClient
             this.listemail.Add(e);
         }
 
-        public List<Email> GetConversation(long threadId)
+        public List<MailClient.Email> GetConversation(long threadId, long folderId)
         {
-            if (threadId == 0) return new List<Email>();
+            if (threadId == 0) return new List<MailClient.Email>();
 
-            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId ORDER BY DateSent ASC";
+            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId AND FolderId = @FolderId ORDER BY DateSent ASC";
+            SqlParameter[] param = { 
+                new SqlParameter("@ThreadId", threadId),
+                new SqlParameter("@FolderId", folderId)
+            };
 
-            SqlParameter[] param = { new SqlParameter("@ThreadId", threadId) };
             DatabaseHelper db = new DatabaseHelper();
 
-            return db.ExecuteQueryToList<Email>(query, param);
+            DataTable dt = db.ExecuteQuery(query, param);
+            var conversationList = new List<MailClient.Email>();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                // Xử lý mảng To (ToAdd -> string[])
+                string toField = Convert.ToString(row["ToAdd"]) ?? "";
+                string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
+
+                // Tạo đối tượng Email với đúng tên cột từ Database
+                MailClient.Email e = new MailClient.Email
+                {
+                    emailID = Convert.ToInt32(row["ID"]),
+                    AccountID = Convert.ToInt32(row["AccountID"]),
+                    FolderID = Convert.ToInt32(row["FolderID"]),
+
+                    // MAP CỘT SQL 'FromAdd' VÀO THUỘC TÍNH 'From'
+                    From = Convert.ToString(row["FromAdd"]) ?? "",
+                    FromUser = Convert.ToString(row["FromUser"]) ?? "",
+
+                    // MAP MẢNG ĐÃ TÁCH VÀO THUỘC TÍNH 'To'
+                    To = toArray,
+
+                    Subject = Convert.ToString(row["SubjectEmail"]) ?? "(No Subject)",
+                    BodyText = Convert.ToString(row["BodyText"]) ?? "",
+                    DateSent = Convert.ToDateTime(row["DateSent"]),
+                    IsRead = Convert.ToBoolean(row["IsRead"]),
+                    UID = row["UID"] != DBNull.Value ? Convert.ToInt64(row["UID"]) : 0,
+                    ThreadId = row["ThreadId"] != DBNull.Value ? Convert.ToInt64(row["ThreadId"]) : 0  
+                };
+
+                conversationList.Add(e);
+            }
+
+            return conversationList;
         }
     }
 }
