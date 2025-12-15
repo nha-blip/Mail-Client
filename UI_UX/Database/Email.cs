@@ -112,18 +112,7 @@ namespace MailClient
             this.IsFlag = false;
             this.FolderID = FolderID;
             this.AccountName = accountName;
-            string query = @"Select FolderID from Folder where FolderName=@FolderName";
-            SqlParameter[] folder = new SqlParameter[]
-            {
-                new SqlParameter("@FolderName",folderName)
-            };
-            DataTable f = db.ExecuteQuery(query, folder);
-            if (f.Rows.Count > 0)
-            {
-                this.FolderID = Convert.ToInt32(f.Rows[0][0]);
-            }
-            f.Dispose();
-            query = @"Select AccountID from Account where AccountName=@AccountName";
+            string query = @"Select AccountID from Account where AccountName=@AccountName";
             SqlParameter[] account = new SqlParameter[]
             {
                 new SqlParameter("@AccountName",accountName)
@@ -134,6 +123,18 @@ namespace MailClient
                 this.AccountID = Convert.ToInt32(a.Rows[0][0]);
             }
             a.Dispose();
+            query = @"Select FolderID from Folder where FolderName=@FolderName And AccountID=@AccountID";
+            SqlParameter[] folder = new SqlParameter[]
+            {
+                new SqlParameter("@FolderName",folderName),
+                new SqlParameter("@AccountID",AccountID)
+            };
+            DataTable f = db.ExecuteQuery(query, folder);
+            if (f.Rows.Count > 0)
+            {
+                this.FolderID = Convert.ToInt32(f.Rows[0][0]);
+            }
+            f.Dispose();
         }
 
         public void AddEmail() // Thêm thư vào database

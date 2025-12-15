@@ -48,69 +48,54 @@ namespace Mailclient
         {
             var listView = sender as ListView;
             var selectedAcc = listView.SelectedItem as MailClient.Account;
+            if (selectedAcc == null) return;
 
-            if (selectedAcc != null)
+            var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
+            if (mainWindow == null) return;
+
+            try
             {
-                
-                var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
+                // 1. Đóng Popup & Hiện Loading ngay để che màn hình cũ đi
+                mainWindow.CloseAccountPopup();
+                mainWindow.ShowLoading("Đang chuyển tài khoản...");
 
-                try
+                // 2. Chuẩn bị tài khoản mới
+                Account fullAccount = new Account(selectedAcc.AccountID);
+                App.currentAccountService = new AccountService();
+                await App.currentAccountService.LoadCredentialAsync(fullAccount.TokenJson);
+                App.currentMailService = new MailService(App.currentAccountService);
+
+                if (App.currentAccountService.IsSignedIn())
                 {
-                    mainWindow.CloseAccountPopup();
-                    // 1. HIỆN LOADING (Thêm mới)
-                    if (mainWindow != null) mainWindow.ShowLoading("Đang chuyển tài khoản...");
+                    App.CurrentAccountID = fullAccount.AccountID;
 
-                    // --- BƯỚC 1: LẤY FULL THÔNG TIN ACCOUNT (KÈM TOKEN) TỪ DB ---
-                    Account fullAccount = new Account(selectedAcc.AccountID);
+                    // 3. QUAN TRỌNG: TẠO LIST MỚI (Không dùng list cũ để Clear)
+                    // Constructor của ListEmail phải RỖNG (không chạy SQL) thì dòng này mới nhanh
+                    mainWindow.list = new MailClient.ListEmail(App.CurrentAccountID);
 
-                    // --- BƯỚC 2: KHỞI TẠO STORE CẦU NỐI ---
-                    var myStore = new AccountTokenStore(fullAccount);
+                    // 4. GÁN LIST MỚI VÀO GIAO DIỆN NGAY
+                    // Lúc này list mới chưa có thư, nhưng nhờ Loading che đi nên user không thấy trắng
+                    mainWindow.MyEmailList.ItemsSource = mainWindow.list.listemail;
 
-                    // Đảm bảo biến toàn cục không null
-                    App.currentAccountService = new AccountService();
-                    await App.currentAccountService.LoadCredentialAsync(fullAccount.TokenJson);
-                    App.currentMailService = new MailService(App.currentAccountService);
-
-                    // --- BƯỚC 3: LOGIN LẠI (QUAN TRỌNG NHẤT) ---
-                    bool success = App.currentAccountService.IsSignedIn();
-
-                    if (success)
-                    {
-                        // Cập nhật biến toàn cục sau khi Login thành công
-                        App.CurrentAccountID = fullAccount.AccountID;
-
-                        // --- BƯỚC 4: ĐỒNG BỘ GIAO DIỆN ---
-                        if (mainWindow != null)
-                        {
-                            mainWindow.list.listemail.Clear();
-                            mainWindow.list.soluong = 0;
-                            mainWindow.list._latestDateSent = new DateTime(1789, 1, 1);
-
-                            mainWindow.ShowLoading("Đang tải dữ liệu...");
-                            await mainWindow.SyncAndReload();
-                            await Task.Delay(1000);
-                            mainWindow.HideLoading();
-                        }
-                    }
-                    else
-                    {
-                        mainWindow.HideLoading(); 
-                        MessageBox.Show("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-                    }
+                    // 5. GỌI HÀM TẢI DỮ LIỆU (Code mới đã tối ưu Async)
+                    // Hàm này sẽ tự lấy thư từ DB và điền vào list
+                    await mainWindow.SyncAndReload();
+                    mainWindow.HideLoading();
                 }
-                catch (Exception ex)
+                else
                 {
-
-                    if (mainWindow != null) mainWindow.HideLoading(); 
-                    MessageBox.Show($"Lỗi chuyển tài khoản: {ex.Message}");
+                    MessageBox.Show("Phiên đăng nhập hết hạn.");
                 }
-                finally
-                {
-                    if (mainWindow != null) mainWindow.HideLoading();
-
-                    // Reset lựa chọn để lần sau click lại vẫn nhận (Optional)
-                    listView.SelectedIndex = -1;
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi: {ex.Message}");
+            }
+            finally
+            {
+                // Tắt Loading -> Lúc này thư đã lên xong -> User thấy danh sách luôn
+                mainWindow.HideLoading();
+                listView.SelectedIndex = -1;
             }
         }
     }

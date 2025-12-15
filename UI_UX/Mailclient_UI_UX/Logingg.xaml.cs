@@ -36,6 +36,10 @@ namespace Mailclient
             if (sender is Button btn) btn.IsEnabled = false;
             try
             {
+                if (Application.Current.MainWindow is MainWindow)
+                {
+                    ((MainWindow)Application.Current.MainWindow).syncTimer.Stop();
+                }
                 // 1. Tạo Account tạm. 
                 // Lưu ý: Nếu Account không có constructor rỗng, hãy truyền chuỗi rỗng
                 Account tempAccount = new Account("", "");

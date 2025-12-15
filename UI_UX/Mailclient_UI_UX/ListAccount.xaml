@@ -85,7 +85,7 @@
 
                                 <Grid Grid.Column="0">
                                     <Ellipse Width="40" Height="40" Fill="#0078D4"/>
-                                    <TextBlock Text="{Binding Username, StringFormat={}{0:1}}" 
+                                    <TextBlock Text="{Binding Avatar, StringFormat={}{0:1}}" 
                                        Foreground="White" 
                                        FontWeight="Bold" 
                                        FontSize="18" 

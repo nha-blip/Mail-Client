@@ -80,42 +80,6 @@ namespace MailClient
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }
-        }
-
-        /// <summary>
-        /// Thực thi câu lệnh Select và tự động map dữ liệu vào List Class T
-        /// </summary>
-        public List<T> ExecuteQueryToList<T>(string query, SqlParameter[]? parameters = null) where T : new()
-        {
-            // Lấy dữ liệu dạng DataTable bằng hàm có sẵn
-            DataTable dt = ExecuteQuery(query, parameters);
-            List<T> list = new List<T>();
-
-            // Duyệt từng dòng và chuyển đổi sang Object T
-            foreach (DataRow row in dt.Rows)
-            {
-                T item = new T();
-                // Dùng Reflection để quét các thuộc tính của Class T
-                foreach (PropertyInfo prop in typeof(T).GetProperties())
-                {
-                    // Nếu cột trong SQL có tên trùng với Property trong Class và không null
-                    if (dt.Columns.Contains(prop.Name) && row[prop.Name] != DBNull.Value)
-                    {
-                        try
-                        {
-                            // Gán giá trị từ SQL vào Object C#
-                            prop.SetValue(item, row[prop.Name]);
-                        }
-                        catch
-                        {
-                            // Bỏ qua nếu lỗi sai kiểu dữ liệu (vd: SQL là int nhưng C# là long)
-                            // Bạn có thể thêm logic Convert.ChangeType ở đây nếu cần thiết
-                        }
-                    }
-                }
-                list.Add(item);
-            }
-            return list;
-        }
+        }    
     }
 }

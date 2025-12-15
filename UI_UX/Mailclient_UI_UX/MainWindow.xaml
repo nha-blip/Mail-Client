@@ -815,8 +815,6 @@
                                                 <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
-                                                <Setter TargetName="bgemail" Property="BorderBrush" Value="#0078D4"/>
-                                                <Setter TargetName="bgemail" Property="Background" Value="#E5F5FF"/>
                                                 <Setter TargetName="bgemail" Property="Effect">
                                                     <Setter.Value>
                                                         <DropShadowEffect Color="Black" 
