@@ -33,7 +33,7 @@ namespace Mailclient
     {
         public MailClient.ListEmail list;
         private SolidColorBrush? colorSelected = (SolidColorBrush)(new BrushConverter().ConvertFrom("#33FFFFFF"));
-        private DispatcherTimer syncTimer;
+        public DispatcherTimer syncTimer;
         private string currentFolder = "Inbox";
         public MailClient.ListAccount listAcc;
         private MailClient.Email _currentReadingEmail;
@@ -432,7 +432,6 @@ namespace Mailclient
 
                     if (_currentReadingEmail.ThreadId != 0)
                     {
-                        // 1. CONVERSATION VIEW
                         _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.FolderID);
 
                         // Load attach cho từng mail
@@ -449,19 +448,16 @@ namespace Mailclient
 
                         foreach (var email in _currentConversation)
                         {
-                            // Gọi hàm Partial mới sửa ở Bước 1
                             sb.Append(parser.GeneratePartialHtml(email));
                         }
                         innerContent = sb.ToString();
                     }
                     else
                     {
-                        // 2. SINGLE VIEW (Thư lẻ)
                         _currentConversation = new List<MailClient.Email> { _currentReadingEmail };
                         _currentReadingEmail.TempAttachments = MailClient.Attachment.GetListAttachments(_currentReadingEmail.emailID);
 
                         var parser = new EmailParser();
-                        // Gọi hàm Partial mới sửa ở Bước 1
                         innerContent = parser.GeneratePartialHtml(_currentReadingEmail);
                     }
 
