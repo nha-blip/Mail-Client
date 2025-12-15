@@ -579,7 +579,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Name="SelectAll"
                                       HorizontalAlignment="Left"
-                                      Checked="selectall"
+                   
                                           
                                       VerticalAlignment="Center"
                                       Margin="21,0,0,0"/>
@@ -596,7 +596,7 @@
                                         Foreground="White"
                                         BorderThickness="0"
                                         Width="50"
-                                        Click="deleteselect"
+
                                         Background="Transparent"/>
                             </StackPanel>
                         </Grid>

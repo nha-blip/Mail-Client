@@ -1,8 +1,10 @@
-﻿using System;
-using System.Data;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.ComponentModel;
+using System.Data;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MailClient
@@ -23,10 +25,54 @@ namespace MailClient
         public DateTime DateReceived { get; set; }
         public string BodyText { get; set; }
         public bool IsRead { get; set; }
-        public bool IsFlag { get; set; }
+        private bool _IsFlag { get; set; }
         public long UID { get; set; }
         public long ThreadId { get; set; }
 
+        // 1. Sửa Setter của IsFlag
+        public bool IsFlag
+        {
+            get { return _IsFlag; }
+            set
+            {
+                if (_IsFlag != value)
+                {
+                    _IsFlag = value;
+                    OnPropertyChanged();
+
+                    // Chỉ update xuống DB nếu thư này ĐÃ CÓ ID (đã được lưu)
+                    // Nếu emailID == 0 tức là thư mới đang tải, chưa cần update lẻ
+                    if (this.emailID > 0)
+                    {
+                        // Chạy ngầm để không đơ máy
+                        System.Threading.Tasks.Task.Run(() => UpdateFlagToDB(_IsFlag));
+                    }
+                }
+            }
+        }
+
+        // 2. Sửa hàm UpdateFlagToDB (Quan trọng: Tạo db mới)
+        private void UpdateFlagToDB(bool status)
+        {
+            try
+            {
+                // TẠO KẾT NỐI MỚI RIÊNG CHO LUỒNG NÀY
+                // Không dùng "this.db" để tránh tranh chấp với hàm AddEmail
+                DatabaseHelper localDb = new DatabaseHelper();
+
+                string query = @"Update Email set IsFlag=@IsFlag where ID=@EmailId";
+                SqlParameter[] parameters = new SqlParameter[] {
+            new SqlParameter("@IsFlag", status),
+            new SqlParameter("@EmailId", this.emailID)
+        };
+
+                localDb.ExecuteNonQuery(query, parameters);
+            }
+            catch (Exception)
+            {
+                // Bỏ qua lỗi nếu update thất bại để không crash app
+            }
+        }
         public List<string> AttachmentPaths { get; set; } = new List<string>();
         public string DateDisplay
         {
@@ -204,6 +250,11 @@ namespace MailClient
             };
             db.ExecuteNonQuery(query, trash);
 
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

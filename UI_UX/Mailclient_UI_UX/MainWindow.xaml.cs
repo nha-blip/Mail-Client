@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq; 
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -39,9 +39,7 @@ namespace Mailclient
         private MailClient.Email _currentReadingEmail;
         private MailService mailService;
         private bool isFirstLoad = true;
-
         private List<MailClient.Email> _currentConversation;
-
         private bool isSyncing = false;
 
         public MainWindow()
@@ -141,7 +139,7 @@ namespace Mailclient
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(5); 
+            syncTimer.Interval = TimeSpan.FromSeconds(5);
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
@@ -240,7 +238,7 @@ namespace Mailclient
             {
                 case "Inbox": inboxbt.Background = colorSelected; break;
                 case "Sent": sentbt.Background = colorSelected; break;
-                case "Draft": draftsbt.Background = colorSelected; break; 
+                case "Draft": draftsbt.Background = colorSelected; break;
                 case "Spam": spambt.Background = colorSelected; break;
                 case "AllMail": allmailbt.Background = colorSelected; break;
                 case "Trash": trashmailbt.Background = colorSelected; break;
@@ -315,7 +313,7 @@ namespace Mailclient
         [StructLayout(LayoutKind.Sequential)]
         internal struct WindowCompositionAttributeData
         {
-            public int Attribute;   
+            public int Attribute;
             public IntPtr Data;
             public int SizeOfData;
         }
@@ -323,7 +321,7 @@ namespace Mailclient
         [StructLayout(LayoutKind.Sequential)]
         internal struct AccentPolicy
         {
-            public int AccentState;  
+            public int AccentState;
             public int AccentFlags;
             public int GradientColor;
             public int AnimationId;
@@ -697,17 +695,5 @@ namespace Mailclient
             }
         }
 
-        private void selectall(object sender, RoutedEventArgs e)
-        {
-            foreach (var email in list.listemail)
-            {
-                email.IsFlag = true;
-            }
-        }
-
-        private void deleteselect(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
-} 
+}

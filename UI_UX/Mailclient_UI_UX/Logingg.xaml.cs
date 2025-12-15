@@ -73,8 +73,6 @@ namespace Mailclient
                     Application.Current.MainWindow = newMain;
                     newMain.Show();
                     newMain.Activate();
-                    Application.Current.MainWindow = newMain;
-                    // Đóng các cửa sổ cũ
                     foreach (Window window in Application.Current.Windows)
                     {
                         if (window is MainWindow && window != newMain)
