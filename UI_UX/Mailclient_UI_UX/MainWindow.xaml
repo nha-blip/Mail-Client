@@ -639,6 +639,7 @@
                                 </Border.Background>
                             </Border>
                             <ListBox x:Name="MyEmailList"
+                                     ScrollViewer.ScrollChanged="MyEmailList_ScrollChanged"
                                  BorderThickness="0"
                                  SelectionChanged="content"
                                  VirtualizingPanel.IsVirtualizing="True"

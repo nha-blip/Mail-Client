@@ -41,6 +41,7 @@ namespace Mailclient
         private bool isFirstLoad = true;
         private List<MailClient.Email> _currentConversation;
         private bool isSyncing = false;
+        private bool _isLoadingOldMail = false;
 
         public MainWindow()
         {
@@ -222,6 +223,7 @@ namespace Mailclient
         {
             currentFolder = "Inbox";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
 
@@ -248,6 +250,7 @@ namespace Mailclient
         {
             currentFolder = "Sent";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
 
@@ -255,6 +258,7 @@ namespace Mailclient
         {
             currentFolder = "Spam";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
 
@@ -262,6 +266,7 @@ namespace Mailclient
         {
             currentFolder = "Draft";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
 
@@ -269,12 +274,14 @@ namespace Mailclient
         {
             currentFolder = "AllMail";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
         private void trash(object sender, RoutedEventArgs e)
         {
             currentFolder = "Trash";
             UpdateUI_CurrentFolder();
+            ResetScrollView();
             CloseEmailView();
         }
         protected override void OnSourceInitialized(EventArgs e)
@@ -766,5 +773,94 @@ namespace Mailclient
             }
         }
 
+        private async void MyEmailList_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            var scrollViewer = e.OriginalSource as ScrollViewer;
+            if (scrollViewer == null) return;
+
+            // Công thức kiểm tra đã chạm đáy hay chưa:
+            // VerticalOffset (Vị trí hiện tại) + ViewportHeight (Chiều cao khung nhìn) == ExtentHeight (Tổng chiều cao)
+
+            // Dùng < 1.0 để so sánh số thực (chấp nhận sai số nhỏ)
+            bool isAtBottom = scrollViewer.VerticalOffset + scrollViewer.ViewportHeight >= scrollViewer.ExtentHeight - 1.0;
+
+            if (isAtBottom)
+            {
+                // Chỉ tải nếu: Không đang tải VÀ Danh sách đang có dữ liệu
+                if (!_isLoadingOldMail && MyEmailList.Items.Count > 0)
+                {
+                    await LoadMoreEmails();
+                }
+            }
+        }
+
+        // Hàm thực hiện logic tải thêm
+        private async Task LoadMoreEmails()
+        {
+            try
+            {
+                _isLoadingOldMail = true;
+                ShowLoading("Đang tải thư cũ...");
+
+                // A. LƯU VỊ TRÍ CUỘN HIỆN TẠI
+                // Cần tìm ScrollViewer để lấy vị trí
+                var scrollViewer = GetScrollViewer(MyEmailList);
+                double currentOffset = scrollViewer != null ? scrollViewer.VerticalOffset : 0;
+
+                // B. GỌI SERVICE TẢI THÊM 20 THƯ
+                // (Hàm này bạn đã thêm vào MailService ở bước trước)
+                await mailService.LoadOlderEmails(App.CurrentAccountID, currentFolder, 20);
+
+                // C. LÀM MỚI DANH SÁCH TRÊN RAM
+                list.LoadMoreOldEmails(App.CurrentAccountID, currentFolder);
+
+                // D. CẬP NHẬT GIAO DIỆN
+                UpdateUI_CurrentFolder();
+
+                // E. KHÔI PHỤC VỊ TRÍ CUỘN
+                // Giúp người dùng không bị đẩy về đầu trang, tiếp tục đọc mượt mà
+                if (scrollViewer != null)
+                {
+                    // Dùng Dispatcher để đảm bảo UI đã render xong mới cuộn
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        scrollViewer.ScrollToVerticalOffset(currentOffset);
+                    }, DispatcherPriority.Loaded);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi tải thêm thư: " + ex.Message);
+            }
+            finally
+            {
+                HideLoading();
+                // Delay nhẹ 0.5s để tránh spam request
+                await Task.Delay(500);
+                _isLoadingOldMail = false;
+            }
+        }
+
+        public static ScrollViewer GetScrollViewer(DependencyObject depObj)
+        {
+            if (depObj is ScrollViewer) return depObj as ScrollViewer;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+            {
+                var child = VisualTreeHelper.GetChild(depObj, i);
+                var result = GetScrollViewer(child);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
+        private void ResetScrollView()
+        {
+            var scrollViewer = GetScrollViewer(MyEmailList);
+            if (scrollViewer != null)
+            {
+                scrollViewer.ScrollToTop();
+            }
+        }
     }
 }

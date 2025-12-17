@@ -80,6 +80,6 @@ namespace MailClient
                 DataTable dtNew = ExecuteQuery(insertQuery, insertParams);
                 return Convert.ToInt32(dtNew.Rows[0][0]);
             }
-        }    
+        }
     }
 }
