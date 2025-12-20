@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.PeopleService.v1" Version="1.72.0.3973" />
     <PackageReference Include="MailKit" Version="4.14.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
     <PackageReference Include="MimeKit" Version="4.14.0" />
   </ItemGroup>
 

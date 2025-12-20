@@ -291,7 +291,7 @@ namespace MailClient.Core.Services
                     // Trường hợp 1: Lần đầu tiên chạy (DB chưa có gì)
                     // Lấy 20 mail mới nhất để khởi tạo
                     int total = folder.Count;
-                    int fetchCount = 20;
+                    int fetchCount = 10;
                     int start = Math.Max(0, total - fetchCount);
                     var summaries = await folder.FetchAsync(start, -1, MessageSummaryItems.UniqueId, token);
                     uidsToFetch = summaries.Select(x => x.UniqueId).ToList();
