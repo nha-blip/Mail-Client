@@ -29,27 +29,6 @@ namespace Mailclient
             InitializeComponent();
         }
 
-        // 2. Tạo hàm để MainWindow gọi và truyền dữ liệu vào
-        public void SetReplyInfo(string to, string subject)
-        {
-            _toEmail = to;
-
-            // Tự động thêm "Re: " nếu chưa có
-            if (!subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase))
-            {
-                _subject = "Re: " + subject;
-            }
-            else
-            {
-                _subject = subject;
-            }
-
-            // (Optional) Reset nội dung soạn thảo mỗi khi mở email mới
-            if (EditorWebView != null && EditorWebView.CoreWebView2 != null)
-            {
-                EditorWebView.NavigateToString("");
-            }
-        }
 
         private void Minimize(object sender, RoutedEventArgs e)
         {

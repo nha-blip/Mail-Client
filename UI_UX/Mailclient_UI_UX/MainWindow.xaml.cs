@@ -429,6 +429,8 @@ namespace Mailclient
 
         private async void content(object sender, SelectionChangedEventArgs e)
         {
+            SetComposeButtonState(false);
+            composecontent.Visibility = Visibility.Collapsed;
             // Kiểm tra an toàn
             if (MyEmailList.SelectedIndex == -1 || MyEmailList.SelectedItem == null) return;
 
@@ -621,13 +623,15 @@ namespace Mailclient
 
         private void CloseEmailView()
         {
+            MyEmailList.SelectionChanged -= content;
             // Ẩn giao diện đọc mail
             mailcontent.Visibility = Visibility.Collapsed;
             reply.Visibility = Visibility.Collapsed;
+            SetComposeButtonState(true);
             // Bỏ chọn list
             MyEmailList.SelectedIndex = -1;
             MyEmailList.UnselectAll();
-
+            MyEmailList.SelectionChanged += content;
             // Lấy lại Focus cho Window
             this.Focus();
         }
@@ -786,7 +790,6 @@ namespace Mailclient
             }
         }
 
-<<<<<<< HEAD
         private void opreply(object sender, RoutedEventArgs e)
         {
             var selectedEmail = MyEmailList.SelectedItem as Email; // Thay 'EmailModel' bằng tên class thật của bạn
@@ -823,7 +826,8 @@ namespace Mailclient
             else
             {
                 MessageBox.Show("Vui lòng chọn một thư để chuyển tiếp!");
-=======
+            }
+        }
         private async void MyEmailList_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             var scrollViewer = e.OriginalSource as ScrollViewer;
@@ -911,7 +915,14 @@ namespace Mailclient
             if (scrollViewer != null)
             {
                 scrollViewer.ScrollToTop();
->>>>>>> 68931fcfcc2286536bc84bb362d9be141dc2445c
+            }
+        }
+        private void SetComposeButtonState(bool isEnabled)
+        {
+            if (btncompose != null)
+            {
+                btncompose.IsEnabled = isEnabled;
+                btncompose.Opacity = isEnabled ? 1.0 : 0.5;
             }
         }
     }
