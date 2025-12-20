@@ -34,10 +34,17 @@ namespace Mailclient
             _attachmentList = new ObservableCollection<AttachmentItem>();
             lbAttachments.ItemsSource = _attachmentList;
 
-            InitializeEditor();
+            this.Loaded += Compose_Loaded;
         }
 
-        private async void InitializeEditor()
+        private async void Compose_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Hủy đăng ký để không chạy lại mỗi khi ẩn/hiện
+            this.Loaded -= Compose_Loaded;
+            await InitializeEditor();
+        }
+
+        private async Task InitializeEditor()
         {
             await EditorWebView.EnsureCoreWebView2Async();
             // HTML Editor giữ nguyên như cũ
@@ -64,7 +71,10 @@ namespace Mailclient
                 </body>
                 </html>";
 
-            EditorWebView.NavigateToString(htmlEditor);
+            if (EditorWebView.CoreWebView2 != null)
+            {
+                EditorWebView.NavigateToString(htmlEditor);
+            }
         }
 
         private void closecompose(object sender, RoutedEventArgs e)

@@ -271,6 +271,127 @@ namespace MailClient.Core.Services
             }
         }
 
+        public async Task LoadOlderEmails(int localAccountID, string folderName, int amountToLoad = 20)
+        {
+            if (!_accountService.IsSignedIn()) return;
+
+            var accessToken = await _accountService.GetAccessTokenAsync();
+
+            using (var client = new ImapClient())
+            {
+                try
+                {
+                    await client.ConnectAsync(ImapHost, ImapPort, SecureSocketOptions.SslOnConnect);
+                    await client.AuthenticateAsync(new SaslMechanismOAuth2(_accountService._userEmail, accessToken));
+
+                    // 1. Mở Folder
+                    var personalNamespace = client.PersonalNamespaces[0];
+                    // Tìm folder trên server (cần logic mapping tên folder nếu cần, ở đây tìm theo tên hiển thị)
+                    var folder = await client.GetFolderAsync(folderName);
+                    // Nếu không tìm thấy bằng tên display, thử tìm trong list all folders (logic cũ của bạn)
+                    if (folder == null)
+                    {
+                        var all = await client.GetFoldersAsync(personalNamespace);
+                        folder = all.FirstOrDefault(f => f.Name == folderName || NormalizeFolderName(f) == folderName);
+                    }
+
+                    if (folder == null) return;
+
+                    await folder.OpenAsync(FolderAccess.ReadOnly);
+
+                    // 2. Lấy ID Folder trong DB và Min UID hiện tại
+                    int dbFolderId = GetFolderIDByFolderName(ConvertToSentenceCase(folderName), localAccountID);
+                    if (dbFolderId == 0) return; // Folder chưa tồn tại trong DB thì không load cũ được
+
+                    UniqueId oldestKnownUid = GetOldestSyncedUid(dbFolderId, localAccountID);
+
+                    IList<UniqueId> uidsToFetch;
+
+                    if (oldestKnownUid == UniqueId.MaxValue)
+                    {
+                        // DB chưa có gì -> Gọi lại logic sync thường để lấy mới nhất
+                        return;
+                    }
+                    else
+                    {
+                        // 3. Logic lấy thư CŨ HƠN
+                        // Lấy tất cả UID trên server
+                        var allUidsOnServer = await folder.SearchAsync(SearchQuery.All);
+
+                        // Lọc ra các UID NHỎ HƠN oldestKnownUid
+                        // OrderByDescending để lấy những thư "cũ nhưng gần nhất" (liền kề với thư đang có)
+                        uidsToFetch = allUidsOnServer
+                                        .Where(uid => uid.Id < oldestKnownUid.Id)
+                                        .OrderByDescending(uid => uid.Id)
+                                        .Take(amountToLoad) // Chỉ lấy số lượng quy định (VD: 20)
+                                        .ToList();
+                    }
+
+                    if (uidsToFetch.Count == 0) return; // Không còn thư cũ hơn
+
+                    // 4. Đoạn này Copy y nguyên logic lưu DB từ SyncFolderInternal xuống
+                    // (Để code gọn hơn, bạn nên tách đoạn lưu DB ra thành hàm riêng: SaveEmailsToDb)
+                    var parser = new EmailParser();
+                    string cacheFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+
+                    foreach (var uid in uidsToFetch)
+                    {
+                        try
+                        {
+                            long threadId = 0;
+                            var items = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.GMailThreadId | MessageSummaryItems.UniqueId);
+                            var summary = items.FirstOrDefault();
+
+                            if (summary != null && summary.GMailThreadId.HasValue)
+                            {
+                                threadId = (long)summary.GMailThreadId.Value;
+                            }
+
+                            var mimeMessage = await folder.GetMessageAsync(uid);
+                            Email emailToSave = await parser.ParseAsync(mimeMessage);
+
+                            emailToSave.AccountID = localAccountID;
+                            emailToSave.FolderID = dbFolderId;
+                            emailToSave.FolderName = ConvertToSentenceCase(folderName);
+                            emailToSave.AccountName = _accountService._userName;
+                            emailToSave.UID = uid.Id;
+                            emailToSave.ThreadId = threadId;
+
+                            emailToSave.AddEmail();
+
+                            if (emailToSave.emailID > 0 && emailToSave.TempAttachments != null)
+                            {
+                                foreach (var attach in emailToSave.TempAttachments)
+                                {
+                                    attach.EmailID = emailToSave.emailID;
+                                    attach.AddAttachment();
+                                    string saveFileName = $"{attach.Name}";
+                                    string fullPath = Path.Combine(cacheFolder, saveFileName);
+                                    if (attach.OriginalMimePart != null && !File.Exists(fullPath))
+                                    {
+                                        using (var fileStream = File.Create(fullPath))
+                                        {
+                                            await attach.OriginalMimePart.Content.DecodeToAsync(fileStream);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception innerEx)
+                        {
+                            Console.WriteLine($"Err saving old mail {uid}: {innerEx.Message}");
+                        }
+                    }
+
+                    await folder.CloseAsync(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Err loading old mails: {ex.Message}");
+                }
+            }
+        }
+
         // Thực hiện tải mail từ 1 folder IMAP xuống DB
         private async Task SyncFolderInternal(ImapClient client, IMailFolder folder, int localAccountID, CancellationToken token = default)
         {
@@ -408,6 +529,29 @@ namespace MailClient.Core.Services
 
             // Nếu chưa có mail nào (hoặc null), trả về MinValue (tương đương 0)
             return UniqueId.MinValue;
+        }
+
+        public UniqueId GetOldestSyncedUid(int folderID, int accountID)
+        {
+            // Lấy UID nhỏ nhất (MIN) thay vì MAX
+            string query = @"Select MIN(UID) From Email Where FolderID=@FolderID And AccountID=@AccountID";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@FolderID", folderID),
+                new SqlParameter("@AccountID", accountID)
+            };
+
+            DatabaseHelper db = new DatabaseHelper();
+            DataTable dt = db.ExecuteQuery(query, parameters);
+
+            if (dt.Rows.Count > 0 && dt.Rows[0][0] != DBNull.Value)
+            {
+                long uidVal = Convert.ToInt64(dt.Rows[0][0]);
+                if (uidVal > 0) return new UniqueId((uint)uidVal);
+            }
+
+            // Nếu chưa có mail nào, trả về MaxValue để logic so sánh hoạt động đúng (lấy tất cả nhỏ hơn Max)
+            return UniqueId.MaxValue;
         }
 
         // Hàm helper để chuẩn hóa tên folder
