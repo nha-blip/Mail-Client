@@ -486,6 +486,8 @@ namespace Mailclient
                     // 3. BƯỚC GHÉP NỐI: Bọc nội dung vào khung chuẩn
                     finalHtml = ApplyMasterLayout(innerContent);
 
+                    Console.WriteLine(finalHtml);
+
                     // 4. Lưu và hiển thị
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
                     System.IO.File.WriteAllText(tempPath, finalHtml);

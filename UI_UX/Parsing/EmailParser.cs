@@ -198,14 +198,13 @@ namespace Mailclient
             return colors[Math.Abs(hash) % colors.Length];
         }
 
-        // --- HÀM MỚI ĐÃ NÂNG CẤP ---
         private string ExtractBodyContent(string html)
         {
             if (string.IsNullOrEmpty(html)) return "";
 
             string content = html;
 
-            // 1. Tìm nội dung bên trong thẻ <body> (nếu có)
+            // Tìm nội dung bên trong thẻ <body> (nếu có)
             var match = Regex.Match(html, @"<body[^>]*>(.*?)</body>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
             if (match.Success)
@@ -213,14 +212,36 @@ namespace Mailclient
                 content = match.Groups[1].Value;
             }
 
-            // 2. Xóa các thẻ HTML bao quanh gây lỗi giao diện (nếu còn sót lại)
+            // CẮT BỎ PHẦN REPLY
+            int gmailQuoteIndex = content.IndexOf("class=\"gmail_quote\"");
+            if (gmailQuoteIndex > 0)
+            {
+                int startDiv = content.LastIndexOf("<div", gmailQuoteIndex, StringComparison.OrdinalIgnoreCase);
+                if (startDiv > -1)
+                {
+                    content = content.Substring(0, startDiv);
+                }
+            }
+
+            // Xóa các thẻ HTML bao quanh gây lỗi giao diện (nếu còn sót lại)
             content = Regex.Replace(content, @"<!DOCTYPE[^>]*>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"<html[^>]*>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"</html>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"<body[^>]*>", "", RegexOptions.IgnoreCase);
             content = Regex.Replace(content, @"</body>", "", RegexOptions.IgnoreCase);
 
-            return content.Trim();
+            return FixUnclosedTags(content).Trim();
+        }
+
+        public string FixUnclosedTags(string htmlContent)
+        {
+            var doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(htmlContent);
+
+            doc.OptionFixNestedTags = true;
+            doc.OptionAutoCloseOnEnd = true;
+
+            return doc.DocumentNode.OuterHtml;
         }
     }
 }

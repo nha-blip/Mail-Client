@@ -284,15 +284,29 @@ namespace MailClient.Core.Services
                     await client.ConnectAsync(ImapHost, ImapPort, SecureSocketOptions.SslOnConnect);
                     await client.AuthenticateAsync(new SaslMechanismOAuth2(_accountService._userEmail, accessToken));
 
-                    // 1. Mở Folder
+                    IMailFolder folder = null;
                     var personalNamespace = client.PersonalNamespaces[0];
-                    // Tìm folder trên server (cần logic mapping tên folder nếu cần, ở đây tìm theo tên hiển thị)
-                    var folder = await client.GetFolderAsync(folderName);
-                    // Nếu không tìm thấy bằng tên display, thử tìm trong list all folders (logic cũ của bạn)
-                    if (folder == null)
+
+                    // Lấy danh sách TẤT CẢ folder (recursive = true) 
+                    var allFolders = await client.GetFoldersAsync(personalNamespace, StatusItems.None, true);
+
+                    // Duyệt và tìm folder khớp tên 
+                    // folderName ở đây là "Sent", "Inbox", v.v. từ giao diện gửi xuống
+                    foreach (var f in allFolders)
                     {
-                        var all = await client.GetFoldersAsync(personalNamespace);
-                        folder = all.FirstOrDefault(f => f.Name == folderName || NormalizeFolderName(f) == folderName);
+                        // NormalizeFolderName sẽ biến "[Gmail]/Sent Mail" thành "Sent" để so sánh
+                        if (NormalizeFolderName(f).Equals(folderName, StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.Equals(folderName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            folder = f;
+                            break;
+                        }
+                    }
+
+                    // Nếu vẫn không thấy (ví dụ folder Inbox đôi khi nằm ngoài logic trên)
+                    if (folder == null && folderName.Equals("Inbox", StringComparison.OrdinalIgnoreCase))
+                    {
+                        folder = client.Inbox;
                     }
 
                     if (folder == null) return;
