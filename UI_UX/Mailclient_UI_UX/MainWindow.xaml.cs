@@ -24,6 +24,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using static Google.Apis.Requests.BatchRequest;
+using Microsoft.Web.WebView2.Wpf;
+using System.ComponentModel;
 namespace Mailclient
 {
     /// <summary>
@@ -55,6 +57,14 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             StartEmailSync();
             SyncAndReload();
+
+            if (!DesignerProperties.GetIsInDesignMode(this))
+            {
+                Loaded += async (_, __) =>
+                {
+                    await contentEmail.EnsureCoreWebView2Async();
+                };
+            }
         }
 
         private void UpdateUI_CurrentFolder()
@@ -152,7 +162,10 @@ namespace Mailclient
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Cho phép kéo cửa sổ
-            this.DragMove();
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
 
         }
 
@@ -603,7 +616,7 @@ namespace Mailclient
         {
             // Ẩn giao diện đọc mail
             mailcontent.Visibility = Visibility.Collapsed;
-
+            reply.Visibility = Visibility.Collapsed;
             // Bỏ chọn list
             MyEmailList.SelectedIndex = -1;
             MyEmailList.UnselectAll();
@@ -766,5 +779,43 @@ namespace Mailclient
             }
         }
 
+        private void opreply(object sender, RoutedEventArgs e)
+        {
+            var selectedEmail = MyEmailList.SelectedItem as Email; // Thay 'EmailModel' bằng tên class thật của bạn
+
+            if (selectedEmail != null)
+            {
+                forward.Visibility = Visibility.Collapsed;
+                reply.DataContext = selectedEmail;
+
+                reply.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một email để trả lời.");
+            }
+        }
+
+        private void opforward(object sender, RoutedEventArgs e)
+        {
+            var selectedEmail = MyEmailList.SelectedItem as Email;
+
+            if (selectedEmail != null)
+            {
+                // 2. Ẩn form Reply (nếu đang mở)
+                reply.Visibility = Visibility.Collapsed;
+                forward.Visibility = Visibility.Visible;
+                // 3. Gọi hàm truyền nội dung sang Forward
+                // Giả sử 'Body' là thuộc tính chứa nội dung HTML của email
+                forward.SetForwardContent(selectedEmail.BodyText);
+
+                // 4. Reset ô nhập người nhận
+                forward.txtTo.Text = "";
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một thư để chuyển tiếp!");
+            }
+        }
     }
 }

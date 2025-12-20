@@ -844,7 +844,7 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="30"/>
                                         <RowDefinition Height="*"/>
-                                        <RowDefinition Height="50"/>
+                                        <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
                                     <Button x:Name="return" 
                                         Grid.Row="0"
@@ -862,12 +862,24 @@
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                         </Button.Tag>
                                     </Button>
-                                    <wv2:WebView2 x:Name="contentEmail"
-                                              Grid.Row="1"
-                                              Panel.ZIndex="0"/>
+                                    <ContentControl Grid.Row="1" Panel.ZIndex="0">
+                                        <ContentControl.Content>
+                                            <wv2:WebView2 x:Name="contentEmail"/>
+                                        </ContentControl.Content>
+
+                                        <d:ContentControl.Content>
+                                            <Border Background="#EEE">
+                                                <TextBlock Text="WebView2 (runtime only)"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="Gray"/>
+                                            </Border>
+                                        </d:ContentControl.Content>
+                                    </ContentControl>
                                     <Border Grid.Row="2"
-                                        BorderThickness="0"
-                                        CornerRadius="0,0,10,10"
+                                            BorderThickness="0"
+                                            x:Name="bottommail"
+                                            CornerRadius="0,0,10,10"
                                         >
                                         <Border.Effect>
                                             <DropShadowEffect Direction="270" 
@@ -876,41 +888,57 @@
                                                           Opacity="0.4" 
                                                           BlurRadius="15" />
                                         </Border.Effect>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button x:Name="btnReponse"
-                                        Visibility="Visible"
-                                        Focusable="False"
-                                        Height="40"
-                                        Width="120"
-                                        Margin="80,0,0,0"
-                                        Style="{StaticResource ReplyButtonStyle}"
-                                        HorizontalAlignment="Left"
-                                        Content="Reply">
-                                                <Button.Tag>
-                                                    <Image Source="/image/back.png" 
-                                               VerticalAlignment="Top"
-                                               Height="27"
-                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                </Button.Tag>
-                                            </Button>
-                                            <Button x:Name="btnForward"
-                                        Visibility="Visible"
-                                        Focusable="False"
-                                        Height="40"
-                                        Width="120"
-                                        Margin="10,0,0,0"
-                                        Style="{StaticResource ReplyButtonStyle}"
-                                        HorizontalAlignment="Left"
-                                        Content="Forward">
-                                                <Button.Tag>
-                                                    <Image Source="/image/back.png" 
-                                               VerticalAlignment="Top"
-                                               Height="27"
-                                               FlowDirection="RightToLeft"
-                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                </Button.Tag>
-                                            </Button>
-                                        </StackPanel>
+                                        <Grid>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button x:Name="btnReponse"
+                                                        Visibility="Visible"
+                                                        Focusable="False"
+                                                        Height="40"
+                                                        Width="120"
+                                                        Margin="80,5,0,5"
+                                                        Click="opreply"
+                                                        Style="{StaticResource ReplyButtonStyle}"
+                                                        HorizontalAlignment="Left"
+                                                        Content="Reply">
+                                                    <Button.Tag>
+                                                        <Image Source="/image/back.png" 
+                                                               VerticalAlignment="Top"
+                                                               Height="27"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Button.Tag>
+                                                </Button>
+                                                <Button x:Name="btnForward"
+                                                        Visibility="Visible"
+                                                        Focusable="False"
+                                                        Height="40"
+                                                        Width="120"
+                                                        Margin="10,5,0,5"
+                                                        Style="{StaticResource ReplyButtonStyle}"
+                                                        HorizontalAlignment="Left"
+                                                        Click="opforward"
+                                                        Content="Forward">
+                                                    <Button.Tag>
+                                                        <Image Source="/image/back.png" 
+                                                               VerticalAlignment="Top"
+                                                               Height="27"
+                                                               FlowDirection="RightToLeft"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Button.Tag>
+                                                </Button>
+                                            </StackPanel>
+                                            <local:Reply x:Name="reply" Margin="10"
+                                                         Visibility="Collapsed"
+                                                         HorizontalAlignment="Stretch" 
+                                                         VerticalAlignment="Stretch"            
+                                                         MinHeight="250"
+                                                         />
+                                            <local:Forward x:Name="forward" Margin="10"
+                                                         Visibility="Collapsed"
+                                                         HorizontalAlignment="Stretch" 
+                                                         VerticalAlignment="Stretch"            
+                                                         MinHeight="250"
+                                                         />
+                                        </Grid>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -930,8 +958,7 @@
                    StaysOpen="False"
                    AllowsTransparency="True"
                    PopupAnimation="Fade">
-                    <local:ListAccount x:Name="ListAccountControl" 
-                                   />
+                    <local:ListAccount x:Name="ListAccountControl"/>
                 </Popup>
             </Grid>
         </Grid>
