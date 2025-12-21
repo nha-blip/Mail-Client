@@ -28,7 +28,8 @@ namespace Mailclient
         public Compose()
         {
             InitializeComponent();
-            acc = new Account(App.CurrentAccountID);
+            DatabaseHelper dp = new DatabaseHelper();
+            acc = new Account(dp.GetCurrentAccountID());
 
             // Khởi tạo danh sách và gán nguồn dữ liệu cho ListBox
             _attachmentList = new ObservableCollection<AttachmentItem>();

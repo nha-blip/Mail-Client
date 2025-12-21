@@ -8,12 +8,12 @@ namespace Mailclient
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App
     {
         // Lưu ID tài khoản đang đăng nhập
+        public static int CurrentAccountID;
         public static AccountService currentAccountService;
         public static MailService currentMailService;
-        public static CancellationTokenSource GlobalSyncCts = new CancellationTokenSource();
     }
 
 }

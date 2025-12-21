@@ -68,7 +68,8 @@ namespace Mailclient
                     int accID = realAccount.LoginOrRegisterGoogle(tempAccount.TokenJson);
 
                     // 5. Cài đặt biến toàn cục
-                    App.CurrentAccountID = accID;
+                    DatabaseHelper dp = new DatabaseHelper();
+                    dp.SetCurrentAccountID(accID);
                     App.currentAccountService = account;
                     App.currentMailService = new MailService(account);
 
@@ -96,6 +97,13 @@ namespace Mailclient
             {
                 if (sender is Button btnfinal) btnfinal.IsEnabled = true;
             }
+
+        }
+        private void Offline_Click(object sender, RoutedEventArgs e)
+        {
+            Login log= new Login();
+            log.Show();
+            this.Close();
         }
     }
 }

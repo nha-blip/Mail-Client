@@ -28,6 +28,7 @@ namespace MailClient
                                         Convert.ToString(row["Email"]) ?? "",
                                         Convert.ToString(row["AccountName"]) ?? ""
                                         );
+                a.TokenJson = Convert.ToString(row["TokenJson"]) ?? "";
                 a.AccountID=Convert.ToInt32(row["AccountID"]);
                 listAccount.Add(a);
             }

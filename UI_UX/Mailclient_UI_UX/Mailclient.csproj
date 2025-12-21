@@ -103,6 +103,8 @@
 		<None Remove="image\logo.png" />
 		<None Remove="image\logo_uit.png" />
 		<None Remove="image\multiple-emails.png" />
+		<None Remove="image\offline.png" />
+		<None Remove="image\offline1.png" />
 		<None Remove="image\pencil.png" />
 		<None Remove="image\reply.png" />
 		<None Remove="image\search.png" />
@@ -132,6 +134,7 @@
 		<Resource Include="image\back.png" />
 		<Resource Include="image\information.png" />
 		<Resource Include="image\left-arrow.png" />
+		<Resource Include="image\offline1.png" />
 		<Resource Include="image\reply.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>

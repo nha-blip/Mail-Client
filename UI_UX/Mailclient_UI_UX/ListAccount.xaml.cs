@@ -48,19 +48,35 @@ namespace Mailclient
         private async void AccountListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = sender as ListView;
+            DatabaseHelper dp=new DatabaseHelper();
             var selectedAcc = listView.SelectedItem as MailClient.Account;
-            if (selectedAcc == null) return;
+            if (selectedAcc == null || selectedAcc.AccountID == dp.GetCurrentAccountID()) return;
 
-            var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
-            if (mainWindow == null) return;
+            var mainWindow = Application.Current.MainWindow as MainWindow;
 
             try
             {
-                // 1. Đóng Popup & Hiện Loading ngay để che màn hình cũ đi
+                mainWindow.syncTimer.Stop();
+
+                // 1. HỦY TIẾN TRÌNH CŨ NGAY LẬP TỨC
+                App.GlobalSyncCts.Cancel();
+                App.GlobalSyncCts.Dispose();
+                App.GlobalSyncCts = new CancellationTokenSource();
+                await Task.Delay(200);
+                // 2. CẬP NHẬT ID NGAY ĐỂ CHẶN CÁC LỆNH LƯU DB CỦA ACC CŨ
+                dp.SetCurrentAccountID(selectedAcc.AccountID);
+
                 mainWindow.CloseAccountPopup();
                 mainWindow.ShowLoading("Đang chuyển tài khoản...");
 
-                // 2. Chuẩn bị tài khoản mới
+                // 3. XÓA SẠCH RAM & UI CŨ
+                if (mainWindow.list != null)
+                {
+                    mainWindow.list.listemail.Clear(); // Xóa thư cũ trong bộ nhớ
+                }
+                mainWindow.MyEmailList.ItemsSource = null; // Ngắt kết nối giao diện tạm thời
+
+                // 4. CHUẨN BỊ TÀI KHOẢN MỚI
                 Account fullAccount = new Account(selectedAcc.AccountID);
                 App.currentAccountService = new AccountService();
                 await App.currentAccountService.LoadCredentialAsync(fullAccount.TokenJson);
@@ -68,20 +84,16 @@ namespace Mailclient
 
                 if (App.currentAccountService.IsSignedIn())
                 {
-                    App.CurrentAccountID = fullAccount.AccountID;
+                    // Reset trạng thái sync
+                    mainWindow.isSyncing = false;
 
-                    // 3. QUAN TRỌNG: TẠO LIST MỚI (Không dùng list cũ để Clear)
-                    // Constructor của ListEmail phải RỖNG (không chạy SQL) thì dòng này mới nhanh
-                    mainWindow.list = new MailClient.ListEmail(App.CurrentAccountID);
-
-                    // 4. GÁN LIST MỚI VÀO GIAO DIỆN NGAY
-                    // Lúc này list mới chưa có thư, nhưng nhờ Loading che đi nên user không thấy trắng
+                    // Khởi tạo list mới và gán lại UI
+                    Console.WriteLine(dp.GetCurrentAccountID());
+                    mainWindow.list = new ListEmail(dp.GetCurrentAccountID());
                     mainWindow.MyEmailList.ItemsSource = mainWindow.list.listemail;
 
-                    // 5. GỌI HÀM TẢI DỮ LIỆU (Code mới đã tối ưu Async)
-                    // Hàm này sẽ tự lấy thư từ DB và điền vào list
-                    await mainWindow.SyncAndReload();
-                    mainWindow.HideLoading();
+                    Console.WriteLine("da tao xong list");
+                    //await mainWindow.SyncAndReload();
                 }
                 else
                 {
@@ -90,14 +102,31 @@ namespace Mailclient
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi: {ex.Message}");
+                if (!(ex is OperationCanceledException))
+                    MessageBox.Show($"Lỗi: {ex.Message}");
             }
             finally
             {
-                // Tắt Loading -> Lúc này thư đã lên xong -> User thấy danh sách luôn
                 mainWindow.HideLoading();
+                if (mainWindow.syncTimer != null) mainWindow.syncTimer.Start();
                 listView.SelectedIndex = -1;
             }
+        }
+        public void Logout(object sender, EventArgs e)
+        {
+            MessageBoxResult result=MessageBox.Show("Đăng xuất",
+                                                "Bạn có chắc muốn đăng xuất",
+                                                MessageBoxButton.YesNo,
+                                                MessageBoxImage.Warning);
+            if (result == MessageBoxResult.No) return;
+            DatabaseHelper db= new DatabaseHelper();
+            Account acc = new Account(db.GetCurrentAccountID());
+            acc.DeleteAccount();
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            Logingg log = new Logingg();
+            Application.Current.MainWindow = log;
+            log.Show();
+            mainWindow.Close();
         }
     }
 }
