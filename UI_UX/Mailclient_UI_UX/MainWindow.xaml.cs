@@ -241,6 +241,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void resetcolor()
@@ -268,6 +269,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void spam(object sender, RoutedEventArgs e)
@@ -276,6 +278,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void drafts(object sender, RoutedEventArgs e)
@@ -284,6 +287,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void allmail(object sender, RoutedEventArgs e)
@@ -292,6 +296,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
         private void trash(object sender, RoutedEventArgs e)
         {
@@ -299,6 +304,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -406,7 +412,6 @@ namespace Mailclient
 
         private void deletemail(object sender, RoutedEventArgs e)
         {
-            // Lấy Button được click
             var button = sender as Button;
 
             // Lấy đối tượng Email được liên kết với Button đó
@@ -992,6 +997,59 @@ namespace Mailclient
             catch
             {
                 txtWifiStatus.Text = "No Wi-Fi";
+            }
+        }
+
+        private void selectall(object sender, RoutedEventArgs e)
+        {
+            foreach (var email in list.listemail)
+            {
+                email.IsFlag = true;
+            }
+            MyEmailList.Items.Refresh();
+        }
+
+        private void unselectall(object sender, RoutedEventArgs e)
+        {
+            SelectAll.IsChecked = false;
+            foreach (var email in list.listemail)
+            {
+                email.IsFlag = false;
+            }
+            MyEmailList.Items.Refresh();
+        }
+
+        private void deletmailselect(object sender, RoutedEventArgs e)
+        {
+            foreach (var email in list.listemail)
+            {
+                if(email.IsFlag == true)
+                {
+                    email.UpdateFolderEmail("Trash");
+                    email.FolderName = "Trash";
+
+                    UpdateUI_CurrentFolder();
+                    CloseEmailView();
+                }
+            }
+        }
+
+        private void opsetting(object sender, RoutedEventArgs e)
+        {
+            settingpoup.IsOpen = !settingpoup.IsOpen;
+        }
+        public void ChangeAppBackground(ImageSource source)
+        {
+            if (source != null)
+            {
+                imageBackground.Source = source;
+                imageBackground.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // Ẩn ảnh đi để lộ màu nền tối của Window
+                imageBackground.Visibility = Visibility.Collapsed;
+                imageBackground.Source = null;
             }
         }
     }
