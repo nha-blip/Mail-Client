@@ -1,0 +1,107 @@
+﻿<UserControl x:Class="Mailclient.setting"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             Width="280">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#00CCFF"/>
+
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" 
+                                    CornerRadius="17" 
+                                    Background="{TemplateBinding Background}" 
+                                    BorderThickness="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95" CenterX="50" CenterY="15"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Background="White" CornerRadius="15" Padding="20" Margin="10" ClipToBounds="False">
+        <Border.Effect>
+            <DropShadowEffect Direction="270" 
+                  ShadowDepth="0" 
+                  Color="#B0B0B0" 
+                  Opacity="0.5" 
+                  BlurRadius="15" />
+        </Border.Effect>
+
+        <StackPanel>
+            <TextBlock Text="Cài đặt giao diện" HorizontalAlignment="Center" Foreground="#333333" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Màu chủ đạo" Foreground="#777777" FontSize="12" FontWeight="Medium" Margin="0,0,0,10"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <Button Width="30" Height="30" Margin="0,0,10,0" Click="Color_Click" Tag="#00CCFF">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="15" Background="#00CCFF" Cursor="Hand" BorderBrush="#E0E0E0" BorderThickness="1"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Width="30" Height="30" Margin="0,0,10,0" Click="Color_Click" Tag="#FF4785">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="15" Background="#FF4785" Cursor="Hand" BorderBrush="#E0E0E0" BorderThickness="1"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Width="30" Height="30" Margin="0,0,10,0" Click="Color_Click" Tag="#47FF85">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="15" Background="#47FF85" Cursor="Hand" BorderBrush="#E0E0E0" BorderThickness="1"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Width="30" Height="30" Margin="0,0,10,0" Click="Color_Click" Tag="#FFB800">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="15" Background="#FFB800" Cursor="Hand" BorderBrush="#E0E0E0" BorderThickness="1"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+
+            <TextBlock Text="Hình nền ứng dụng" Foreground="#777777" FontSize="12" FontWeight="Medium" Margin="0,0,0,10"/>
+
+            <Button Content="📂 Tải ảnh từ máy..." Click="UploadBg_Click" 
+                    Style="{StaticResource RoundedButtonStyle}" 
+                    Background="#E1F5FE" Foreground="#0091EA" Margin="0,0,0,10"/>
+
+            <Button Content="✕ Dùng mặc định" Click="ResetBg_Click" 
+                    Background="Transparent" Foreground="#FF5252" BorderThickness="0" 
+                    Cursor="Hand" HorizontalAlignment="Left" FontSize="12" FontWeight="Medium"/>
+
+        </StackPanel>
+    </Border>
+</UserControl>

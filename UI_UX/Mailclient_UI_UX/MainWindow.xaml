@@ -155,6 +155,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
         <Style x:Key="SearchBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#F1F3F4"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -212,6 +213,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
         <Style x:Key="ReplyButtonStyle" TargetType="Button">
 
             <Setter Property="Template">
@@ -254,9 +256,39 @@
             <Setter Property="Cursor" Value="Hand"/>
 
         </Style>
+        <Style x:Key="TransparentButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                CornerRadius="15"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#66FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Border x:Name="mainborder">
         <Grid>
+            <Image x:Name="imageBackground" 
+                   Stretch="UniformToFill" 
+                   IsHitTestVisible="False"/>   
             <Grid x:Name="AppLoadingOverlay" 
               Visibility="Collapsed" 
               Panel.ZIndex="9999">
@@ -272,7 +304,8 @@
                     </Border.Effect>
 
                     <StackPanel>
-                        <ProgressBar IsIndeterminate="True" 
+                        <ProgressBar x:Name="pcbar"
+                                 IsIndeterminate="True" 
                                  Width="200" Height="10" 
                                  Margin="0,0,0,15"
                                  Foreground="#0078D4"
@@ -302,6 +335,16 @@
                   Grid.Column="0"
                   Grid.ColumnSpan="2"
                   Background="#30FFFFFF">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0">
+                        <Grid>
+                            <TextBlock x:Name="bgwifi" Text="&#xE701;" FontFamily="Segoe MDL2 Assets" 
+                                       Foreground="#33FFFFFF" VerticalAlignment="Center" FontSize="16"/>
+                            <TextBlock x:Name="wifiIcon" Text="&#xE701;" FontFamily="Segoe MDL2 Assets" 
+                                        Foreground="White" VerticalAlignment="Center" FontSize="16"/>
+                        </Grid>
+                        <TextBlock x:Name="txtWifiStatus" Text="100%" Foreground="White" 
+                                       Margin="5,5,0,0" VerticalAlignment="Center" FontSize="12"/>
+                    </StackPanel>
                     <StackPanel HorizontalAlignment="Right"
                             Orientation="Horizontal">
                         <Button x:Name="btnMinimize" 
@@ -455,7 +498,7 @@
                             </Border.Background>
                         </Border>
 
-                        <Button Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center">
+                        <Button Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center" x:Name="setting" Click="opsetting">
                             <Button.Tag>
                                 <Image Source="/image/setting.png" Width="28" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Button.Tag>
@@ -500,6 +543,7 @@
                     <Grid x:Name="MainGrid">
                         <StackPanel Margin="15,0,15,0">
                             <Button Style="{StaticResource ComposeButtonStyle}" 
+                                    x:Name="btncompose"
                             Height="50"
                             Margin="10,30,10,10"
                             Content="✏️   Compose" 
@@ -541,6 +585,7 @@
                                 </Button.Tag>
                             </Button>
                         </StackPanel>
+
                     </Grid>
                 </Border>
                 <Border Grid.Row="2" 
@@ -550,67 +595,44 @@
                     >
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="30"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
-                            <Border CornerRadius="25" ClipToBounds="True">
-                                <Rectangle Margin="-5">
-                                    <Rectangle.Effect>
-                                        <BlurEffect Radius="90" KernelType="Gaussian"/>
-                                    </Rectangle.Effect>
-                                    <Rectangle.Fill>
-                                        <VisualBrush Stretch="None" AlignmentX="Center" AlignmentY="Center"/>
-                                    </Rectangle.Fill>
-                                </Rectangle>
-                            </Border>
-
-                            <Border>
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-
-                                        <GradientStop Color="#30FFFFFF" Offset="0"/>
-
-                                        <GradientStop Color="#30FFFFFF" Offset="1"/>
-
-                                    </LinearGradientBrush>
-                                </Border.Background>
+                            <Border Background="#30FFFFFF">
                             </Border>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Name="SelectAll"
                                       HorizontalAlignment="Left"
-                   
-                                          
+                                      Checked="selectall"  
+                                      Unchecked="unselectall"
                                       VerticalAlignment="Center"
-                                      Margin="21,0,0,0"/>
+                                      Margin="25,0,0,0"/>
                                 <TextBlock Text="All" Foreground="White" HorizontalAlignment="Right"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0"
                                        FontSize="15"
                                        FontFamily="/Font/#Poppins"/>
                                 <Button Content="&#xE74D;" 
-                                        Margin="10,0,0,0"
                                         x:Name="DeleteButton"
+                                        Margin="20,0,0,0"
+                                        Style="{StaticResource TransparentButton}"
                                         FontFamily="Segoe MDL2 Assets" 
                                         FontSize="13" 
                                         Foreground="White"
                                         BorderThickness="0"
-                                        Width="50"
-
+                                        Width="30"
+                                        Click="deletmailselect"
                                         Background="Transparent"/>
                             </StackPanel>
                         </Grid>
 
                         <Grid x:Name="listview"
                           Grid.Row="1">
-                            <Border CornerRadius="8"
-                            Margin="10">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FFFFFFFF" Offset="0"/>
-                                        <GradientStop Color="#FFFFFFFF" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
+                            <Border x:Name="backgroundlistmail"
+                                    CornerRadius="8"
+                                    Margin="10"
+                                    Background="White">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.05" BlurRadius="10" ShadowDepth="0"/>
                                 </Border.Effect>
@@ -784,7 +806,7 @@
 
                                                 <CheckBox x:Name="Checkbox1" 
                                                           Grid.Column="0"
-                                                          IsChecked="{Binding IsFlag}"/>
+                                                          IsChecked="{Binding IsFlag, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding FromUser}" FontWeight="Bold" FontSize="15" TextTrimming="CharacterEllipsis"/>
                                                     <TextBlock Text="{Binding Subject}" Foreground="Gray" FontSize="13" TextTrimming="CharacterEllipsis"/>
@@ -795,8 +817,10 @@
                                                     FontFamily="Segoe MDL2 Assets" 
                                                     FontSize="16" 
                                                     BorderThickness="0"
+                                                    Foreground="Black"
                                                     HorizontalAlignment="Right"
                                                     Width="50"
+                                                    Style="{StaticResource TransparentButton}"
                                                     Background="Transparent"
                                                     Visibility="Hidden"
                                                     Click="deletemail"/>
@@ -845,7 +869,7 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="30"/>
                                         <RowDefinition Height="*"/>
-                                        <RowDefinition Height="50"/>
+                                        <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
                                     <Button x:Name="return" 
                                         Grid.Row="0"
@@ -863,12 +887,24 @@
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                         </Button.Tag>
                                     </Button>
-                                    <wv2:WebView2 x:Name="contentEmail"
-                                              Grid.Row="1"
-                                              Panel.ZIndex="0"/>
+                                    <ContentControl Grid.Row="1" Panel.ZIndex="0">
+                                        <ContentControl.Content>
+                                            <wv2:WebView2 x:Name="contentEmail"/>
+                                        </ContentControl.Content>
+
+                                        <d:ContentControl.Content>
+                                            <Border Background="#EEE">
+                                                <TextBlock Text="WebView2 (runtime only)"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="Gray"/>
+                                            </Border>
+                                        </d:ContentControl.Content>
+                                    </ContentControl>
                                     <Border Grid.Row="2"
-                                        BorderThickness="0"
-                                        CornerRadius="0,0,10,10"
+                                            BorderThickness="0"
+                                            x:Name="bottommail"
+                                            CornerRadius="0,0,10,10"
                                         >
                                         <Border.Effect>
                                             <DropShadowEffect Direction="270" 
@@ -877,41 +913,57 @@
                                                           Opacity="0.4" 
                                                           BlurRadius="15" />
                                         </Border.Effect>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button x:Name="btnReponse"
-                                        Visibility="Visible"
-                                        Focusable="False"
-                                        Height="40"
-                                        Width="120"
-                                        Margin="80,0,0,0"
-                                        Style="{StaticResource ReplyButtonStyle}"
-                                        HorizontalAlignment="Left"
-                                        Content="Reply">
-                                                <Button.Tag>
-                                                    <Image Source="/image/back.png" 
-                                               VerticalAlignment="Top"
-                                               Height="27"
-                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                </Button.Tag>
-                                            </Button>
-                                            <Button x:Name="btnForward"
-                                        Visibility="Visible"
-                                        Focusable="False"
-                                        Height="40"
-                                        Width="120"
-                                        Margin="10,0,0,0"
-                                        Style="{StaticResource ReplyButtonStyle}"
-                                        HorizontalAlignment="Left"
-                                        Content="Forward">
-                                                <Button.Tag>
-                                                    <Image Source="/image/back.png" 
-                                               VerticalAlignment="Top"
-                                               Height="27"
-                                               FlowDirection="RightToLeft"
-                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                </Button.Tag>
-                                            </Button>
-                                        </StackPanel>
+                                        <Grid>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button x:Name="btnReponse"
+                                                        Visibility="Visible"
+                                                        Focusable="False"
+                                                        Height="40"
+                                                        Width="120"
+                                                        Margin="80,5,0,5"
+                                                        Click="opreply"
+                                                        Style="{StaticResource ReplyButtonStyle}"
+                                                        HorizontalAlignment="Left"
+                                                        Content="Reply">
+                                                    <Button.Tag>
+                                                        <Image Source="/image/back.png" 
+                                                               VerticalAlignment="Top"
+                                                               Height="27"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Button.Tag>
+                                                </Button>
+                                                <Button x:Name="btnForward"
+                                                        Visibility="Visible"
+                                                        Focusable="False"
+                                                        Height="40"
+                                                        Width="120"
+                                                        Margin="10,5,0,5"
+                                                        Style="{StaticResource ReplyButtonStyle}"
+                                                        HorizontalAlignment="Left"
+                                                        Click="opforward"
+                                                        Content="Forward">
+                                                    <Button.Tag>
+                                                        <Image Source="/image/back.png" 
+                                                               VerticalAlignment="Top"
+                                                               Height="27"
+                                                               FlowDirection="RightToLeft"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Button.Tag>
+                                                </Button>
+                                            </StackPanel>
+                                            <local:Reply x:Name="reply" Margin="10"
+                                                         Visibility="Collapsed"
+                                                         HorizontalAlignment="Stretch" 
+                                                         VerticalAlignment="Stretch"            
+                                                         MinHeight="250"
+                                                         />
+                                            <local:Forward x:Name="forward" Margin="10"
+                                                         Visibility="Collapsed"
+                                                         HorizontalAlignment="Stretch" 
+                                                         VerticalAlignment="Stretch"            
+                                                         MinHeight="250"
+                                                         />
+                                        </Grid>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -923,6 +975,16 @@
                         </Grid>
                     </Grid>
                 </Border>
+                <Popup x:Name="settingpoup"
+                   PlacementTarget="{Binding ElementName=setting}" 
+                   Placement="Bottom"
+                   HorizontalOffset="-200" 
+                   VerticalOffset="10"
+                   StaysOpen="False"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade">
+                    <local:setting x:Name="settingcontrol"/>
+                </Popup>
                 <Popup x:Name="AccountPopup"
                    PlacementTarget="{Binding ElementName=OpAccount}" 
                    Placement="Bottom"
@@ -931,8 +993,7 @@
                    StaysOpen="False"
                    AllowsTransparency="True"
                    PopupAnimation="Fade">
-                    <local:ListAccount x:Name="ListAccountControl" 
-                                   />
+                    <local:ListAccount x:Name="ListAccountControl"/>
                 </Popup>
             </Grid>
         </Grid>

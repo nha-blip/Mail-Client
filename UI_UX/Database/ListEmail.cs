@@ -13,15 +13,14 @@ namespace MailClient
     {
         private DatabaseHelper db;
         public int soluong;
-        public ObservableCollection<Email>  listemail;
+        public ObservableCollection<Email> listemail;
         public DateTime _latestDateSent;
         public ListEmail(int accountID)
         {
             listemail = new ObservableCollection<Email>();
             db = new DatabaseHelper();
             _latestDateSent = new DateTime(1753, 1, 1);
-            LoadEmail(accountID);
-            
+
         }
         public void Refresh(int accountID)
         {
@@ -35,7 +34,7 @@ namespace MailClient
                              WHERE E.AccountID = @AccID AND E.DateSent > @LastDate 
                              ORDER BY E.DateSent DESC";
 
-            
+
             SqlParameter[] parameters = new SqlParameter[]
             {
                 new SqlParameter("@AccID", accountID),
@@ -205,14 +204,14 @@ namespace MailClient
             this.listemail.Add(e);
         }
 
-        public List<MailClient.Email> GetConversation(long threadId, long folderId)
+        public List<MailClient.Email> GetConversation(long threadId, long accountId)
         {
             if (threadId == 0) return new List<MailClient.Email>();
 
-            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId AND FolderId = @FolderId ORDER BY DateSent ASC";
-            SqlParameter[] param = { 
+            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId AND AccountId = @AccountId ORDER BY DateSent ASC";
+            SqlParameter[] param = {
                 new SqlParameter("@ThreadId", threadId),
-                new SqlParameter("@FolderId", folderId)
+                new SqlParameter("@AccountId", accountId)
             };
 
             DatabaseHelper db = new DatabaseHelper();
@@ -245,7 +244,7 @@ namespace MailClient
                     DateSent = Convert.ToDateTime(row["DateSent"]),
                     IsRead = Convert.ToBoolean(row["IsRead"]),
                     UID = row["UID"] != DBNull.Value ? Convert.ToInt64(row["UID"]) : 0,
-                    ThreadId = row["ThreadId"] != DBNull.Value ? Convert.ToInt64(row["ThreadId"]) : 0  
+                    ThreadId = row["ThreadId"] != DBNull.Value ? Convert.ToInt64(row["ThreadId"]) : 0
                 };
 
                 conversationList.Add(e);

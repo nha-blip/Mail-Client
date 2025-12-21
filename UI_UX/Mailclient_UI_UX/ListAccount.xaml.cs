@@ -41,6 +41,7 @@ namespace Mailclient
         {
             Logingg login = new Logingg();
             login.Show();
+            login.Activate();
         }
 
         // Thêm hàm xử lý khi click vào 1 dòng trong ListView (Thay cho MouseDown cũ)

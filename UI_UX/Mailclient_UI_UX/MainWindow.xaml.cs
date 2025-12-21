@@ -1,13 +1,17 @@
 using MailClient;
 using MailClient.Core.Services;
+using ManagedNativeWifi;
+using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -24,6 +28,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using static Google.Apis.Requests.BatchRequest;
+using System.Net.NetworkInformation;
 namespace Mailclient
 {
     /// <summary>
@@ -57,6 +62,14 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             StartEmailSync();
             SyncAndReload();
+            StartWifiMonitor();
+            if (!DesignerProperties.GetIsInDesignMode(this))
+            {
+                Loaded += async (_, __) =>
+                {
+                    await contentEmail.EnsureCoreWebView2Async();
+                };
+            }
         }
 
         private void UpdateUI_CurrentFolder()
@@ -160,7 +173,10 @@ namespace Mailclient
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Cho phép kéo cửa sổ
-            this.DragMove();
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
 
         }
 
@@ -232,6 +248,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void resetcolor()
@@ -259,6 +276,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void spam(object sender, RoutedEventArgs e)
@@ -267,6 +285,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void drafts(object sender, RoutedEventArgs e)
@@ -275,6 +294,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
 
         private void allmail(object sender, RoutedEventArgs e)
@@ -283,6 +303,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
         private void trash(object sender, RoutedEventArgs e)
         {
@@ -290,6 +311,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             ResetScrollView();
             CloseEmailView();
+            unselectall(null, null);
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -397,7 +419,6 @@ namespace Mailclient
 
         private void deletemail(object sender, RoutedEventArgs e)
         {
-            // Lấy Button được click
             var button = sender as Button;
 
             // Lấy đối tượng Email được liên kết với Button đó
@@ -423,6 +444,8 @@ namespace Mailclient
 
         private async void content(object sender, SelectionChangedEventArgs e)
         {
+            SetComposeButtonState(false);
+            composecontent.Visibility = Visibility.Collapsed;
             // Kiểm tra an toàn
             if (MyEmailList.SelectedIndex == -1 || MyEmailList.SelectedItem == null) return;
 
@@ -446,7 +469,7 @@ namespace Mailclient
 
                     if (_currentReadingEmail.ThreadId != 0)
                     {
-                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.FolderID);
+                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.AccountID);
 
                         // Load attach cho từng mail
                         foreach (var email in _currentConversation)
@@ -477,6 +500,8 @@ namespace Mailclient
 
                     // 3. BƯỚC GHÉP NỐI: Bọc nội dung vào khung chuẩn
                     finalHtml = ApplyMasterLayout(innerContent);
+
+                    Console.WriteLine(finalHtml);
 
                     // 4. Lưu và hiển thị
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
@@ -615,13 +640,15 @@ namespace Mailclient
 
         private void CloseEmailView()
         {
+            MyEmailList.SelectionChanged -= content;
             // Ẩn giao diện đọc mail
             mailcontent.Visibility = Visibility.Collapsed;
-
+            reply.Visibility = Visibility.Collapsed;
+            SetComposeButtonState(true);
             // Bỏ chọn list
             MyEmailList.SelectedIndex = -1;
             MyEmailList.UnselectAll();
-
+            MyEmailList.SelectionChanged += content;
             // Lấy lại Focus cho Window
             this.Focus();
         }
@@ -780,6 +807,44 @@ namespace Mailclient
             }
         }
 
+        private void opreply(object sender, RoutedEventArgs e)
+        {
+            var selectedEmail = MyEmailList.SelectedItem as Email; // Thay 'EmailModel' bằng tên class thật của bạn
+
+            if (selectedEmail != null)
+            {
+                forward.Visibility = Visibility.Collapsed;
+                reply.DataContext = selectedEmail;
+
+                reply.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một email để trả lời.");
+            }
+        }
+
+        private void opforward(object sender, RoutedEventArgs e)
+        {
+            var selectedEmail = MyEmailList.SelectedItem as Email;
+
+            if (selectedEmail != null)
+            {
+                // 2. Ẩn form Reply (nếu đang mở)
+                reply.Visibility = Visibility.Collapsed;
+                forward.Visibility = Visibility.Visible;
+                // 3. Gọi hàm truyền nội dung sang Forward
+                // Giả sử 'Body' là thuộc tính chứa nội dung HTML của email
+                forward.SetForwardContent(selectedEmail.BodyText);
+
+                // 4. Reset ô nhập người nhận
+                forward.txtTo.Text = "";
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một thư để chuyển tiếp!");
+            }
+        }
         private async void MyEmailList_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             if (App.currentAccountService == null || App.currentMailService==null) return;
@@ -868,6 +933,131 @@ namespace Mailclient
             if (scrollViewer != null)
             {
                 scrollViewer.ScrollToTop();
+            }
+        }
+        private void SetComposeButtonState(bool isEnabled)
+        {
+            if (btncompose != null)
+            {
+                btncompose.IsEnabled = isEnabled;
+                btncompose.Opacity = isEnabled ? 1.0 : 0.5;
+            }
+        }
+        private void StartWifiMonitor()
+        {
+            DispatcherTimer wifiTimer = new DispatcherTimer();
+            wifiTimer.Interval = TimeSpan.FromSeconds(1); 
+            wifiTimer.Tick += (s, e) => UpdateWifiStatus();
+            wifiTimer.Start();
+
+            UpdateWifiStatus(); 
+        }
+        private async Task<long> GetPingAsync()
+        {
+            try
+            {
+                Ping myPing = new Ping();
+                // Ping thử đến DNS của Google để kiểm tra tốc độ mạng thực tế
+                PingReply reply = await myPing.SendPingAsync("8.8.8.8", 1000);
+
+                if (reply.Status == IPStatus.Success)
+                {
+                    return reply.RoundtripTime; 
+                }
+            }
+            catch { }
+            return -1; 
+        }
+        private async void UpdateWifiStatus()
+        {
+            try
+            {
+
+                var connectedNetwork = NativeWifi.EnumerateConnectedNetworkSsids().FirstOrDefault();
+                long pingTime = await GetPingAsync();
+
+                if (connectedNetwork != null)
+                {
+                    bgwifi.Visibility = Visibility.Visible;
+
+                    var availableNetworks = NativeWifi.EnumerateAvailableNetworks();
+                    var currentNet = availableNetworks.FirstOrDefault(n => n.Ssid.ToString() == connectedNetwork.ToString());
+
+                    if (currentNet != null)
+                    {
+                        int signalQuality = currentNet.SignalQuality;
+                        
+                        txtWifiStatus.Text = $"{pingTime} ms";
+
+                        if (signalQuality > 80) wifiIcon.Text = "\uE701";
+                        else if (signalQuality > 50) wifiIcon.Text = "\uE874";
+                        else if (signalQuality > 20) wifiIcon.Text = "\uE873";
+                        else wifiIcon.Text = "\uE872"; 
+                    }
+                }
+                else
+                {
+                    txtWifiStatus.Text = "Disconnected";
+                    bgwifi.Visibility = Visibility.Collapsed;
+                    wifiIcon.Text = "\uF384";
+                }
+            }
+            catch
+            {
+                txtWifiStatus.Text = "No Wi-Fi";
+            }
+        }
+
+        private void selectall(object sender, RoutedEventArgs e)
+        {
+            foreach (var email in list.listemail)
+            {
+                email.IsFlag = true;
+            }
+            MyEmailList.Items.Refresh();
+        }
+
+        private void unselectall(object sender, RoutedEventArgs e)
+        {
+            SelectAll.IsChecked = false;
+            foreach (var email in list.listemail)
+            {
+                email.IsFlag = false;
+            }
+            MyEmailList.Items.Refresh();
+        }
+
+        private void deletmailselect(object sender, RoutedEventArgs e)
+        {
+            foreach (var email in list.listemail)
+            {
+                if(email.IsFlag == true)
+                {
+                    email.UpdateFolderEmail("Trash");
+                    email.FolderName = "Trash";
+
+                    UpdateUI_CurrentFolder();
+                    CloseEmailView();
+                }
+            }
+        }
+
+        private void opsetting(object sender, RoutedEventArgs e)
+        {
+            settingpoup.IsOpen = !settingpoup.IsOpen;
+        }
+        public void ChangeAppBackground(ImageSource source)
+        {
+            if (source != null)
+            {
+                imageBackground.Source = source;
+                imageBackground.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // Ẩn ảnh đi để lộ màu nền tối của Window
+                imageBackground.Visibility = Visibility.Collapsed;
+                imageBackground.Source = null;
             }
         }
     }
