@@ -112,6 +112,7 @@
                                 BorderThickness="0"
                                 Foreground="#D93025"
                                 ToolTip="Đăng xuất"
+                                Click="Logout"
                                 Cursor="Hand">
                                     <Button.Style>
                                         <Style TargetType="Button">

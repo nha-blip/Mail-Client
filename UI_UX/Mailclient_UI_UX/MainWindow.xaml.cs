@@ -40,18 +40,19 @@ namespace Mailclient
         private MailService mailService;
         private bool isFirstLoad = true;
         private List<MailClient.Email> _currentConversation;
-        private bool isSyncing = false;
+        public bool isSyncing = false;
         private bool _isLoadingOldMail = false;
+        public DatabaseHelper db;
 
         public MainWindow()
         {
             InitializeComponent();
             mailService = App.currentMailService;
             InitializeWebView();
-
+            db = new DatabaseHelper();
             listAcc = new MailClient.ListAccount();
-            listAcc.AddAccount(new Account(App.CurrentAccountID));
-            list = new MailClient.ListEmail(App.CurrentAccountID);
+            listAcc.AddAccount(new Account(db.GetCurrentAccountID()));
+            list = new MailClient.ListEmail(db.GetCurrentAccountID());
 
             UpdateUI_CurrentFolder();
             StartEmailSync();
@@ -67,12 +68,12 @@ namespace Mailclient
             if (currentFolder == "AllMail")
             {
                 sourceList = list.listemail
-                                .Where(email => email.FolderName != "Trash" && email.FolderName != "Spam" && email.AccountID == App.CurrentAccountID);
+                                .Where(email => email.FolderName != "Trash" && email.FolderName != "Spam" && email.AccountID == db.GetCurrentAccountID());
             }
             else
             {
                 sourceList = list.listemail
-                                .Where(email => email.FolderName == currentFolder && email.AccountID == App.CurrentAccountID);
+                                .Where(email => email.FolderName == currentFolder && email.AccountID == db.GetCurrentAccountID());
             }
             // GOM NHÓM THEO THREAD ID
             var groupedList = sourceList
@@ -97,50 +98,56 @@ namespace Mailclient
 
         public async Task SyncAndReload()
         {
-            if (isSyncing) return;
+            // 1. Lấy đúng ID và Service tại THỜI ĐIỂM NÀY
+            int targetAccountID = db.GetCurrentAccountID();
+            var currentService = App.currentMailService;
+            var token = App.GlobalSyncCts.Token;
 
+            if (isSyncing) return;
             isSyncing = true;
 
-            if (isFirstLoad)
-            {
-                ShowLoading("Đang tải dữ liệu lần đầu...");
-            }
-            // Kiểm tra xem có đang đăng nhập Google không
-            if (App.currentAccountService.IsSignedIn())
-            {
-                try
-                {
-                    // Tải TẤT CẢ thư mục từ Google -> Lưu vào SQL
-                    await mailService.SyncAllFoldersToDatabase(App.CurrentAccountID);
+            if (isFirstLoad) ShowLoading("Đang tải dữ liệu...");
 
-                    // Đọc lại Database lên RAM để lấy dữ liệu mới nhất
-                    list.Refresh(App.CurrentAccountID);
+            try
+            {
+                if (App.currentAccountService!=null && App.currentAccountService.IsSignedIn() && currentService != null)
+                {
+                    // 2. Kiểm tra token ngay trước khi gọi để chắc chắn không chạy luồng đã hủy
+                    token.ThrowIfCancellationRequested();
 
-                    // Cập nhật lại giao diện (đang đứng ở folder nào thì refresh folder đó)
-                    UpdateUI_CurrentFolder();
-                }
-                catch (Exception ex)
-                {
-                    // Có thể log lỗi vào file hoặc console thay vì hiện MessageBox liên tục gây phiền
-                    Console.WriteLine("Lỗi Sync: " + ex.Message);
-                }
-                finally
-                {
-                    // Mở khóa để lần sau sync tiếp
-                    isSyncing = false;
-                    // this.Title = "MailClient";
-                    if (isFirstLoad)
+                    // 3. Sử dụng currentService cục bộ thay vì mailService của class
+                    await currentService.SyncAllFoldersToDatabase(targetAccountID, token);
+
+                    // 4. Chỉ Refresh UI nếu ID vẫn khớp (người dùng chưa bấm swap tiếp)
+                    if (targetAccountID == db.GetCurrentAccountID() && !token.IsCancellationRequested)
                     {
-                        HideLoading();
-                        isFirstLoad = false;
+                        list.Refresh(targetAccountID);
+                        UpdateUI_CurrentFolder();
                     }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"[Sync] Đã hủy tiến trình của tài khoản {targetAccountID}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi Sync: " + ex.Message);
+            }
+            finally
+            {
+                isSyncing = false;
+                if (isFirstLoad)
+                {
+                    HideLoading();
+                    isFirstLoad = false;
                 }
             }
         }
         private void StartEmailSync()
         {
             syncTimer = new DispatcherTimer();
-            syncTimer.Interval = TimeSpan.FromSeconds(5);
+            syncTimer.Interval = TimeSpan.FromSeconds(15);
             syncTimer.Tick += syncTimer_Tick;
             syncTimer.Start();
         }
@@ -775,6 +782,7 @@ namespace Mailclient
 
         private async void MyEmailList_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
+            if (App.currentAccountService == null || App.currentMailService==null) return;
             var scrollViewer = e.OriginalSource as ScrollViewer;
             if (scrollViewer == null) return;
 
@@ -809,10 +817,10 @@ namespace Mailclient
 
                 // B. GỌI SERVICE TẢI THÊM 20 THƯ
                 // (Hàm này bạn đã thêm vào MailService ở bước trước)
-                await mailService.LoadOlderEmails(App.CurrentAccountID, currentFolder, 20);
+                await mailService.LoadOlderEmails(db.GetCurrentAccountID(), currentFolder, 20);
 
                 // C. LÀM MỚI DANH SÁCH TRÊN RAM
-                list.LoadMoreOldEmails(App.CurrentAccountID, currentFolder);
+                list.LoadMoreOldEmails(db.GetCurrentAccountID(), currentFolder);
 
                 // D. CẬP NHẬT GIAO DIỆN
                 UpdateUI_CurrentFolder();

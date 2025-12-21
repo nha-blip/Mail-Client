@@ -113,6 +113,19 @@
                             <TextBlock Text="Tiếp tục với Google" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                        <Button x:Name="loginOffline"
+                                Width="220"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="Offline_Click"
+                                Margin="10">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/image/offline1.png"
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Width="24" Height="24" Margin="0,0,10,0"/>
+                                <TextBlock Text="Đăng nhập Offline " VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
+                        </Button>
 
                 </StackPanel>
             </Grid>

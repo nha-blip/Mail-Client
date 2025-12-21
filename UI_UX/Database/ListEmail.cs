@@ -253,5 +253,52 @@ namespace MailClient
 
             return conversationList;
         }
+        public void GetAllMail()
+        {
+            string query = @"SELECT * FROM Email E
+                             JOIN Folder F ON F.FolderID = E.FolderID
+                             JOIN Account A ON A.AccountID=E.AccountID
+                             ORDER BY E.DateSent DESC";
+
+            // 3. Gọi hàm ExecuteQuery kèm theo parameters
+            DataTable dt = db.ExecuteQuery(query);
+            foreach (DataRow row in dt.Rows)
+            {
+                string toField = Convert.ToString(row["ToAdd"]) ?? "";
+                string[] toArray = string.IsNullOrWhiteSpace(toField) ? new string[0] : toField.Split(',');
+
+                DateTime currentSentDate = Convert.ToDateTime(row["DateSent"]);
+                if (currentSentDate > _latestDateSent)
+                {
+                    _latestDateSent = currentSentDate;
+                }
+
+                Email e = new Email(
+                    Convert.ToString(row["FolderName"]) ?? "",
+                    Convert.ToString(row["FromUser"]) ?? "",
+                    Convert.ToString(row["AccountName"]) ?? "",
+                    Convert.ToString(row["SubjectEmail"]) ?? "",
+                    Convert.ToString(row["FromAdd"]) ?? "",
+                    toArray,
+                    Convert.ToDateTime(row["DateSent"]),
+                    Convert.ToDateTime(row["DateReceived"]),
+                    Convert.ToString(row["BodyText"]) ?? "",
+                    Convert.ToBoolean(row["IsRead"] ?? false),
+                    Convert.ToInt32(row["ID"])
+                );
+
+                if (dt.Columns.Contains("UID") && row["UID"] != DBNull.Value)
+                {
+                    e.UID = Convert.ToInt64(row["UID"]);
+                }
+
+                if (dt.Columns.Contains("ThreadId") && row["ThreadId"] != DBNull.Value)
+                {
+                    e.ThreadId = Convert.ToInt64(row["ThreadId"]);
+                }
+
+                listemail.Add(e);
+            }
+        }
     }
 }

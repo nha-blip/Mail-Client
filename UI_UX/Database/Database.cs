@@ -52,7 +52,23 @@ namespace MailClient
                 return cmd.ExecuteNonQuery();
             }
         }
-
+        public int GetCurrentAccountID()
+        {
+            string query = "Select AccountID From StaticVariable Where ID=1";
+            DataTable dt = ExecuteQuery(query);
+            return int.Parse(dt.Rows[0][0].ToString());
+        }
+        public void SetCurrentAccountID(int accountID)
+        {
+            string query = @"Update StaticVariable
+                           Set AccountID=@AccountID
+                            Where ID=1";
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@AccountID",accountID)
+            };
+            ExecuteNonQuery(query, parameters);
+        }
         public int LoginOrRegisterGoogle(string email, string displayName)
         {
             string checkQuery = "SELECT AccountID FROM Account WHERE Email = @Email";

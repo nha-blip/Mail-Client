@@ -238,7 +238,6 @@ namespace MailClient.Core.Services
 
             var accessToken = await _accountService.GetAccessTokenAsync(token);
 
-            // Tạo kết nối MỘT LẦN dùng chung cho tất cả folder
             using (var client = new ImapClient())
             {
                 try
@@ -246,19 +245,26 @@ namespace MailClient.Core.Services
                     await client.ConnectAsync(ImapHost, ImapPort, SecureSocketOptions.SslOnConnect, token);
                     await client.AuthenticateAsync(new SaslMechanismOAuth2(_accountService._userEmail, accessToken), token);
 
-                    // Lấy danh sách tất cả folder trên server
                     var personalNamespace = client.PersonalNamespaces[0];
                     var allFolders = await client.GetFoldersAsync(personalNamespace, StatusItems.None, true, token);
 
                     foreach (var folder in allFolders)
                     {
-                        // Bỏ qua folder gốc [Gmail] hoặc các folder không chọn được
+                        // CHỐT CHẶN: Nếu đã bị hủy hoặc mất kết nối thì thoát hẳn vòng lặp
+                        if (token.IsCancellationRequested || !client.IsConnected) return;
+
                         if ((folder.Attributes & FolderAttributes.NoSelect) != 0) continue;
                         if (folder.Name == "[Gmail]") continue;
 
-                        // Gọi hàm xử lý nội bộ, tái sử dụng client
+                        // Đồng bộ thư mục hiện tại
                         await SyncFolderInternal(client, folder, localAccountID, token);
+                        Console.WriteLine($"Finished syncing folder: {folder.Name} for ID: {localAccountID}");
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ngoại lệ này xảy ra khi token.ThrowIfCancellationRequested() được gọi
+                    Console.WriteLine($"[INFO] Sync task for Account {localAccountID} was cancelled.");
                 }
                 catch (Exception ex)
                 {
@@ -266,7 +272,11 @@ namespace MailClient.Core.Services
                 }
                 finally
                 {
-                    if (client.IsConnected) await client.DisconnectAsync(true, token);
+                    // Chỉ Disconnect nếu vẫn còn kết nối để tránh lỗi chồng lỗi
+                    if (client.IsConnected)
+                    {
+                        await client.DisconnectAsync(true, CancellationToken.None);
+                    }
                 }
             }
         }
@@ -274,7 +284,7 @@ namespace MailClient.Core.Services
         public async Task LoadOlderEmails(int localAccountID, string folderName, int amountToLoad = 20)
         {
             if (!_accountService.IsSignedIn()) return;
-
+            Console.WriteLine("them thu cu");
             var accessToken = await _accountService.GetAccessTokenAsync();
 
             using (var client = new ImapClient())
@@ -442,6 +452,7 @@ namespace MailClient.Core.Services
                 {
                     try
                     {
+                        token.ThrowIfCancellationRequested();
                         long threadId = 0;
                         // Chúng ta fetch Summary trước để lấy ThreadId
                         var items = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.GMailThreadId | MessageSummaryItems.UniqueId, token);
@@ -469,7 +480,15 @@ namespace MailClient.Core.Services
                         emailToSave.ThreadId = threadId;
 
                         // Lưu vào DB
-                        emailToSave.AddEmail();
+                        if (!token.IsCancellationRequested)
+                        {
+                            emailToSave.AddEmail();
+                        }
+                        else
+                        {
+                            return;
+                        }
+
 
                         // Lưu Attachments
                         if (emailToSave.emailID > 0 && emailToSave.TempAttachments != null)

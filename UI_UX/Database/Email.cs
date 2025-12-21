@@ -139,13 +139,23 @@ namespace MailClient
 
         public void AddEmail() // Thêm thư vào database
         {
+            DatabaseHelper checkDb = new DatabaseHelper();
+            int activeAccountID = checkDb.GetCurrentAccountID();
+
+            // Nếu ID của bức thư này không khớp với tài khoản đang active, TUYỆT ĐỐI không lưu
+            if (this.AccountID != activeAccountID)
+            {
+                Console.WriteLine($"[BLOCK] Chặn rò rỉ: Thư của {this.AccountID} định ghi vào {activeAccountID}");
+                return;
+            }
+
             string toString = string.Join(",", To.Select(e => e.Trim()));
 
             string checkUidQuery = "SELECT COUNT(*) FROM Email WHERE UID=@UID AND FolderID=@FolderID AND AccountID=@AccountID";
             SqlParameter[] p = {
-                    new SqlParameter("@UID", UID),
-                    new SqlParameter("@FolderID", FolderID),
-                    new SqlParameter("@AccountID", AccountID)
+                    new SqlParameter("@UID", this.UID),
+                    new SqlParameter("@FolderID", this.FolderID),
+                    new SqlParameter("@AccountID", this.AccountID)
                 };
             DataTable dt = db.ExecuteQuery(checkUidQuery, p);
             if (dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0][0]) > 0) return;

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using MailClient;
 
 namespace Mailclient
 {
@@ -79,6 +80,26 @@ namespace Mailclient
         {
            logincontent.Visibility = Visibility.Collapsed;
            forgotPasswordContent.Visibility = Visibility.Visible;
+        }
+        private void Login_Offline(object sender, EventArgs e)
+        {
+           Account acc = new Account(nameuser.Text, password.Password);
+            if (acc.CheckAccount(nameuser.Text,password.Password))
+            {
+                DatabaseHelper db= new DatabaseHelper();
+                db.SetCurrentAccountID(acc.AccountID);
+                App.currentAccountService = null;
+                App.currentMailService = null;
+                MainWindow mainWindow= new MainWindow();
+                mainWindow.Show();
+                this.Close();
+                Application.Current.MainWindow=mainWindow;
+            }
+            else
+            {
+                MessageBox.Show("Tài khoản hoặc mật khẩu sai!");
+            }
+                
         }
     }
 }
