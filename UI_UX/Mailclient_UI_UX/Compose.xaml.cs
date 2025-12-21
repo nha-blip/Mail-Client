@@ -67,7 +67,7 @@ namespace Mailclient
                     </script>
                 </head>
                 <body contenteditable='true'>
-                    <p><br></p>
+                    <div dir=""ltr""></div>
                 </body>
                 </html>";
 
@@ -80,6 +80,11 @@ namespace Mailclient
         private void closecompose(object sender, RoutedEventArgs e)
         {
             this.Visibility = Visibility.Collapsed;
+            // Reset dữ liệu khi đóng
+            _attachmentList.Clear();
+            To.Text = "";
+            Subject.Text = "";
+            if (EditorWebView != null && EditorWebView.CoreWebView2 != null) EditorWebView.Reload();
         }
 
         private void Minimize(object sender, RoutedEventArgs e)

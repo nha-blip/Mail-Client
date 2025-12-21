@@ -494,8 +494,6 @@ namespace Mailclient
                     // 3. BƯỚC GHÉP NỐI: Bọc nội dung vào khung chuẩn
                     finalHtml = ApplyMasterLayout(innerContent);
 
-                    Console.WriteLine(finalHtml);
-
                     // 4. Lưu và hiển thị
                     string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "email_view.html");
                     System.IO.File.WriteAllText(tempPath, finalHtml);
@@ -802,13 +800,13 @@ namespace Mailclient
 
         private void opreply(object sender, RoutedEventArgs e)
         {
-            var selectedEmail = MyEmailList.SelectedItem as Email; // Thay 'EmailModel' bằng tên class thật của bạn
+            var selectedEmail = MyEmailList.SelectedItem as Email; 
 
             if (selectedEmail != null)
             {
                 forward.Visibility = Visibility.Collapsed;
                 reply.DataContext = selectedEmail;
-
+                reply.SetReplyInfo(selectedEmail);
                 reply.Visibility = Visibility.Visible;
             }
             else

@@ -78,6 +78,15 @@ namespace MailClient
                     e.ThreadId = Convert.ToInt64(row["ThreadId"]);
                 }
 
+                if (dt.Columns.Contains("MessageID") && row["MessageID"] != DBNull.Value)
+                    e.MessageID = Convert.ToString(row["MessageID"]);
+
+                if (dt.Columns.Contains("InReplyTo") && row["InReplyTo"] != DBNull.Value)
+                    e.InReplyTo = Convert.ToString(row["InReplyTo"]);
+
+                if (dt.Columns.Contains("References") && row["References"] != DBNull.Value)
+                    e.References = Convert.ToString(row["References"]);
+
                 listemail.Add(e);
             }
         }
@@ -174,6 +183,15 @@ namespace MailClient
                 if (dt.Columns.Contains("UID") && row["UID"] != DBNull.Value) e.UID = Convert.ToInt64(row["UID"]);
                 if (dt.Columns.Contains("ThreadId") && row["ThreadId"] != DBNull.Value) e.ThreadId = Convert.ToInt64(row["ThreadId"]);
 
+                if (dt.Columns.Contains("MessageID") && row["MessageID"] != DBNull.Value)
+                    e.MessageID = Convert.ToString(row["MessageID"]);
+
+                if (dt.Columns.Contains("InReplyTo") && row["InReplyTo"] != DBNull.Value)
+                    e.InReplyTo = Convert.ToString(row["InReplyTo"]);
+
+                if (dt.Columns.Contains("References") && row["References"] != DBNull.Value)
+                    e.References = Convert.ToString(row["References"]);
+
                 // Thêm vào ObservableCollection -> UI sẽ nhận được thông báo
                 listemail.Add(e);
             }
@@ -244,7 +262,10 @@ namespace MailClient
                     DateSent = Convert.ToDateTime(row["DateSent"]),
                     IsRead = Convert.ToBoolean(row["IsRead"]),
                     UID = row["UID"] != DBNull.Value ? Convert.ToInt64(row["UID"]) : 0,
-                    ThreadId = row["ThreadId"] != DBNull.Value ? Convert.ToInt64(row["ThreadId"]) : 0
+                    ThreadId = row["ThreadId"] != DBNull.Value ? Convert.ToInt64(row["ThreadId"]) : 0,
+                    MessageID = row.Table.Columns.Contains("MessageID") ? (Convert.ToString(row["MessageID"]) ?? "") : "",
+                    InReplyTo = row.Table.Columns.Contains("InReplyTo") ? (Convert.ToString(row["InReplyTo"]) ?? "") : "",
+                    References = row.Table.Columns.Contains("References") ? (Convert.ToString(row["References"]) ?? "") : ""
                 };
 
                 conversationList.Add(e);

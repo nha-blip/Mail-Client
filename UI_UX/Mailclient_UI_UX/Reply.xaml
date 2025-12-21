@@ -65,8 +65,6 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -114,7 +112,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Border Grid.Row="4" Background="#EAF1FB" Padding="10" CornerRadius="0,0,8,8">
+            <Border Grid.Row="3" Background="#EAF1FB" Padding="10" CornerRadius="0,0,8,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>

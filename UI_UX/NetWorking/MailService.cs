@@ -52,6 +52,26 @@ namespace MailClient.Core.Services
             // Set subject
             message.Subject = mailModel.Subject ?? "(No Subject)";
 
+            // Header: In-Reply-To
+            if (!string.IsNullOrEmpty(mailModel.InReplyTo))
+            {
+                // Loại bỏ ký tự < > nếu có, vì MimeKit tự thêm
+                string cleanId = mailModel.InReplyTo.Trim('<', '>', ' ');
+                message.InReplyTo = cleanId;
+            }
+
+            // Header: References
+            if (!string.IsNullOrEmpty(mailModel.References))
+            {
+                // References thường là chuỗi các ID cách nhau bởi dấu cách
+                var refs = mailModel.References.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var refId in refs)
+                {
+                    string cleanRef = refId.Trim('<', '>', ' ');
+                    message.References.Add(cleanRef);
+                }
+            }
+
             // Set body contents (handles both HTML and Plain Text)
             var bodyBuilder = new BodyBuilder();
 
@@ -458,7 +478,12 @@ namespace MailClient.Core.Services
                     {
                         long threadId = 0;
                         // Chúng ta fetch Summary trước để lấy ThreadId
-                        var items = await folder.FetchAsync(new[] { uid }, MessageSummaryItems.GMailThreadId | MessageSummaryItems.UniqueId, token);
+                        var items = await folder.FetchAsync(new[] { uid },
+                            MessageSummaryItems.GMailThreadId |
+                            MessageSummaryItems.UniqueId |
+                            MessageSummaryItems.Envelope | 
+                            MessageSummaryItems.References);
+
                         var summary = items.FirstOrDefault();
 
                         // 2. Lấy giá trị GMThreadId (Kiểu ulong) và ép sang long
@@ -481,6 +506,8 @@ namespace MailClient.Core.Services
                         emailToSave.AccountName = _accountService._userName;
                         emailToSave.UID = uid.Id;
                         emailToSave.ThreadId = threadId;
+                        emailToSave.MessageID = mimeMessage.MessageId;
+                        emailToSave.References = mimeMessage.References.ToString();
 
                         // Lưu vào DB
                         emailToSave.AddEmail();

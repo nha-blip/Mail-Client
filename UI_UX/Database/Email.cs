@@ -28,6 +28,9 @@ namespace MailClient
         private bool _IsFlag { get; set; }
         public long UID { get; set; }
         public long ThreadId { get; set; }
+        public string MessageID { get; set; } 
+        public string InReplyTo { get; set; }  
+        public string References { get; set; }
 
         // 1. Sửa Setter của IsFlag
         public bool IsFlag
@@ -62,9 +65,9 @@ namespace MailClient
 
                 string query = @"Update Email set IsFlag=@IsFlag where ID=@EmailId";
                 SqlParameter[] parameters = new SqlParameter[] {
-            new SqlParameter("@IsFlag", status),
-            new SqlParameter("@EmailId", this.emailID)
-        };
+                    new SqlParameter("@IsFlag", status),
+                    new SqlParameter("@EmailId", this.emailID)
+                };
 
                 localDb.ExecuteNonQuery(query, parameters);
             }
@@ -151,8 +154,8 @@ namespace MailClient
             if (dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0][0]) > 0) return;
 
 
-            string query = @"Insert into Email(AccountID, FolderID, SubjectEmail, FromUser, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, UID, ThreadId)
-                        Values(@AccountID, @FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @UID, @ThreadId);
+            string query = @"Insert into Email(AccountID, FolderID, SubjectEmail, FromUser, FromAdd, ToAdd, DateSent, DateReceived, BodyText, IsRead, UID, ThreadId, MessageID, InReplyTo, [References])
+                        Values(@AccountID, @FolderID, @SubjectEmail, @FromUser, @FromAdd, @ToAdd, @DateSent, @DateReceived, @BodyText, @IsRead, @UID, @ThreadId, @MessageID, @InReplyTo, @References);
                         SELECT SCOPE_IDENTITY();";
 
             SqlParameter[] parameters = new SqlParameter[] {
@@ -167,7 +170,10 @@ namespace MailClient
                 new SqlParameter("@BodyText", BodyText ?? ""),
                 new SqlParameter("@IsRead", IsRead),
                 new SqlParameter("@UID", UID),
-                new SqlParameter("@ThreadId", ThreadId)
+                new SqlParameter("@ThreadId", ThreadId),
+                new SqlParameter("@MessageID", MessageID ?? ""),
+                new SqlParameter("@InReplyTo", InReplyTo ?? ""),
+                new SqlParameter("@References", References ?? "")
             };
 
             DataTable res = db.ExecuteQuery(query, parameters);
