@@ -204,14 +204,14 @@ namespace MailClient
             this.listemail.Add(e);
         }
 
-        public List<MailClient.Email> GetConversation(long threadId, long folderId)
+        public List<MailClient.Email> GetConversation(long threadId, long accountId)
         {
             if (threadId == 0) return new List<MailClient.Email>();
 
-            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId AND FolderId = @FolderId ORDER BY DateSent ASC";
+            string query = @"SELECT * FROM Email WHERE ThreadId = @ThreadId AND AccountId = @AccountId ORDER BY DateSent ASC";
             SqlParameter[] param = {
                 new SqlParameter("@ThreadId", threadId),
-                new SqlParameter("@FolderId", folderId)
+                new SqlParameter("@AccountId", accountId)
             };
 
             DatabaseHelper db = new DatabaseHelper();

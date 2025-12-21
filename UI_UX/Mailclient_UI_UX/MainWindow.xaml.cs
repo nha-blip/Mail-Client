@@ -454,7 +454,7 @@ namespace Mailclient
 
                     if (_currentReadingEmail.ThreadId != 0)
                     {
-                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.FolderID);
+                        _currentConversation = list.GetConversation(_currentReadingEmail.ThreadId, _currentReadingEmail.AccountID);
 
                         // Load attach cho từng mail
                         foreach (var email in _currentConversation)
