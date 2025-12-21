@@ -302,6 +302,16 @@
                   Grid.Column="0"
                   Grid.ColumnSpan="2"
                   Background="#30FFFFFF">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0">
+                        <Grid>
+                            <TextBlock x:Name="bgwifi" Text="&#xE701;" FontFamily="Segoe MDL2 Assets" 
+                                       Foreground="#33FFFFFF" VerticalAlignment="Center" FontSize="16"/>
+                            <TextBlock x:Name="wifiIcon" Text="&#xE701;" FontFamily="Segoe MDL2 Assets" 
+                                        Foreground="White" VerticalAlignment="Center" FontSize="16"/>
+                        </Grid>
+                        <TextBlock x:Name="txtWifiStatus" Text="100%" Foreground="White" 
+                                       Margin="5,5,0,0" VerticalAlignment="Center" FontSize="12"/>
+                    </StackPanel>
                     <StackPanel HorizontalAlignment="Right"
                             Orientation="Horizontal">
                         <Button x:Name="btnMinimize" 
@@ -542,6 +552,7 @@
                                 </Button.Tag>
                             </Button>
                         </StackPanel>
+
                     </Grid>
                 </Border>
                 <Border Grid.Row="2" 

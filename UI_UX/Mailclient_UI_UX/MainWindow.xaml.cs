@@ -1,13 +1,17 @@
 using MailClient;
 using MailClient.Core.Services;
+using ManagedNativeWifi;
+using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -24,8 +28,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using static Google.Apis.Requests.BatchRequest;
-using Microsoft.Web.WebView2.Wpf;
-using System.ComponentModel;
+using System.Net.NetworkInformation;
 namespace Mailclient
 {
     /// <summary>
@@ -58,7 +61,7 @@ namespace Mailclient
             UpdateUI_CurrentFolder();
             StartEmailSync();
             SyncAndReload();
-
+            StartWifiMonitor();
             if (!DesignerProperties.GetIsInDesignMode(this))
             {
                 Loaded += async (_, __) =>
@@ -925,6 +928,70 @@ namespace Mailclient
             {
                 btncompose.IsEnabled = isEnabled;
                 btncompose.Opacity = isEnabled ? 1.0 : 0.5;
+            }
+        }
+        private void StartWifiMonitor()
+        {
+            DispatcherTimer wifiTimer = new DispatcherTimer();
+            wifiTimer.Interval = TimeSpan.FromSeconds(1); 
+            wifiTimer.Tick += (s, e) => UpdateWifiStatus();
+            wifiTimer.Start();
+
+            UpdateWifiStatus(); 
+        }
+        private async Task<long> GetPingAsync()
+        {
+            try
+            {
+                Ping myPing = new Ping();
+                // Ping thử đến DNS của Google để kiểm tra tốc độ mạng thực tế
+                PingReply reply = await myPing.SendPingAsync("8.8.8.8", 1000);
+
+                if (reply.Status == IPStatus.Success)
+                {
+                    return reply.RoundtripTime; 
+                }
+            }
+            catch { }
+            return -1; 
+        }
+        private async void UpdateWifiStatus()
+        {
+            try
+            {
+
+                var connectedNetwork = NativeWifi.EnumerateConnectedNetworkSsids().FirstOrDefault();
+                long pingTime = await GetPingAsync();
+
+                if (connectedNetwork != null)
+                {
+                    bgwifi.Visibility = Visibility.Visible;
+
+                    var availableNetworks = NativeWifi.EnumerateAvailableNetworks();
+                    var currentNet = availableNetworks.FirstOrDefault(n => n.Ssid.ToString() == connectedNetwork.ToString());
+
+                    if (currentNet != null)
+                    {
+                        int signalQuality = currentNet.SignalQuality;
+                        
+                        txtWifiStatus.Text = $"{pingTime} ms";
+
+                        if (signalQuality > 80) wifiIcon.Text = "\uE701";
+                        else if (signalQuality > 50) wifiIcon.Text = "\uE874";
+                        else if (signalQuality > 20) wifiIcon.Text = "\uE873";
+                        else wifiIcon.Text = "\uE872"; 
+                    }
+                }
+                else
+                {
+                    txtWifiStatus.Text = "Disconnected";
+                    bgwifi.Visibility = Visibility.Collapsed;
+                    wifiIcon.Text = "\uF384";
+                }
+            }
+            catch
+            {
+                txtWifiStatus.Text = "No Wi-Fi";
             }
         }
     }
