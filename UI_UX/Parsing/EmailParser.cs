@@ -212,16 +212,16 @@ namespace Mailclient
                 content = match.Groups[1].Value;
             }
 
-            // CẮT BỎ PHẦN REPLY
-            int gmailQuoteIndex = content.IndexOf("class=\"gmail_quote\"");
-            if (gmailQuoteIndex > 0)
-            {
-                int startDiv = content.LastIndexOf("<div", gmailQuoteIndex, StringComparison.OrdinalIgnoreCase);
-                if (startDiv > -1)
-                {
-                    content = content.Substring(0, startDiv);
-                }
-            }
+            //// CẮT BỎ PHẦN REPLY
+            //int gmailQuoteIndex = content.IndexOf("class=\"gmail_quote\"");
+            //if (gmailQuoteIndex > 0)
+            //{
+            //    int startDiv = content.LastIndexOf("<div", gmailQuoteIndex, StringComparison.OrdinalIgnoreCase);
+            //    if (startDiv > -1)
+            //    {
+            //        content = content.Substring(0, startDiv);
+            //    }
+            //}
 
             // Xóa các thẻ HTML bao quanh gây lỗi giao diện (nếu còn sót lại)
             content = Regex.Replace(content, @"<!DOCTYPE[^>]*>", "", RegexOptions.IgnoreCase);

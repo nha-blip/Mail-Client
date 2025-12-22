@@ -828,14 +828,12 @@ namespace Mailclient
 
             if (selectedEmail != null)
             {
-                // 2. Ẩn form Reply (nếu đang mở)
+                // Ẩn form Reply (nếu đang mở)
                 reply.Visibility = Visibility.Collapsed;
                 forward.Visibility = Visibility.Visible;
-                // 3. Gọi hàm truyền nội dung sang Forward
-                // Giả sử 'Body' là thuộc tính chứa nội dung HTML của email
-                forward.SetForwardContent(selectedEmail.BodyText);
+                forward.SetForwardInfo(selectedEmail);
 
-                // 4. Reset ô nhập người nhận
+                // Reset ô nhập người nhận
                 forward.txtTo.Text = "";
             }
             else

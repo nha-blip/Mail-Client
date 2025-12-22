@@ -20,7 +20,7 @@ namespace MailClient
             listemail = new ObservableCollection<Email>();
             db = new DatabaseHelper();
             _latestDateSent = new DateTime(1753, 1, 1);
-
+            LoadEmail(db.GetCurrentAccountID());
         }
         public void Refresh(int accountID)
         {

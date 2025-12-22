@@ -278,7 +278,6 @@ namespace MailClient.Core.Services
 
                         // Đồng bộ thư mục hiện tại
                         await SyncFolderInternal(client, folder, localAccountID, token);
-                        Console.WriteLine($"Finished syncing folder: {folder.Name} for ID: {localAccountID}");
                     }
                 }
                 catch (OperationCanceledException)
@@ -304,7 +303,6 @@ namespace MailClient.Core.Services
         public async Task LoadOlderEmails(int localAccountID, string folderName, int amountToLoad = 20)
         {
             if (!_accountService.IsSignedIn()) return;
-            Console.WriteLine("them thu cu");
             var accessToken = await _accountService.GetAccessTokenAsync();
 
             using (var client = new ImapClient())

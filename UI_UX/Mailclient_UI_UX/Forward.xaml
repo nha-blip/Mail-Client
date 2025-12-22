@@ -67,6 +67,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" BorderBrush="#F1F3F4" BorderThickness="0,0,0,1" Padding="15,8">
@@ -85,7 +86,35 @@
                 <wv2:WebView2 x:Name="EditorWebView" Margin="2"/>
             </Grid>
 
-            <Grid Grid.Row="2" Margin="10,5,10,10">
+            <ListBox x:Name="lbAttachments" Grid.Row="2" MaxHeight="120" BorderThickness="0" Background="Transparent" Margin="10,5" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Margin" Value="0,2"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#F5F5F5" CornerRadius="4" Padding="10,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FileName}" FontWeight="Bold" Foreground="#0b57d0" TextTrimming="CharacterEllipsis" MaxWidth="350"/>
+                                    <TextBlock Text="{Binding FileSize}" Foreground="#5f6368" Margin="5,0,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="✕" Click="RemoveAttachment_Click" Tag="{Binding}" Background="Transparent" BorderThickness="0" Foreground="#757575" FontWeight="Bold" Cursor="Hand" Padding="5,0"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="3" Margin="10,5,10,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
