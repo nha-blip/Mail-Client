@@ -111,7 +111,7 @@ namespace Mailclient
 
         public async Task SyncAndReload()
         {
-            // 1. Lấy đúng ID và Service tại THỜI ĐIỂM NÀY
+            // Lấy thông tin tài khoản hiện tại
             int targetAccountID = db.GetCurrentAccountID();
             var currentService = App.currentMailService;
             var token = App.GlobalSyncCts.Token;
@@ -119,29 +119,68 @@ namespace Mailclient
             if (isSyncing) return;
             isSyncing = true;
 
+            // Chỉ hiện loading ở lần đầu mở app, các lần sau sync ngầm
             if (isFirstLoad) ShowLoading("Đang tải dữ liệu...");
 
             try
             {
-                if (App.currentAccountService!=null && App.currentAccountService.IsSignedIn() && currentService != null)
+                if (App.currentAccountService != null && App.currentAccountService.IsSignedIn() && currentService != null)
                 {
-                    // 2. Kiểm tra token ngay trước khi gọi để chắc chắn không chạy luồng đã hủy
                     token.ThrowIfCancellationRequested();
 
-                    // 3. Sử dụng currentService cục bộ thay vì mailService của class
+                    // --- [LOGIC MỚI BẮT ĐẦU] ---
+
+                    // 1. LƯU TRẠNG THÁI CŨ: Lấy UID của thư mới nhất trong Inbox hiện tại
+                    string oldLatestUID = "";
+                    var oldInboxTop = list.listemail
+                                       .Where(e => e.FolderName == "Inbox" && e.AccountID == targetAccountID)
+                                       .OrderByDescending(e => e.DateSent)
+                                       .FirstOrDefault();
+
+                    if (oldInboxTop != null) oldLatestUID = oldInboxTop.UID.ToString();
+
+                    // ---------------------------
+
+                    // 2. GỌI SERVER ĐỒNG BỘ (Tải thư mới về DB)
                     await currentService.SyncAllFoldersToDatabase(targetAccountID, token);
 
-                    // 4. Chỉ Refresh UI nếu ID vẫn khớp (người dùng chưa bấm swap tiếp)
+                    // 3. KIỂM TRA LẠI: Nếu người dùng chưa đổi tài khoản khác thì mới update UI
                     if (targetAccountID == db.GetCurrentAccountID() && !token.IsCancellationRequested)
                     {
+                        // Làm mới danh sách trên RAM
                         list.Refresh(targetAccountID);
-                        UpdateUI_CurrentFolder();
+
+                        // Cập nhật giao diện (nếu không đang tìm kiếm)
+                        if (string.IsNullOrEmpty(SearchBar.Text))
+                        {
+                            UpdateUI_CurrentFolder();
+                        }
+
+                        // 4. SO SÁNH ĐỂ BẮN THÔNG BÁO
+                        // Chỉ thông báo nếu KHÔNG phải lần tải đầu tiên (tránh vừa mở app đã báo)
+                        if (!isFirstLoad)
+                        {
+                            var newInboxTop = list.listemail
+                                                  .Where(e => e.FolderName == "Inbox" && e.AccountID == targetAccountID)
+                                                  .OrderByDescending(e => e.DateSent)
+                                                  .FirstOrDefault();
+
+                            // Nếu có thư mới nhất VÀ nó khác thư cũ
+                            if (newInboxTop != null && newInboxTop.UID.ToString() != oldLatestUID)
+                            {
+                                // Play âm thanh hệ thống (Tùy chọn)
+                                System.Media.SystemSounds.Asterisk.Play();
+
+                                // Hiện thông báo
+                                ShowNotification("Bạn có thư mới!", $"Từ: {newInboxTop.From}\nTiêu đề: {newInboxTop.Subject}");
+                            }
+                        }
                     }
                 }
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine($"[Sync] Đã hủy tiến trình của tài khoản {targetAccountID}");
+                Console.WriteLine($"[Sync] Đã hủy tiến trình sync.");
             }
             catch (Exception ex)
             {
@@ -172,7 +211,6 @@ namespace Mailclient
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Cho phép kéo cửa sổ
             if (e.ChangedButton == MouseButton.Left)
             {
                 this.DragMove();
@@ -410,7 +448,6 @@ namespace Mailclient
                 sizeWin = new Rect(this.Left, this.Top, this.Width, this.Height);
 
                 // 2. Set kích thước bằng ĐÚNG vùng làm việc (WorkArea = Màn hình - Taskbar)
-                // Cách này đảm bảo 100% không đè Taskbar
                 this.Left = SystemParameters.WorkArea.Left;
                 this.Top = SystemParameters.WorkArea.Top;
                 this.Width = SystemParameters.WorkArea.Width;
@@ -1095,6 +1132,49 @@ namespace Mailclient
                 imageBackground.Visibility = Visibility.Collapsed;
                 imageBackground.Source = null;
             }
+        }
+        public void ShowNotification(string title, string message)
+        {
+            // Kiểm tra null để tránh lỗi nếu icon chưa khởi tạo xong
+            if (MyNotifyIcon != null)
+            {
+                // Tham số: Tiêu đề, Nội dung, Icon (Info/Warning/Error)
+                MyNotifyIcon.ShowBalloonTip(title, message, Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+            }
+        }
+
+        private void OpenApp_Click(object sender, RoutedEventArgs e)
+        {
+            this.Show(); 
+            this.WindowState = WindowState.Normal; 
+            this.Activate(); 
+        }
+
+        private void ExitApp_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (MyNotifyIcon != null)
+            {
+                MyNotifyIcon.Dispose();
+            }
+
+            Application.Current.Shutdown();
+        }
+
+        private void OnBalloonClicked(object sender, RoutedEventArgs e)
+        {
+            // 1. Hiện cửa sổ lên (nếu đang ẩn)
+            this.Show();
+
+            // 2. Nếu đang bị thu nhỏ (minimized) thì trả về kích thước bình thường
+            if (this.WindowState == WindowState.Minimized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+
+            // 3. Đưa cửa sổ lên trên cùng để người dùng thấy ngay
+            this.Activate();
+            this.Focus();
         }
     }
 }

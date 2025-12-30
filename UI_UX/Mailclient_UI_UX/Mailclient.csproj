@@ -102,7 +102,9 @@
 		<None Remove="image\logo uit.png" />
 		<None Remove="image\Logo-google-icon-PNG.png" />
 		<None Remove="image\logo.png" />
+		<None Remove="image\Logo_UIT.ico" />
 		<None Remove="image\logo_uit.png" />
+		<None Remove="image\Logo_UIT_updated.jpg" />
 		<None Remove="image\multiple-emails.png" />
 		<None Remove="image\offline.png" />
 		<None Remove="image\offline1.png" />
@@ -122,6 +124,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Resource Include="image\Logo_UIT_updated.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
@@ -136,6 +142,7 @@
 		<Resource Include="image\iconsearch.png" />
 		<Resource Include="image\information.png" />
 		<Resource Include="image\left-arrow.png" />
+		<Resource Include="image\Logo_UIT.ico" />
 		<Resource Include="image\offline1.png" />
 		<Resource Include="image\reply.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -149,6 +156,7 @@
 		<PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
 		<PackageReference Include="Google.Apis.Gmail.v1" Version="1.73.0.3987" />
 		<PackageReference Include="Google.Apis.PeopleService.v1" Version="1.72.0.3973" />
+		<PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
 		<PackageReference Include="MailKit" Version="4.14.1" />
 		<PackageReference Include="ManagedNativeWifi" Version="3.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />

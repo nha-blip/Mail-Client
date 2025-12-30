@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:local="clr-namespace:Mailclient"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:chrome="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
@@ -286,12 +287,29 @@
     </Window.Resources>
     <Border x:Name="mainborder">
         <Grid>
+            <Grid Visibility="Collapsed">
+                <tb:TaskbarIcon x:Name="MyNotifyIcon"
+                ToolTipText="Mail Client đang chạy"
+                IconSource="/image/Logo_UIT.ico" 
+                MenuActivation="LeftOrRightClick"
+                                TrayBalloonTipClicked="OnBalloonClicked">
+
+                    <tb:TaskbarIcon.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Mở ứng dụng" Click="OpenApp_Click"/>
+                            <MenuItem Header="Thoát" Click="ExitApp_Click"/>
+                        </ContextMenu>
+                    </tb:TaskbarIcon.ContextMenu>
+                </tb:TaskbarIcon>
+            </Grid>
             <Image x:Name="imageBackground" 
                    Stretch="UniformToFill" 
                    IsHitTestVisible="False"/>
+            
             <Grid x:Name="AppLoadingOverlay" 
               Visibility="Collapsed" 
               Panel.ZIndex="9999">
+                
                 <Border Background="#AA000000" MouseDown="BlockClick_MouseDown"/>
 
                 <Border Background="White" 
