@@ -155,7 +155,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <Style x:Key="SearchBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#F1F3F4"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -178,7 +178,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Image Source="/image/search.png"
+                                <Image Source="/image/iconsearch.png"
                                        Margin="15,0,5,0"
                                        Height="20"
                                        RenderOptions.BitmapScalingMode="HighQuality"
@@ -192,7 +192,7 @@
                                            Visibility="Collapsed"/>
                                 <ScrollViewer x:Name="PART_ContentHost" 
                                               Grid.Column="1"
-                                              VerticalAlignment="Center"/>
+                                              VerticalAlignment="Center" Margin="0,0,20,0"/>
                             </Grid>
                         </Border>
 
@@ -213,7 +213,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <Style x:Key="ReplyButtonStyle" TargetType="Button">
 
             <Setter Property="Template">
@@ -288,7 +288,7 @@
         <Grid>
             <Image x:Name="imageBackground" 
                    Stretch="UniformToFill" 
-                   IsHitTestVisible="False"/>   
+                   IsHitTestVisible="False"/>
             <Grid x:Name="AppLoadingOverlay" 
               Visibility="Collapsed" 
               Panel.ZIndex="9999">
@@ -413,7 +413,11 @@
                      Grid.Column="0"
                      Background="Transparent" 
                      MinHeight="64">
-                        <Border CornerRadius="25" ClipToBounds="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="7*"/>
+                            <RowDefinition Height="57*"/>
+                        </Grid.RowDefinitions>
+                        <Border CornerRadius="25" ClipToBounds="True" Grid.RowSpan="2">
                             <Rectangle Margin="-5">
                                 <Rectangle.Effect>
                                     <BlurEffect Radius="90" KernelType="Gaussian"/>
@@ -424,7 +428,7 @@
                             </Rectangle>
                         </Border>
 
-                        <Border>
+                        <Border Grid.RowSpan="2">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
 
@@ -438,9 +442,8 @@
                         <TextBox x:Name="SearchBar"
                     Style="{StaticResource SearchBoxStyle}"
                          TextChanged="TextBox_TextChanged"
-                         HorizontalAlignment="Stretch"
-                         VerticalAlignment="Center"
-                         Margin="10,0,70,0"/>
+                         VerticalAlignment="Top"
+                         Margin="10,5,70,0" Grid.Row="1"/>
                     </Grid>
 
                     <Grid Grid.Column="1">
@@ -467,7 +470,7 @@
                             </Border.Background>
                         </Border>
 
-                        <Button Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center">
+                        <Button ToolTip="Thông tin"  Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center">
                             <Button.Tag>
                                 <Image Source="/image/information.png" Width="28" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Button.Tag>
@@ -498,7 +501,7 @@
                             </Border.Background>
                         </Border>
 
-                        <Button Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center" x:Name="setting" Click="opsetting">
+                        <Button ToolTip="Cài Đặt"  Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center" x:Name="setting" Click="opsetting">
                             <Button.Tag>
                                 <Image Source="/image/setting.png" Width="28" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Button.Tag>
@@ -978,7 +981,7 @@
                 <Popup x:Name="settingpoup"
                    PlacementTarget="{Binding ElementName=setting}" 
                    Placement="Bottom"
-                   HorizontalOffset="-200" 
+                   HorizontalOffset="-115" 
                    VerticalOffset="10"
                    StaysOpen="False"
                    AllowsTransparency="True"

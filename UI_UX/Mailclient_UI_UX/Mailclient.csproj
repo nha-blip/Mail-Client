@@ -94,6 +94,7 @@
 		<None Remove="image\email.png" />
 		<None Remove="image\google logo.webp" />
 		<None Remove="image\google_logo-removebg-preview.png" />
+		<None Remove="image\iconsearch.png" />
 		<None Remove="image\inbox.png" />
 		<None Remove="image\information.png" />
 		<None Remove="image\left-arrow.png" />
@@ -132,6 +133,7 @@
 	<ItemGroup>
 		<Resource Include="image\attach-document.png" />
 		<Resource Include="image\back.png" />
+		<Resource Include="image\iconsearch.png" />
 		<Resource Include="image\information.png" />
 		<Resource Include="image\left-arrow.png" />
 		<Resource Include="image\offline1.png" />

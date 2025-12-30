@@ -204,28 +204,34 @@ namespace Mailclient
         {
             string searchText = SearchBar.Text.ToLower();
 
+            // Lấy ID tài khoản hiện tại để lọc
+            int currentAccID = db.GetCurrentAccountID();
+
             if (string.IsNullOrEmpty(searchText))
             {
-                // Nếu xóa text tìm kiếm, load lại theo folder hiện tại
                 UpdateUI_CurrentFolder();
             }
             else
             {
-                // Lấy danh sách nguồn dựa trên Folder hiện tại
                 IEnumerable<MailClient.Email> sourceList;
 
                 if (currentFolder == "AllMail")
                 {
-                    // Nếu đang ở All Mail: Lấy tất cả trừ Trash và Spam
-                    sourceList = list.listemail.Where(email => email.FolderName != "Trash" && email.FolderName != "Spam");
+                    // SỬA: Thêm điều kiện AccountID
+                    sourceList = list.listemail.Where(email =>
+                        email.FolderName != "Trash" &&
+                        email.FolderName != "Spam" &&
+                        email.AccountID == currentAccID);
                 }
                 else
                 {
-                    // Các trường hợp khác (Inbox, Sent, Draft...): Lấy đúng theo tên folder
-                    sourceList = list.listemail.Where(email => email.FolderName == currentFolder);
+                    // SỬA: Thêm điều kiện AccountID
+                    sourceList = list.listemail.Where(email =>
+                        email.FolderName == currentFolder &&
+                        email.AccountID == currentAccID);
                 }
 
-                // Tìm kiếm text trong danh sách nguồn đó
+                // Tìm kiếm (Logic này giữ nguyên, chỉ thêm kiểm tra null an toàn hơn chút)
                 var searchResults = sourceList.Where(email =>
                     (email.Subject != null && email.Subject.ToLower().Contains(searchText)) ||
                     (email.AccountName != null && email.AccountName.ToLower().Contains(searchText)) ||
@@ -233,7 +239,7 @@ namespace Mailclient
                 );
 
                 var groupedResults = searchResults
-                    .GroupBy(email => email.ThreadId != 0 ? email.ThreadId : email.UID)
+                    .GroupBy(email => email.ThreadId != 0 ? email.ThreadId : email.UID) // Lưu ý: UID có thể trùng nếu khác folder, nhưng ở đây đã lọc folder/account nên tạm ổn
                     .Select(group => group.OrderByDescending(e => e.DateSent).FirstOrDefault())
                     .OrderByDescending(e => e.DateSent)
                     .ToList();
@@ -843,6 +849,10 @@ namespace Mailclient
         }
         private async void MyEmailList_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
+            if (!string.IsNullOrEmpty(SearchBar.Text))
+            {
+                return;
+            }
             if (App.currentAccountService == null || App.currentMailService==null) return;
             var scrollViewer = e.OriginalSource as ScrollViewer;
             if (scrollViewer == null) return;
@@ -1006,20 +1016,50 @@ namespace Mailclient
 
         private void selectall(object sender, RoutedEventArgs e)
         {
-            foreach (var email in list.listemail)
+            // 1. Lấy danh sách ĐANG HIỂN THỊ trên UI (đã qua bộ lọc search/folder)
+            var visibleList = MyEmailList.ItemsSource as IEnumerable<MailClient.Email>;
+
+            if (visibleList != null)
             {
-                email.IsFlag = true;
+                // 2. Duyệt qua từng email đang nhìn thấy
+                foreach (var visibleEmail in visibleList)
+                {
+                    // Đánh dấu chọn email hiển thị
+                    visibleEmail.IsFlag = true;
+
+                    // [QUAN TRỌNG - LOGIC GOM NHÓM]
+                    // Vì bạn đang hiển thị theo Thread (Hội thoại), một dòng trên UI có thể đại diện cho nhiều email.
+                    // Khi chọn dòng này, phải chọn luôn TẤT CẢ email con ẩn bên trong thread đó.
+                    if (visibleEmail.ThreadId != 0)
+                    {
+                        // Tìm trong danh sách gốc các email cùng ThreadID và cùng Account
+                        var childEmails = list.listemail.Where(x =>
+                                            x.ThreadId == visibleEmail.ThreadId &&
+                                            x.AccountID == visibleEmail.AccountID);
+
+                        foreach (var child in childEmails)
+                        {
+                            child.IsFlag = true;
+                        }
+                    }
+                }
             }
+
+            // 3. Cập nhật giao diện để hiện dấu tick
             MyEmailList.Items.Refresh();
         }
 
         private void unselectall(object sender, RoutedEventArgs e)
         {
-            SelectAll.IsChecked = false;
+            if (SelectAll != null) SelectAll.IsChecked = false;
+
+            // Cách nhanh nhất để bỏ chọn: Reset toàn bộ danh sách gốc
+            // Vì bỏ chọn thừa cũng không sao (không nguy hiểm như chọn thừa để xóa)
             foreach (var email in list.listemail)
             {
                 email.IsFlag = false;
             }
+
             MyEmailList.Items.Refresh();
         }
 
