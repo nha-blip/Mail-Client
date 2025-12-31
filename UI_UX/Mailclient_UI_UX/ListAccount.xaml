@@ -94,10 +94,21 @@
                                 </Grid>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                                    <TextBlock Text="{Binding Username}" 
-                                       FontWeight="Bold" 
-                                       FontSize="14" 
-                                       Foreground="#333"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Username}" 
+                                                   FontWeight="Bold" 
+                                                   FontSize="14" 
+                                                   Foreground="#333"/>
+
+                                        <TextBlock x:Name="ActiveCheckMark" 
+                                                   Text="&#xE930;" 
+                                                   FontFamily="Segoe MDL2 Assets" 
+                                                   Foreground="#0078D4" 
+                                                   FontSize="14"
+                                                   Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="Collapsed"/>
+                                    </StackPanel>
                                     <TextBlock Text="{Binding Email}" 
                                        FontSize="12" 
                                        Foreground="Gray" 
@@ -153,6 +164,19 @@
                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}" Value="True">
                                 <Setter TargetName="AccountCard" Property="BorderBrush" Value="#0078D4"/>
                                 <Setter TargetName="AccountCard" Property="Background" Value="#F8FDFF"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}" Value="True">
+                                <Setter TargetName="AccountCard" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="AccountCard" Property="Background" Value="#F8FDFF"/>
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                <Setter TargetName="AccountCard" Property="Background" Value="#E3F2FD"/>
+
+                                <Setter TargetName="AccountCard" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="AccountCard" Property="BorderThickness" Value="2"/>
+
+                                <Setter TargetName="ActiveCheckMark" Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </DataTemplate.Triggers>
 

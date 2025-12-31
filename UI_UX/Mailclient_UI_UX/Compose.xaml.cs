@@ -208,7 +208,6 @@ namespace Mailclient
                 model.AttachmentPaths = _attachmentList.Select(x => x.FilePath).ToList();
 
                 await App.currentMailService.SendEmailAsync(model);
-
                 MessageBox.Show("Email đã gửi thành công!");
 
                 // Reset form

@@ -1,15 +1,21 @@
 ﻿using MailClient;
+using MailClient.Core.Services;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading;      // Thêm cái này cho CancellationTokenSource
+using System.Threading.Tasks;// Thêm cái này cho Task.Delay
 using System.Windows;
 using System.Windows.Controls;
-using MailClient.Core.Services;
 
 namespace Mailclient
 {
     public partial class ListAccount : UserControl
     {
-        // Danh sách này CHỈ CHỨA DỮ LIỆU (Model), không chứa giao diện
+        // Danh sách này CHỈ CHỨA DỮ LIỆU (Model)
         public ObservableCollection<MailClient.Account> UiAccounts { get; set; }
+
+        // Khai báo DatabaseHelper dùng chung cho tiện
+        private DatabaseHelper dbHelper = new DatabaseHelper();
 
         public ListAccount()
         {
@@ -18,14 +24,19 @@ namespace Mailclient
             // 1. Khởi tạo danh sách rỗng
             UiAccounts = new ObservableCollection<MailClient.Account>();
 
-            // 2. Gán DataContext để XAML hiểu
+            // 2. Gán DataContext
             this.DataContext = this;
 
-            // 3. Liên kết ListView với danh sách dữ liệu
-            // (Từ giờ, cứ thêm data vào UiAccounts là giao diện tự hiện)
+            // 3. Liên kết ListView
             AccountListView.ItemsSource = UiAccounts;
 
-            // 4. Lấy dữ liệu từ Database
+            // 4. Load dữ liệu và cập nhật trạng thái Active
+            LoadAccounts();
+        }
+
+        // Tách hàm load ra cho gọn
+        private void LoadAccounts()
+        {
             MailClient.ListAccount dataHelper = new MailClient.ListAccount();
 
             if (dataHelper.listAccount != null)
@@ -35,7 +46,24 @@ namespace Mailclient
                     UiAccounts.Add(acc);
                 }
             }
+
+            // [QUAN TRỌNG] Gọi hàm này ngay khi mở app để tô màu acc đang dùng
+            UpdateActiveStatus();
         }
+
+        // --- [HÀM MỚI] CẬP NHẬT TRẠNG THÁI ACTIVE ---
+        public void UpdateActiveStatus()
+        {
+            // Lấy ID đang lưu trong Database
+            int currentID = dbHelper.GetCurrentAccountID();
+
+            foreach (var acc in UiAccounts)
+            {
+                // Nếu ID trùng thì Active = true (XAML sẽ tự tô xanh), ngược lại false
+                acc.IsActive = (acc.AccountID == currentID);
+            }
+        }
+        // --------------------------------------------
 
         private void addAcc(object sender, RoutedEventArgs e)
         {
@@ -44,13 +72,14 @@ namespace Mailclient
             login.Activate();
         }
 
-        // Thêm hàm xử lý khi click vào 1 dòng trong ListView (Thay cho MouseDown cũ)
+        // Xử lý khi chọn tài khoản khác
         private async void AccountListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = sender as ListView;
-            DatabaseHelper dp=new DatabaseHelper();
             var selectedAcc = listView.SelectedItem as MailClient.Account;
-            if (selectedAcc == null || selectedAcc.AccountID == dp.GetCurrentAccountID()) return;
+
+            // Nếu chưa chọn hoặc chọn trúng cái đang Active rồi thì thôi
+            if (selectedAcc == null || selectedAcc.IsActive) return;
 
             var mainWindow = Application.Current.MainWindow as MainWindow;
 
@@ -58,13 +87,22 @@ namespace Mailclient
             {
                 mainWindow.syncTimer.Stop();
 
-                // 1. HỦY TIẾN TRÌNH CŨ NGAY LẬP TỨC
-                App.GlobalSyncCts.Cancel();
-                App.GlobalSyncCts.Dispose();
+                // 1. HỦY TIẾN TRÌNH CŨ
+                if (App.GlobalSyncCts != null)
+                {
+                    App.GlobalSyncCts.Cancel();
+                    App.GlobalSyncCts.Dispose();
+                }
                 App.GlobalSyncCts = new CancellationTokenSource();
+
                 await Task.Delay(200);
-                // 2. CẬP NHẬT ID NGAY ĐỂ CHẶN CÁC LỆNH LƯU DB CỦA ACC CŨ
-                dp.SetCurrentAccountID(selectedAcc.AccountID);
+
+                // 2. CẬP NHẬT ID TRONG DB
+                dbHelper.SetCurrentAccountID(selectedAcc.AccountID);
+
+                // --- [CẬP NHẬT UI LIST NGAY LẬP TỨC] ---
+                UpdateActiveStatus();
+                // ----------------------------------------
 
                 mainWindow.CloseAccountPopup();
                 mainWindow.ShowLoading("Đang chuyển tài khoản...");
@@ -72,9 +110,9 @@ namespace Mailclient
                 // 3. XÓA SẠCH RAM & UI CŨ
                 if (mainWindow.list != null)
                 {
-                    mainWindow.list.listemail.Clear(); // Xóa thư cũ trong bộ nhớ
+                    mainWindow.list.listemail.Clear();
                 }
-                mainWindow.MyEmailList.ItemsSource = null; // Ngắt kết nối giao diện tạm thời
+                mainWindow.MyEmailList.ItemsSource = null;
 
                 // 4. CHUẨN BỊ TÀI KHOẢN MỚI
                 Account fullAccount = new Account(selectedAcc.AccountID);
@@ -84,16 +122,14 @@ namespace Mailclient
 
                 if (App.currentAccountService.IsSignedIn())
                 {
-                    // Reset trạng thái sync
                     mainWindow.isSyncing = false;
 
-                    // Khởi tạo list mới và gán lại UI
-                    Console.WriteLine(dp.GetCurrentAccountID());
-                    mainWindow.list = new ListEmail(dp.GetCurrentAccountID());
+                    Console.WriteLine(dbHelper.GetCurrentAccountID());
+                    mainWindow.list = new ListEmail(dbHelper.GetCurrentAccountID());
                     mainWindow.MyEmailList.ItemsSource = mainWindow.list.listemail;
 
                     Console.WriteLine("da tao xong list");
-                    //await mainWindow.SyncAndReload();
+                    // await mainWindow.SyncAndReload(); // Uncomment nếu muốn sync ngay
                 }
                 else
                 {
@@ -109,19 +145,23 @@ namespace Mailclient
             {
                 mainWindow.HideLoading();
                 if (mainWindow.syncTimer != null) mainWindow.syncTimer.Start();
-                listView.SelectedIndex = -1;
+                listView.SelectedIndex = -1; // Bỏ chọn dòng trên UI để không bị màu xám mặc định
             }
         }
+
         public void Logout(object sender, EventArgs e)
         {
-            MessageBoxResult result=MessageBox.Show("Đăng xuất",
-                                                "Bạn có chắc muốn đăng xuất",
-                                                MessageBoxButton.YesNo,
-                                                MessageBoxImage.Warning);
+            MessageBoxResult result = MessageBox.Show("Đăng xuất",
+                                                      "Bạn có chắc muốn đăng xuất?",
+                                                      MessageBoxButton.YesNo,
+                                                      MessageBoxImage.Warning);
             if (result == MessageBoxResult.No) return;
-            DatabaseHelper db= new DatabaseHelper();
-            Account acc = new Account(db.GetCurrentAccountID());
+
+            // Xóa tài khoản hiện tại
+            Account acc = new Account(dbHelper.GetCurrentAccountID());
             acc.DeleteAccount();
+
+            // Chuyển về màn hình Login
             var mainWindow = Application.Current.MainWindow as MainWindow;
             Logingg log = new Logingg();
             Application.Current.MainWindow = log;
