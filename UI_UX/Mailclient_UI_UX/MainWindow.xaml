@@ -488,7 +488,7 @@
                             </Border.Background>
                         </Border>
 
-                        <Button ToolTip="Thông tin"  Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center">
+                        <Button x:Name="information" ToolTip="Thông tin"  Style="{StaticResource MenuSearchButtonStyle}" HorizontalAlignment="Center" Click="opinfor">
                             <Button.Tag>
                                 <Image Source="/image/information.png" Width="28" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Button.Tag>
@@ -996,6 +996,16 @@
                         </Grid>
                     </Grid>
                 </Border>
+                <Popup x:Name="inforpopup"
+                   PlacementTarget="{Binding ElementName=information}" 
+                   Placement="Bottom"
+                   HorizontalOffset="-150" 
+                   VerticalOffset="10"
+                   StaysOpen="False"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade">
+                    <local:Information x:Name="inforcontrol"/>
+                </Popup>
                 <Popup x:Name="settingpoup"
                    PlacementTarget="{Binding ElementName=setting}" 
                    Placement="Bottom"
