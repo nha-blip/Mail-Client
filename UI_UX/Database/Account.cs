@@ -1,13 +1,15 @@
-﻿using System;
-using System.Data;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.ComponentModel;
+using System.Data;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace MailClient
+namespace MailClient 
 {
-    public class Account
+    public class Account : INotifyPropertyChanged
     {
         private DatabaseHelper db;
         public int AccountID { get; set; }
@@ -144,6 +146,26 @@ namespace MailClient
             string query = @"Delete from Account where AccountID=@AccountID";
             SqlParameter[] parameter = { new SqlParameter("@AccountID", AccountID) };
             db.ExecuteNonQuery(query, parameter);
+        }
+        private bool _isActive;
+        public bool IsActive
+        {
+            get { return _isActive; }
+            set
+            {
+                if (_isActive != value)
+                {
+                    _isActive = value;
+                    OnPropertyChanged(); // Báo cho UI biết để đổi màu
+                }
+            }
+        }
+
+        // Sự kiện để UI lắng nghe
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
