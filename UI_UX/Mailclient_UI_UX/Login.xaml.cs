@@ -101,5 +101,10 @@ namespace Mailclient
             }
                 
         }
+
+        private void textchange(object sender, TextChangedEventArgs e)
+        {
+            password.Password=password1.Text;
+        }
     }
 }

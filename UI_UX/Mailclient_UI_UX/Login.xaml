@@ -113,6 +113,7 @@
                              BorderThickness="0"
                              FontSize="14"
                              Padding="10,6,40,6"
+                                 TextChanged="textchange"
                              VerticalContentAlignment="Center" 
                              Visibility="Collapsed" />
 

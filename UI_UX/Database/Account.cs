@@ -130,12 +130,13 @@ namespace MailClient
         }
         public bool CheckAccount(string email, string password)
         {
-            string query = @"SELECT * FROM Account WHERE Email=@email AND EncryptedPassword=@password";
-            SqlParameter[] parameters = { new SqlParameter("@email", email), new SqlParameter("@password", password) };
-            DataTable dt = db.ExecuteQuery(query, parameters);
-            AccountID = Convert.ToInt32(dt.Rows[0][0]);
-            TokenJson = Convert.ToString(dt.Rows[0][4]) ?? "";
-            return dt.Rows.Count > 0 ? true : false;
+                string query = @"SELECT * FROM Account WHERE Email=@email AND EncryptedPassword=@password";
+                SqlParameter[] parameters = { new SqlParameter("@email", email), new SqlParameter("@password", password) };
+                DataTable dt = db.ExecuteQuery(query, parameters);
+                if (dt.Rows.Count == 0) return false;
+                AccountID = Convert.ToInt32(dt.Rows[0][0]);
+                TokenJson = Convert.ToString(dt.Rows[0][4]) ?? "";
+                return true;
         }
 
         public void DeleteAccount()
