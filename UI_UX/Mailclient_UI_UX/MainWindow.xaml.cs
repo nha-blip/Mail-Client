@@ -232,7 +232,7 @@ namespace Mailclient
                 AccountPopup.IsOpen = false;
             }
         }
-        private void opcompose(object sender, RoutedEventArgs e)
+        public void opcompose(object sender, RoutedEventArgs e)
         {
             composecontent.Visibility = Visibility.Visible;
         }
@@ -1175,6 +1175,18 @@ namespace Mailclient
             // 3. Đưa cửa sổ lên trên cùng để người dùng thấy ngay
             this.Activate();
             this.Focus();
+        }
+
+        private void opinfor(object sender, RoutedEventArgs e)
+        {
+            inforpopup.IsOpen = !inforpopup.IsOpen;
+        }
+        public void lienhe()
+        {
+            inforpopup.IsOpen = false;
+            composecontent.Visibility = Visibility.Visible;
+            composecontent.To.Text = "buitrantrongnguyen@gmail.com";
+            composecontent.Subject.Text = "Gửi phản hồi / Báo lỗi";
         }
     }
 }
