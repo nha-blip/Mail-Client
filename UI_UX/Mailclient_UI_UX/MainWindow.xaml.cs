@@ -915,6 +915,7 @@ namespace Mailclient
         {
             try
             {
+                
                 _isLoadingOldMail = true;
                 ShowLoading("Đang tải thư cũ...");
 

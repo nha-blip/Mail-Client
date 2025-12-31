@@ -182,7 +182,7 @@ namespace Mailclient
         // SỬA HÀM GỬI 
         private async void Send_Click(object sender, RoutedEventArgs e)
         {
-            if (!App.currentAccountService.IsSignedIn())
+            if (App.currentAccountService==null || !App.currentAccountService.IsSignedIn())
             {
                 MessageBox.Show("Vui lòng đăng nhập lại.", "Lỗi Xác thực");
                 return;

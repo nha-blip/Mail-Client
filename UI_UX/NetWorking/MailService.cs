@@ -302,7 +302,7 @@ namespace MailClient.Core.Services
 
         public async Task LoadOlderEmails(int localAccountID, string folderName, int amountToLoad = 20)
         {
-            if (!_accountService.IsSignedIn()) return;
+            if (_accountService==null || !_accountService.IsSignedIn()) return;
             var accessToken = await _accountService.GetAccessTokenAsync();
 
             using (var client = new ImapClient())
