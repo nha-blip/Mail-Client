@@ -724,6 +724,26 @@ namespace Mailclient
                     // Hỏi người dùng muốn lưu đâu
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
                     saveFileDialog.FileName = attachment.Name;
+                    // --- [BẮT ĐẦU ĐOẠN CODE THÊM MỚI] ---
+                    // 1. Lấy đuôi file từ tên file gốc (ví dụ: .pdf, .docx)
+                    string ext = System.IO.Path.GetExtension(attachment.Name).ToLower();
+
+                    // 2. Thiết lập Filter dựa trên đuôi file
+                    if (!string.IsNullOrEmpty(ext))
+                    {
+                        // Ví dụ: ext = ".pdf" -> Filter = "PDF File (*.pdf)|*.pdf|All Files (*.*)|*.*"
+                        // Bỏ dấu chấm ở đầu ext để hiển thị đẹp hơn
+                        string typeName = ext.TrimStart('.').ToUpper() + " File";
+                        saveFileDialog.Filter = $"{typeName} (*{ext})|*{ext}|All Files (*.*)|*.*";
+
+                        // 3. Thiết lập đuôi mặc định nếu người dùng quên gõ
+                        saveFileDialog.DefaultExt = ext.TrimStart('.');
+                    }
+                    else
+                    {
+                        // Nếu file không có đuôi (hiếm gặp), cho phép lưu mọi loại
+                        saveFileDialog.Filter = "All Files (*.*)|*.*";
+                    }
                     if (saveFileDialog.ShowDialog() == true)
                     {
                         string destinationPath = saveFileDialog.FileName;
